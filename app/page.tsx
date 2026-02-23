@@ -1,9 +1,16 @@
+import { Button } from "@/components/ui/button";
+
 export default function Home() {
   return (
-    <div className="flex min-h-screen my-32 justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex w-full max-w-3xl flex-col items-start  px-16 bg-white dark:bg-black sm:items-start">
+    <div className="flex min-h-screen my-32 justify-center font-sans">
+      <main className="flex w-full max-w-3xl flex-col items-start px-16 sm:items-start">
         <h1 className="text-4xl font-bold">skld</h1>
-        <p> exam simulation app</p>
+        <p className="mt-2 font-light text-lg"> exam simulation app</p>
+
+        <div className="mt-12 gap-4 flex">
+          <Button>Get Started</Button>
+          <Button variant={"outline"}>Learn More</Button>
+        </div>
       </main>
     </div>
   );
