@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, X, BookOpen, DollarSign, Clock, GraduationCap } from "lucide-react";
+import {
+  Search,
+  X,
+  BookOpen,
+  DollarSign,
+  Clock,
+  GraduationCap,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Exam {
@@ -29,7 +36,8 @@ const mockExams: Exam[] = [
     passingScore: 700,
     price: 749,
     level: "Advanced",
-    description: "The premier cybersecurity certification for experienced professionals",
+    description:
+      "The premier cybersecurity certification for experienced professionals",
     featured: true,
     gradient: "from-orange-600 to-red-700",
     organization: "ISC2",
@@ -58,19 +66,6 @@ const mockExams: Exam[] = [
     level: "Advanced",
     description: "Cloud security certification for IT leaders",
     gradient: "from-orange-500 to-red-600",
-    organization: "ISC2",
-  },
-  {
-    id: "ccsk",
-    name: "CCSK",
-    code: "ISC2-CCSK",
-    duration: 120,
-    questions: 100,
-    passingScore: 700,
-    price: 399,
-    level: "Intermediate",
-    description: "Certificate of Cloud Security Knowledge",
-    gradient: "from-orange-400 to-red-500",
     organization: "ISC2",
   },
   {
@@ -187,7 +182,11 @@ interface SearchDialogProps {
   onSearch?: (query: string) => void;
 }
 
-export function SearchDialog({ open: controlledOpen, onOpenChange, onSearch }: SearchDialogProps) {
+export function SearchDialog({
+  open: controlledOpen,
+  onOpenChange,
+  onSearch,
+}: SearchDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -344,7 +343,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange, onSearch }: S
                     >
                       {exam.code.split("-")[0]}
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <h4 className="font-bold text-lg">
@@ -390,21 +389,30 @@ export function SearchDialog({ open: controlledOpen, onOpenChange, onSearch }: S
           <div className="border-t p-4 flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">↑</kbd>
-                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">↓</kbd>
+                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">
+                  ↑
+                </kbd>
+                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">
+                  ↓
+                </kbd>
                 <span>to navigate</span>
               </div>
               <div className="flex items-center gap-2">
-                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">↵</kbd>
+                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">
+                  ↵
+                </kbd>
                 <span>to select</span>
               </div>
               <div className="flex items-center gap-2">
-                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">esc</kbd>
+                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">
+                  esc
+                </kbd>
                 <span>to close</span>
               </div>
             </div>
             <div className="text-sm">
-              {searchQuery && `${filteredExams.length} result${filteredExams.length !== 1 ? "s" : ""}`}
+              {searchQuery &&
+                `${filteredExams.length} result${filteredExams.length !== 1 ? "s" : ""}`}
             </div>
           </div>
         </div>

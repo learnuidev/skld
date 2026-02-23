@@ -80,7 +80,7 @@ export default function Catalog() {
     if (!isPaused.current) {
       autoPlayRef.current = setInterval(() => {
         setCurrentFeatured((prev) => (prev + 1) % featuredExams.length);
-      }, 5000);
+      }, 8000);
     }
 
     return () => {
@@ -136,7 +136,7 @@ export default function Catalog() {
             animate="center"
             exit="exit"
             transition={{
-              duration: 0.4,
+              duration: 1,
               ease: "easeInOut",
             }}
             className="absolute inset-0"
