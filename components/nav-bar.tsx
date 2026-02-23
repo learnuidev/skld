@@ -3,8 +3,10 @@ import { ToggleMode } from "./toggle-mode";
 
 export function NavBar() {
   return (
-    <nav className="mx-16 my-4 flex justify-between items-center">
-      <Link href="/">skld</Link>
+    <nav className="my-4 flex justify-between items-center">
+      <Link href="/" className="font-bold uppercase">
+        skld
+      </Link>
       <ToggleMode />
     </nav>
   );
