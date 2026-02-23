@@ -1,11 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, X, Command, BookOpen, DollarSign, Clock, GraduationCap } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Search, X, BookOpen, DollarSign, Clock, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Exam {
@@ -169,10 +165,12 @@ export function SearchDialog({ open: controlledOpen, onOpenChange, onSearch }: S
   const [internalOpen, setInternalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const searchKey = useRef(0);
 
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const wasOpen = useRef(false);
 
   const filteredExams = mockExams.filter(
     (exam) =>
@@ -186,11 +184,6 @@ export function SearchDialog({ open: controlledOpen, onOpenChange, onSearch }: S
     setSearchQuery(query);
     setSelectedIndex(0);
   };
-
-  const resetState = useRef(() => {
-    setSearchQuery("");
-    setSelectedIndex(0);
-  });
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -227,9 +220,12 @@ export function SearchDialog({ open: controlledOpen, onOpenChange, onSearch }: S
   }, [open, filteredExams, selectedIndex, setOpen, onSearch]);
 
   useEffect(() => {
-    if (open) {
-      resetState.current();
+    if (open && !wasOpen.current) {
+      setSearchQuery("");
+      setSelectedIndex(0);
+      inputRef.current?.focus();
     }
+    wasOpen.current = open;
   }, [open]);
 
   const highlightMatch = (text: string, query: string) => {
@@ -247,182 +243,146 @@ export function SearchDialog({ open: controlledOpen, onOpenChange, onSearch }: S
     );
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent
-        showCloseButton={false}
-        className="w-full max-w-4xl h-[600px] flex flex-col p-0 gap-0 overflow-hidden"
-      >
-        <div className="border-b p-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search exams, certifications, or organizations..."
-              value={searchQuery}
-              onChange={(e) => handleSearchQueryChange(e.target.value)}
-              autoFocus
-              className="w-full pl-12 pr-12 py-4 bg-transparent border-0 focus:outline-none text-lg"
-            />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-muted-foreground">
-              <kbd className="hidden sm:inline-flex h-6 select-none items-center gap-1 rounded border bg-muted px-2 font-mono text-xs">
-                <Command className="h-3 w-3" />
-                <span>K</span>
-              </kbd>
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-md"
+        onClick={() => setOpen(false)}
+      />
+
+      <div className="relative w-full max-w-5xl mx-4">
+        <div className="bg-background/95 backdrop-blur-xl rounded-2xl shadow-2xl border overflow-hidden">
+          <div className="border-b p-6">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground" />
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Search courses..."
+                value={searchQuery}
+                onChange={(e) => handleSearchQueryChange(e.target.value)}
+                className="w-full pl-14 pr-14 py-5 text-lg bg-transparent border-0 focus:outline-none focus:ring-0"
+              />
               {searchQuery && (
                 <button
                   onClick={() => handleSearchQueryChange("")}
-                  className="hover:bg-muted rounded-full p-1 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 hover:bg-muted rounded-full p-2 transition-colors"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               )}
             </div>
           </div>
-        </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
-          {searchQuery === "" ? (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-                  Popular Searches
-                </h3>
-                <div className="space-y-1">
-                  {["CISSP", "AWS Solutions Architect", "CFA Level I", "SSCP"].map(
-                    (term) => (
-                      <button
-                        key={term}
-                        onClick={() => setSearchQuery(term)}
-                        className="w-full text-left px-4 py-3 rounded-lg hover:bg-accent transition-colors flex items-center justify-between group"
-                      >
-                        <span>{term}</span>
-                        <Search className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </button>
-                    )
-                  )}
+          <div className="max-h-[60vh] overflow-y-auto p-6">
+            {searchQuery === "" ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+                <Search className="h-24 w-24 text-muted-foreground/50" />
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold">Search for courses</h2>
+                  <p className="text-muted-foreground text-lg">
+                    Type to find courses, certifications, and exams
+                  </p>
                 </div>
               </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-                  Browse by Organization
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {["ISC2", "AWS", "CFA Institute"].map((org) => (
-                    <button
-                      key={org}
-                      onClick={() => setSearchQuery(org)}
-                      className="px-4 py-3 rounded-lg border hover:bg-accent transition-colors text-sm font-medium"
-                    >
-                      {org}
-                    </button>
-                  ))}
-                </div>
+            ) : filteredExams.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Search className="h-24 w-24 text-muted-foreground/50 mb-6" />
+                <p className="text-2xl font-medium mb-2">No results found</p>
+                <p className="text-muted-foreground text-lg">
+                  Try searching for another term
+                </p>
               </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-                  Recent
-                </h3>
-                <div className="text-sm text-muted-foreground">
-                  No recent searches
-                </div>
-              </div>
-            </div>
-          ) : filteredExams.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <Search className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium mb-2">No results found</p>
-              <p className="text-sm text-muted-foreground">
-                Try searching for another term
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filteredExams.map((exam, index) => (
-                <button
-                  key={exam.id}
-                  onClick={() => {
-                    onSearch?.(exam.name);
-                    window.location.href = `/catalog`;
-                    setOpen(false);
-                  }}
-                  className={cn(
-                    "w-full text-left px-4 py-4 rounded-lg border hover:border-primary transition-all group flex items-start gap-4",
-                    index === selectedIndex && "border-primary bg-accent"
-                  )}
-                >
-                  <div
+            ) : (
+              <div className="space-y-3">
+                {filteredExams.map((exam, index) => (
+                  <button
+                    key={exam.id}
+                    onClick={() => {
+                      onSearch?.(exam.name);
+                      window.location.href = `/catalog`;
+                      setOpen(false);
+                    }}
                     className={cn(
-                      "flex-none w-12 h-12 rounded-lg bg-gradient-to-br flex items-center justify-center text-white font-bold text-sm shadow-lg shrink-0",
-                      exam.gradient
+                      "w-full text-left p-5 rounded-xl border-2 transition-all group flex items-start gap-5 hover:border-primary",
+                      index === selectedIndex && "border-primary bg-accent"
                     )}
                   >
-                    {exam.code.split("-")[0]}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="font-semibold text-base">
-                        {highlightMatch(exam.name, searchQuery)}
-                      </h4>
-                      {exam.featured && (
-                        <span className="shrink-0 text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full">
-                          Featured
-                        </span>
+                    <div
+                      className={cn(
+                        "flex-none w-14 h-14 rounded-lg bg-gradient-to-br flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0",
+                        exam.gradient
                       )}
+                    >
+                      {exam.code.split("-")[0]}
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
-                      {highlightMatch(exam.code, searchQuery)}
-                    </p>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                      {highlightMatch(exam.description, searchQuery)}
-                    </p>
-                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <GraduationCap className="h-3 w-3" />
-                        {exam.level}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="h-3 w-3" />
-                        {exam.questions} Questions
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {exam.duration}min
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="h-3 w-3" />
-                        {exam.price}
-                      </span>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <h4 className="font-bold text-lg">
+                          {highlightMatch(exam.name, searchQuery)}
+                        </h4>
+                        {exam.featured && (
+                          <span className="shrink-0 text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
+                            Featured
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-muted-foreground mb-2 line-clamp-1 text-sm">
+                        {highlightMatch(exam.code, searchQuery)}
+                      </p>
+                      <p className="text-muted-foreground line-clamp-2 mb-3">
+                        {highlightMatch(exam.description, searchQuery)}
+                      </p>
+                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <GraduationCap className="h-3 w-3" />
+                          {exam.level}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="h-3 w-3" />
+                          {exam.questions} Questions
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {exam.duration}min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <DollarSign className="h-3 w-3" />
+                          {exam.price}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-        <div className="border-t p-4 flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">↑</kbd>
-              <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">↓</kbd>
-              <span>to navigate</span>
+          <div className="border-t p-4 flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">↑</kbd>
+                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">↓</kbd>
+                <span>to navigate</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">↵</kbd>
+                <span>to select</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">esc</kbd>
+                <span>to close</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">↵</kbd>
-              <span>to select</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <kbd className="h-5 px-1.5 rounded bg-muted border text-[10px]">esc</kbd>
-              <span>to close</span>
+            <div className="text-sm">
+              {searchQuery && `${filteredExams.length} result${filteredExams.length !== 1 ? "s" : ""}`}
             </div>
           </div>
-          <div>{filteredExams.length} result{filteredExams.length !== 1 ? "s" : ""}</div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

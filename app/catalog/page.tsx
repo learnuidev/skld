@@ -231,7 +231,7 @@ export default function Catalog() {
           >
             <Search className="h-5 w-5 text-muted-foreground" />
             <span className="flex-1 text-muted-foreground group-hover:text-foreground transition-colors">
-              Search exams, certifications, or organizations...
+              Search for courses...
             </span>
             <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-2 font-mono text-xs text-muted-foreground">
               <Command className="h-3 w-3" />
