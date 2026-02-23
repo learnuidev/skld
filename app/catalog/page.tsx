@@ -327,7 +327,7 @@ export default function Catalog() {
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
             </div>
 
-            <div className="relative h-full max-w-7xl mx-auto px-4 md:px-8 pr-16 md:pr-20 flex items-center">
+            <div className="relative h-full max-w-5xl mx-auto px-4 md:px-8 pr-16 md:pr-20 flex items-center">
               <div className="max-w-2xl space-y-6">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -406,7 +406,7 @@ export default function Catalog() {
           }}
           onMouseEnter={() => (isPaused.current = true)}
           onMouseLeave={() => (isPaused.current = false)}
-          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
@@ -420,7 +420,7 @@ export default function Catalog() {
           }}
           onMouseEnter={() => (isPaused.current = true)}
           onMouseLeave={() => (isPaused.current = false)}
-          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
