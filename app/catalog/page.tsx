@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { SearchDialog } from "@/components/search-dialog";
-import { Search, ChevronLeft, ChevronRight, Play, Info, Command } from "lucide-react";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Info,
+  Command,
+} from "lucide-react";
 
 interface Exam {
   id: string;
@@ -45,7 +53,8 @@ const mockData: Organization[] = [
         passingScore: 700,
         price: 749,
         level: "Advanced",
-        description: "The premier cybersecurity certification for experienced professionals",
+        description:
+          "The premier cybersecurity certification for experienced professionals",
         featured: true,
         gradient: "from-orange-600 to-red-700",
       },
@@ -189,16 +198,23 @@ export default function Catalog() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentFeatured, setCurrentFeatured] = useState(0);
+  const isPaused = useRef(false);
+  const autoPlayRef = useRef<NodeJS.Timeout | null>(null);
 
-  const filteredData = mockData.map((org) => ({
-    ...org,
-    exams: org.exams.filter(
-      (exam) =>
-        exam.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        exam.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        exam.description.toLowerCase().includes(searchQuery.toLowerCase())
-    ),
-  })).filter((org) => org.exams.length > 0);
+  const filteredData = mockData
+    .map((org) => ({
+      ...org,
+      exams: org.exams.filter(
+        (exam) =>
+          exam.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          exam.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          exam.description.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    }))
+    .filter((org) => org.exams.length > 0);
+
+  const prevSearchQuery = useRef(searchQuery);
+  const prevFilteredDataLength = useRef(filteredData.length);
 
   const scrollCarousel = (direction: "left" | "right", elementId: string) => {
     const container = document.getElementById(elementId);
@@ -216,10 +232,54 @@ export default function Catalog() {
   };
 
   const prevFeatured = () => {
-    setCurrentFeatured((prev) => (prev - 1 + featuredExams.length) % featuredExams.length);
+    setCurrentFeatured(
+      (prev) => (prev - 1 + featuredExams.length) % featuredExams.length
+    );
   };
 
   const currentFeaturedExam = featuredExams[currentFeatured];
+
+  const variants = {
+    enter: {
+      opacity: 0,
+      scale: 1,
+    },
+    center: {
+      zIndex: 1,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: {
+      zIndex: 0,
+      opacity: 0,
+      scale: 1.02,
+    },
+  };
+
+  useEffect(() => {
+    if (!isPaused.current) {
+      autoPlayRef.current = setInterval(() => {
+        setCurrentFeatured((prev) => (prev + 1) % featuredExams.length);
+      }, 5000);
+    }
+
+    return () => {
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (
+      prevSearchQuery.current !== searchQuery ||
+      prevFilteredDataLength.current !== filteredData.length
+    ) {
+      setCurrentFeatured(0);
+    }
+    prevSearchQuery.current = searchQuery;
+    prevFilteredDataLength.current = filteredData.length;
+  }, [searchQuery, filteredData.length]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/95">
@@ -241,72 +301,143 @@ export default function Catalog() {
         </div>
       </div>
 
-      <SearchDialog 
-        open={searchOpen} 
+      <SearchDialog
+        open={searchOpen}
         onOpenChange={setSearchOpen}
         onSearch={setSearchQuery}
       />
 
       <div className="relative h-[500px] md:h-[600px] overflow-hidden">
-        <div
-          className={`absolute inset-0 bg-gradient-to-r ${currentFeaturedExam.gradient} transition-all duration-700`}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-        </div>
+        <AnimatePresence initial={false} mode="wait">
+          <motion.div
+            key={currentFeatured}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{
+              duration: 0.4,
+              ease: "easeInOut",
+            }}
+            className="absolute inset-0"
+          >
+            <div
+              className={`absolute inset-0 bg-gradient-to-r ${currentFeaturedExam.gradient}`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+            </div>
 
-        <div className="relative h-full max-w-7xl mx-auto px-4 md:px-8 flex items-center">
-          <div className="max-w-2xl space-y-6">
-            <div className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium">
-              Featured Certification
+            <div className="relative h-full max-w-7xl mx-auto px-4 md:px-8 pr-16 md:pr-20 flex items-center">
+              <div className="max-w-2xl space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                  className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium"
+                >
+                  Featured Certification
+                </motion.div>
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="text-5xl md:text-7xl font-bold text-white leading-tight"
+                >
+                  {currentFeaturedExam.name}
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                  className="text-xl text-white/90"
+                >
+                  {currentFeaturedExam.description}
+                </motion.p>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5, duration: 0.5 }}
+                  className="flex flex-wrap gap-3 text-white/80"
+                >
+                  <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
+                    {currentFeaturedExam.questions} Questions
+                  </span>
+                  <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
+                    {currentFeaturedExam.duration} Minutes
+                  </span>
+                  <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
+                    {currentFeaturedExam.level}
+                  </span>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                  className="flex gap-4 pt-4"
+                >
+                  <Button
+                    size="lg"
+                    className="bg-white text-black hover:bg-white/90 px-8"
+                  >
+                    <Play className="w-5 h-5 mr-2" />
+                    Start Practice
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="bg-white/20 border-white/40 text-white hover:bg-white/30 px-8"
+                  >
+                    <Info className="w-5 h-5 mr-2" />
+                    Learn More
+                  </Button>
+                </motion.div>
+              </div>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
-              {currentFeaturedExam.name}
-            </h1>
-            <p className="text-xl text-white/90">
-              {currentFeaturedExam.description}
-            </p>
-            <div className="flex flex-wrap gap-3 text-white/80">
-              <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
-                {currentFeaturedExam.questions} Questions
-              </span>
-              <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
-                {currentFeaturedExam.duration} Minutes
-              </span>
-              <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
-                {currentFeaturedExam.level}
-              </span>
-            </div>
-            <div className="flex gap-4 pt-4">
-              <Button size="lg" className="bg-white text-black hover:bg-white/90 px-8">
-                <Play className="w-5 h-5 mr-2" />
-                Start Practice
-              </Button>
-              <Button size="lg" variant="outline" className="bg-white/20 border-white/40 text-white hover:bg-white/30 px-8">
-                <Info className="w-5 h-5 mr-2" />
-                Learn More
-              </Button>
-            </div>
-          </div>
-        </div>
+          </motion.div>
+        </AnimatePresence>
 
         <button
-          onClick={prevFeatured}
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
+          onClick={() => {
+            isPaused.current = true;
+            setTimeout(() => {
+              isPaused.current = false;
+            }, 10000);
+            prevFeatured();
+          }}
+          onMouseEnter={() => (isPaused.current = true)}
+          onMouseLeave={() => (isPaused.current = false)}
+          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
         <button
-          onClick={nextFeatured}
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
+          onClick={() => {
+            isPaused.current = true;
+            setTimeout(() => {
+              isPaused.current = false;
+            }, 10000);
+            nextFeatured();
+          }}
+          onMouseEnter={() => (isPaused.current = true)}
+          onMouseLeave={() => (isPaused.current = false)}
+          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
           {featuredExams.map((_, index) => (
             <button
               key={index}
-              onClick={() => setCurrentFeatured(index)}
+              onClick={() => {
+                isPaused.current = true;
+                setTimeout(() => {
+                  isPaused.current = false;
+                }, 10000);
+                setCurrentFeatured(index);
+              }}
+              onMouseEnter={() => (isPaused.current = true)}
+              onMouseLeave={() => (isPaused.current = false)}
               className={`w-2 h-2 rounded-full transition-all ${
                 index === currentFeatured ? "bg-white w-8" : "bg-white/40"
               }`}
@@ -345,7 +476,7 @@ export default function Catalog() {
                       className={`relative aspect-[2/3] rounded-xl overflow-hidden bg-gradient-to-br ${exam.gradient} shadow-xl group-hover/card:scale-105 transition-transform duration-300`}
                     >
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      
+
                       <div className="absolute top-4 left-4">
                         <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-medium">
                           {exam.level}
@@ -371,11 +502,18 @@ export default function Catalog() {
                       </div>
 
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                        <Button size="lg" className="bg-white text-black hover:bg-white/90">
+                        <Button
+                          size="lg"
+                          className="bg-white text-black hover:bg-white/90"
+                        >
                           <Play className="w-5 h-5 mr-2" />
                           Start
                         </Button>
-                        <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/20">
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="border-white/40 text-white hover:bg-white/20"
+                        >
                           <Info className="w-5 h-5" />
                         </Button>
                       </div>
