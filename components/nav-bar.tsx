@@ -9,11 +9,12 @@ export function NavBar() {
       </Link>
 
       <div className="flex gap-8">
-        <Link className="font-light" href="/catalog">
-          catalog
-        </Link>
         <Link className="font-light" href="/dashboard">
           dashboard
+        </Link>
+
+        <Link className="font-light" href="/studio">
+          studio
         </Link>
       </div>
       <ToggleMode />
