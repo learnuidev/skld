@@ -7,6 +7,15 @@ export function NavBar() {
       <Link href="/" className="font-bold uppercase">
         skld
       </Link>
+
+      <div className="flex gap-8">
+        <Link className="font-light" href="/catalog">
+          catalog
+        </Link>
+        <Link className="font-light" href="/dashboard">
+          dashboard
+        </Link>
+      </div>
       <ToggleMode />
     </nav>
   );
