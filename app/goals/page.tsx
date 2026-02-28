@@ -83,9 +83,7 @@ export default function GoalsPage() {
     value: string | boolean | string[] | number | Date | null,
   ) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
-    if (currentStep < visibleQuestions.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-    }
+    setCurrentStep((prev) => prev + 1);
   };
 
   const toggleDomain = (domainId: string, type: "excelled" | "struggled") => {
