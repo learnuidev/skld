@@ -197,13 +197,28 @@ export function SearchDialog({
   const inputRef = useRef<HTMLInputElement>(null);
   const wasOpen = useRef(false);
 
-  const filteredExams = mockExams.filter(
+  const goalIntents = [
+    "i want to pass",
+    "i want to take",
+    "i need to pass",
+    "i'd like to pass",
+    "i want to study",
+  ];
+  const isGoalIntent = goalIntents.some((intent) =>
+    intent.includes(searchQuery.toLowerCase()),
+  );
+
+  let filteredExams = mockExams.filter(
     (exam) =>
       exam.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       exam.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       exam.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      exam.organization?.toLowerCase().includes(searchQuery.toLowerCase())
+      exam.organization?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  if (isGoalIntent) {
+    filteredExams = mockExams;
+  }
 
   const handleSearchQueryChange = (query: string) => {
     setSearchQuery(query);
@@ -223,7 +238,7 @@ export function SearchDialog({
         if (e.key === "ArrowDown") {
           e.preventDefault();
           setSelectedIndex((prev) =>
-            prev < filteredExams.length - 1 ? prev + 1 : prev
+            prev < filteredExams.length - 1 ? prev + 1 : prev,
           );
         }
         if (e.key === "ArrowUp") {
@@ -234,7 +249,11 @@ export function SearchDialog({
           e.preventDefault();
           const selected = filteredExams[selectedIndex];
           onSearch?.(selected.name);
-          window.location.href = `/catalog`;
+          if (isGoalIntent) {
+            window.location.href = `/goals?courseId=${selected.id}`;
+          } else {
+            window.location.href = `/catalog`;
+          }
           setOpen(false);
         }
       }
@@ -242,16 +261,25 @@ export function SearchDialog({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, filteredExams, selectedIndex, setOpen, onSearch]);
+  }, [
+    open,
+    filteredExams,
+    selectedIndex,
+    setOpen,
+    onSearch,
+    isGoalIntent,
+    searchQuery,
+  ]);
 
   useEffect(() => {
     if (open && !wasOpen.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchQuery("");
       setSelectedIndex(0);
       inputRef.current?.focus();
     }
     wasOpen.current = open;
-  }, [open]);
+  }, [open, setSearchQuery, setSelectedIndex]);
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
@@ -264,7 +292,7 @@ export function SearchDialog({
         </mark>
       ) : (
         part
-      )
+      ),
     );
   };
 
@@ -285,7 +313,11 @@ export function SearchDialog({
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Search courses..."
+                placeholder={
+                  isGoalIntent
+                    ? "Select a course to set your goal..."
+                    : "Search courses..."
+                }
                 value={searchQuery}
                 onChange={(e) => handleSearchQueryChange(e.target.value)}
                 className="w-full pl-14 pr-14 py-5 text-lg bg-transparent border-0 focus:outline-none focus:ring-0"
@@ -310,6 +342,10 @@ export function SearchDialog({
                   <p className="text-muted-foreground text-lg">
                     Type to find courses, certifications, and exams
                   </p>
+                  <p className="text-primary text-sm font-medium mt-4">
+                    Try typing &quot;I want to pass...&quot; to set a learning
+                    goal
+                  </p>
                 </div>
               </div>
             ) : filteredExams.length === 0 ? (
@@ -321,67 +357,81 @@ export function SearchDialog({
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {filteredExams.map((exam, index) => (
-                  <button
-                    key={exam.id}
-                    onClick={() => {
-                      onSearch?.(exam.name);
-                      window.location.href = `/catalog`;
-                      setOpen(false);
-                    }}
-                    className={cn(
-                      "w-full text-left p-5 rounded-xl border-2 transition-all group flex items-start gap-5 hover:border-primary",
-                      index === selectedIndex && "border-primary bg-accent"
-                    )}
-                  >
-                    <div
+              <div className="space-y-4">
+                {isGoalIntent && (
+                  <div className="text-center py-6 space-y-2">
+                    <p className="text-xl font-semibold">🎯 Set Your Goal</p>
+                    <p className="text-muted-foreground">
+                      Select a course you want to pass
+                    </p>
+                  </div>
+                )}
+                <div className="space-y-3">
+                  {filteredExams.map((exam, index) => (
+                    <button
+                      key={exam.id}
+                      onClick={() => {
+                        onSearch?.(exam.name);
+                        if (isGoalIntent) {
+                          window.location.href = `/goals?courseId=${exam.id}`;
+                        } else {
+                          window.location.href = `/catalog`;
+                        }
+                        setOpen(false);
+                      }}
                       className={cn(
-                        "flex-none w-14 h-14 rounded-lg bg-gradient-to-br flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0",
-                        exam.gradient
+                        "w-full text-left p-5 rounded-xl border-2 transition-all group flex items-start gap-5 hover:border-primary",
+                        index === selectedIndex && "border-primary bg-accent",
                       )}
                     >
-                      {exam.code.split("-")[0]}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <h4 className="font-bold text-lg">
-                          {highlightMatch(exam.name, searchQuery)}
-                        </h4>
-                        {exam.featured && (
-                          <span className="shrink-0 text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
-                            Featured
-                          </span>
+                      <div
+                        className={cn(
+                          "flex-none w-14 h-14 rounded-lg bg-gradient-to-br flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0",
+                          exam.gradient,
                         )}
+                      >
+                        {exam.code.split("-")[0]}
                       </div>
-                      <p className="text-muted-foreground mb-2 line-clamp-1 text-sm">
-                        {highlightMatch(exam.code, searchQuery)}
-                      </p>
-                      <p className="text-muted-foreground line-clamp-2 mb-3">
-                        {highlightMatch(exam.description, searchQuery)}
-                      </p>
-                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <GraduationCap className="h-3 w-3" />
-                          {exam.level}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <BookOpen className="h-3 w-3" />
-                          {exam.questions} Questions
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {exam.duration}min
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          {exam.price}
-                        </span>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h4 className="font-bold text-lg">
+                            {highlightMatch(exam.name, searchQuery)}
+                          </h4>
+                          {exam.featured && (
+                            <span className="shrink-0 text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
+                              Featured
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-muted-foreground mb-2 line-clamp-1 text-sm">
+                          {highlightMatch(exam.code, searchQuery)}
+                        </p>
+                        <p className="text-muted-foreground line-clamp-2 mb-3">
+                          {highlightMatch(exam.description, searchQuery)}
+                        </p>
+                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <GraduationCap className="h-3 w-3" />
+                            {exam.level}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <BookOpen className="h-3 w-3" />
+                            {exam.questions} Questions
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {exam.duration}min
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" />
+                            {exam.price}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>

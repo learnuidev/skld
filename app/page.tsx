@@ -28,7 +28,7 @@ export default function Catalog() {
         (exam) =>
           exam.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           exam.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          exam.description.toLowerCase().includes(searchQuery.toLowerCase())
+          exam.description.toLowerCase().includes(searchQuery.toLowerCase()),
       ),
     }))
     .filter((org) => org.exams.length > 0);
@@ -53,7 +53,7 @@ export default function Catalog() {
 
   const prevFeatured = () => {
     setCurrentFeatured(
-      (prev) => (prev - 1 + featuredExams.length) % featuredExams.length
+      (prev) => (prev - 1 + featuredExams.length) % featuredExams.length,
     );
   };
 
@@ -95,11 +95,12 @@ export default function Catalog() {
       prevSearchQuery.current !== searchQuery ||
       prevFilteredDataLength.current !== filteredData.length
     ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentFeatured(0);
     }
     prevSearchQuery.current = searchQuery;
     prevFilteredDataLength.current = filteredData.length;
-  }, [searchQuery, filteredData.length]);
+  }, [searchQuery, filteredData.length, setCurrentFeatured]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/95">
