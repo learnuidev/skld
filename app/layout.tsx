@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
 import { NavBar } from "@/components/nav-bar";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +40,7 @@ export default function RootLayout({
         >
           <div className="w-full  md:max-w-7xl mx-auto px-4 md:px-16">
             <NavBar />
-            {children}
+            <Suspense fallback={<div></div>}>{children}</Suspense>
           </div>
         </ThemeProvider>
       </body>
