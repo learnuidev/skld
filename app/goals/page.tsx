@@ -101,6 +101,12 @@ export default function GoalsPage() {
     }
   };
 
+  const handleNext = () => {
+    if (currentStep < visibleQuestions.length - 1) {
+      setCurrentStep((prev) => prev + 1);
+    }
+  };
+
   const handleSubmit = () => {
     console.log("Goal submitted:", { courseId, answers });
     window.location.href = "/dashboard";
@@ -258,11 +264,11 @@ export default function GoalsPage() {
                           : "border-gray-200 hover:border-gray-900",
                       )}
                     >
-                      <span className="text-base">
+                      <span className="text-base truncate pr-2">
                         {domain.domainNumber}. {domain.title}
                       </span>
                       {isSelected && (
-                        <CheckCircle2 className="h-5 w-5 text-gray-900" />
+                        <CheckCircle2 className="h-5 w-5 text-gray-900 flex-shrink-0" />
                       )}
                     </Button>
                   );
@@ -271,7 +277,7 @@ export default function GoalsPage() {
                   answers.excelledDomains.length > 0 && (
                     <div className="pt-4">
                       <Button
-                        onClick={handleBack}
+                        onClick={handleNext}
                         className="w-full bg-gray-900 text-white hover:bg-gray-800"
                         size="lg"
                       >
@@ -284,7 +290,7 @@ export default function GoalsPage() {
                   answers.struggledDomains.length > 0 && (
                     <div className="pt-4">
                       <Button
-                        onClick={handleBack}
+                        onClick={handleNext}
                         className="w-full bg-gray-900 text-white hover:bg-gray-800"
                         size="lg"
                       >
