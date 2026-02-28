@@ -4,7 +4,14 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Calendar } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { format } from "date-fns";
 import { ccCourse } from "./cc-course";
 import { cn } from "@/lib/utils";
 
@@ -14,10 +21,11 @@ export default function GoalsPage() {
   const searchParams = useSearchParams();
   const courseId = searchParams.get("courseId");
   const [currentStep, setCurrentStep] = useState(0);
+  const [showComplete, setShowComplete] = useState(false);
 
   const [answers, setAnswers] = useState({
     isFirstTime: null as boolean | null,
-    examDate: "",
+    examDate: null as Date | null,
     previousAttempts: null as number | null,
     customPreviousAttempts: "",
     excelledDomains: [] as string[],
@@ -72,7 +80,7 @@ export default function GoalsPage() {
 
   const handleAnswer = (
     questionId: string,
-    value: string | boolean | string[] | number | null,
+    value: string | boolean | string[] | number | Date | null,
   ) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
     if (currentStep < visibleQuestions.length - 1) {
@@ -108,8 +116,7 @@ export default function GoalsPage() {
   };
 
   const handleSubmit = () => {
-    console.log("Goal submitted:", { courseId, answers });
-    window.location.href = "/dashboard";
+    setShowComplete(true);
   };
 
   const currentQuestion = visibleQuestions[currentStep];
@@ -305,16 +312,39 @@ export default function GoalsPage() {
             {(currentQuestion.id === "examDate" ||
               currentQuestion.id === "finalExamDate") && (
               <div className="space-y-6">
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="date"
-                    value={answers.examDate}
-                    onChange={(e) => handleAnswer("examDate", e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-lg focus:border-gray-900 focus:outline-none"
-                    min={new Date().toISOString().split("T")[0]}
-                  />
-                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left px-6 py-4 h-auto border rounded-lg hover:bg-gray-50",
+                        !answers.examDate && "text-muted-foreground",
+                      )}
+                    >
+                      {answers.examDate ? (
+                        format(answers.examDate, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={answers.examDate || undefined}
+                      onSelect={(date) => {
+                        setAnswers((prev) => ({
+                          ...prev,
+                          examDate: date ?? null,
+                        }));
+                      }}
+                      disabled={(date) =>
+                        date < new Date(new Date().setHours(0, 0, 0, 0))
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
                 <Button
                   onClick={
                     isLastQuestion
@@ -333,11 +363,31 @@ export default function GoalsPage() {
           </motion.div>
         </AnimatePresence>
 
+        {showComplete && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-12 space-y-6"
+          >
+            <h2 className="text-2xl font-bold text-gray-900">Goal Complete!</h2>
+            <pre className="bg-gray-100 p-6 rounded-lg overflow-x-auto text-sm">
+              {JSON.stringify({ courseId, answers }, null, 2)}
+            </pre>
+            <Button
+              onClick={() => (window.location.href = "/dashboard")}
+              className="w-full bg-gray-900 text-white hover:bg-gray-800"
+              size="lg"
+            >
+              Continue to Dashboard
+            </Button>
+          </motion.div>
+        )}
+
         <div className="mt-12 flex justify-between">
           <Button
             variant="ghost"
             onClick={handleBack}
-            disabled={currentStep === 0}
+            disabled={currentStep === 0 || showComplete}
             className="text-gray-600 hover:text-gray-900 hover:bg-transparent px-0"
           >
             ← Back
