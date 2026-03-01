@@ -15,3 +15,7 @@ pnpm dev
 # or
 bun dev
 ```
+
+## SLKD Design Principles
+
+- UI / UX: formtype inspired
