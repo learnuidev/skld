@@ -1,4 +1,5 @@
 import { getIsAuthenticated } from "@/modules/auth/server-auth";
+import { AuthFlow } from "@/components/auth/auth-flow";
 
 export const WithAuthenticated = async ({
   children,
@@ -8,7 +9,7 @@ export const WithAuthenticated = async ({
   const auth = await getIsAuthenticated();
 
   if (!auth) {
-    return <div> You need to login</div>;
+    return <AuthFlow />;
   }
 
   return children;
