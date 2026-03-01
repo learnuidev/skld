@@ -1,8 +1,8 @@
-import "@/lib/amplify/client-init";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ReactQueryProvider } from "@/components/react-query/react-query-provider";
+import { AmplifyProvider } from "@/components/amplify-provider";
 
 import "./globals.css";
 import { NavBar } from "@/components/nav-bar";
@@ -35,21 +35,23 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ReactQueryProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <WithAuthenticated>
-              <div className="w-full  md:max-w-7xl mx-auto px-4 md:px-16">
-                <NavBar />
-                <Suspense fallback={<div></div>}>{children}</Suspense>
-              </div>
-            </WithAuthenticated>
-          </ThemeProvider>
-        </ReactQueryProvider>
+        <AmplifyProvider>
+          <ReactQueryProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <WithAuthenticated>
+                <div className="w-full  md:max-w-7xl mx-auto px-4 md:px-16">
+                  <NavBar />
+                  <Suspense fallback={<div></div>}>{children}</Suspense>
+                </div>
+              </WithAuthenticated>
+            </ThemeProvider>
+          </ReactQueryProvider>
+        </AmplifyProvider>
       </body>
     </html>
   );

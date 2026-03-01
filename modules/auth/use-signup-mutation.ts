@@ -27,21 +27,26 @@ export function useSignupMutation() {
       email,
       password,
     }: SignupParams): Promise<SignupResponse> => {
-      const { isSignUpComplete, userId, nextStep } = await signUp({
-        username: email,
-        password,
-        options: {
-          userAttributes: {
-            email,
+      try {
+        const { isSignUpComplete, userId, nextStep } = await signUp({
+          username: email,
+          password,
+          options: {
+            userAttributes: {
+              email,
+            },
           },
-        },
-      });
+        });
 
-      return {
-        isSignUpComplete,
-        userId,
-        nextStep: nextStep as SignupResponse["nextStep"],
-      };
+        return {
+          isSignUpComplete,
+          userId,
+          nextStep: nextStep as SignupResponse["nextStep"],
+        };
+      } catch (error) {
+        console.error("Signup error details:", error);
+        throw error;
+      }
     },
   });
 }

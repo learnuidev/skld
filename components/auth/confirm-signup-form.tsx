@@ -48,10 +48,8 @@ export function ConfirmSignupForm({
   };
 
   const isLoading = confirmMutation.isPending;
-  const errorMessage =
-    confirmMutation.error instanceof Error
-      ? confirmMutation.error.message
-      : "An error occurred";
+
+  const errorMessage = confirmMutation.error?.message;
 
   const displayedError = error || errorMessage;
 
