@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Moon,
   Sun,
@@ -7,12 +8,37 @@ import {
   Mail,
   User as UserIcon,
   Shield,
+  AlertTriangle,
+  Check,
+  X,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { useGetProfileQuery } from "@/modules/user/use-get-profile-query";
+import { useUpdateProfileMutation } from "@/modules/user/use-update-profile-mutation";
 
 export default function ProfilePage() {
   const { setTheme } = useTheme();
+  const { data: profile, isLoading } = useGetProfileQuery();
+  const updateProfileMutation = useUpdateProfileMutation();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+
+  const handleSaveName = async () => {
+    await updateProfileMutation.mutateAsync({ name: nameInput });
+    setIsEditingName(false);
+  };
+
+  const handleCancelName = () => {
+    setNameInput(profile?.name || "");
+    setIsEditingName(false);
+  };
+
+  const handleNameClick = () => {
+    setNameInput(profile?.name || "");
+    setIsEditingName(true);
+  };
 
   return (
     <div className="mx-auto py-12">
@@ -32,11 +58,34 @@ export default function ProfilePage() {
         <TabsContent value="personal" className="mt-8">
           <div className="space-y-1">
             <div className="border-b">
-              <div className="flex items-center gap-3 py-4">
+              <div
+                className="flex items-center gap-3 py-4 cursor-pointer hover:bg-muted/50 transition-colors -mx-2 px-2"
+                onClick={!isEditingName ? handleNameClick : undefined}
+              >
                 <UserIcon className="size-4 text-muted-foreground" />
                 <div className="flex-1">
                   <div className="text-sm text-muted-foreground">Name</div>
-                  <div className="text-sm font-medium">John Doe</div>
+                  {isEditingName ? (
+                    <input
+                      type="text"
+                      value={nameInput}
+                      onChange={(e) => setNameInput(e.target.value)}
+                      className="text-sm font-medium w-full bg-transparent border-b border-border focus:outline-none focus:border-primary"
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : !isLoading ? (
+                    profile?.name ? (
+                      <div className="text-sm font-medium">{profile.name}</div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                        <AlertTriangle className="size-4 text-orange-500" />
+                        <span>Name not set</span>
+                      </div>
+                    )
+                  ) : (
+                    <div className="text-sm font-medium">Loading...</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -46,7 +95,11 @@ export default function ProfilePage() {
                 <Mail className="size-4 text-muted-foreground" />
                 <div className="flex-1">
                   <div className="text-sm text-muted-foreground">Email</div>
-                  <div className="text-sm font-medium">john@example.com</div>
+                  <div className="text-sm font-medium">
+                    {isLoading
+                      ? "Loading..."
+                      : profile?.email || "Not available"}
+                  </div>
                 </div>
               </div>
             </div>
@@ -63,6 +116,28 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {isEditingName && (
+            <div className="mt-12 bg-background">
+              <div className="flex gap-2 justify-end items-end">
+                <Button
+                  onClick={handleSaveName}
+                  disabled={updateProfileMutation.isPending}
+                >
+                  <Check className="size-4 mr-2" />
+                  {updateProfileMutation.isPending ? "Saving" : "Save"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleCancelName}
+                  disabled={updateProfileMutation.isPending}
+                >
+                  <X className="size-4 mr-2" />
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="ui-settings" className="mt-8">
