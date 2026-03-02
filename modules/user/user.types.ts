@@ -1,7 +1,9 @@
+export type UserRole = "learner" | "creator";
+
 export interface UserProfile {
   id: string;
   email: string;
-  roles: string[];
+  roles: UserRole[];
   name?: string;
   avatar?: string;
   bio?: string;
@@ -12,4 +14,5 @@ export interface UpdateProfileParams {
   name?: string;
   avatar?: string;
   bio?: string;
+  addRole?: "creator";
 }
