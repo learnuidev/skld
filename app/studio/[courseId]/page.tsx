@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
 
+const DESCRIPTION_LIMIT = 200;
+
 export default function CourseDetailPage() {
   const params = useParams<{ courseId: string }>();
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const { data: course, isLoading, error } = useGetCourseQuery(params.courseId);
 
@@ -72,9 +76,60 @@ export default function CourseDetailPage() {
                   {course.title}
                 </h1>
                 {course.description && (
-                  <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
-                    {course.description}
-                  </p>
+                  <div className="max-w-3xl">
+                    <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed my-12">
+                      {isDescriptionExpanded
+                        ? course.description
+                        : course.description.length > DESCRIPTION_LIMIT
+                          ? course.description.slice(0, DESCRIPTION_LIMIT) +
+                            "..."
+                          : course.description}
+                    </p>
+                    {course.description.length > DESCRIPTION_LIMIT && (
+                      <button
+                        onClick={() =>
+                          setIsDescriptionExpanded(!isDescriptionExpanded)
+                        }
+                        className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors inline-flex items-center"
+                      >
+                        {isDescriptionExpanded ? (
+                          <>
+                            Show less
+                            <svg
+                              className="w-4 h-4 ml-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 15l7-7 7 7"
+                              />
+                            </svg>
+                          </>
+                        ) : (
+                          <>
+                            Read more
+                            <svg
+                              className="w-4 h-4 ml-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               <Link href={`/studio/${course.id}/edit`}>
@@ -176,7 +231,7 @@ export default function CourseDetailPage() {
                                 month: "short",
                                 day: "numeric",
                                 year: "numeric",
-                              },
+                              }
                             )}
                           </p>
                         </div>
@@ -191,7 +246,7 @@ export default function CourseDetailPage() {
                                 month: "short",
                                 day: "numeric",
                                 year: "numeric",
-                              },
+                              }
                             )}
                           </p>
                         </div>
@@ -278,7 +333,7 @@ export default function CourseDetailPage() {
                               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
                             />
                           </svg>
-                          Exam Config
+                          Exam Info
                         </h3>
                         <div className="space-y-5">
                           <div className="group">
@@ -324,10 +379,10 @@ export default function CourseDetailPage() {
                                 </label>
                                 <div className="space-y-3">
                                   {Object.entries(
-                                    course.exam.domainWeights,
+                                    course.exam.domainWeights
                                   ).map(([domainId, weight]) => {
                                     const domain = course.domains?.find(
-                                      (d) => d.id === domainId,
+                                      (d) => d.id === domainId
                                     );
                                     return (
                                       <div key={domainId}>
