@@ -1,9 +1,11 @@
+export type CourseType = "basic" | "intermediate" | "advanced" | "professional";
+
 export interface Course {
   id: string;
   userId: string;
   title: string;
   description?: string;
-  courseType?: "basic" | "intermediate" | "advanced" | "professional";
+  courseType?: CourseType;
   hasCertification?: boolean;
   createdAt: number;
   updatedAt: number;
@@ -14,7 +16,7 @@ export interface Course {
 export interface CreateCourseParams {
   title: string;
   description?: string;
-  courseType?: "basic" | "intermediate" | "advanced" | "professional";
+  courseType?: CourseType;
   hasCertification?: boolean;
   domains?: Domain[];
   exam?: ExamInfo;
@@ -23,7 +25,7 @@ export interface CreateCourseParams {
 export interface UpdateCourseParams {
   title?: string;
   description?: string;
-  courseType?: "basic" | "intermediate" | "advanced" | "professional";
+  courseType?: CourseType;
   hasCertification?: boolean;
   domains?: Domain[];
   exam?: ExamInfo;
@@ -45,4 +47,25 @@ export interface ExamInfo {
   totalTimeMinutes?: number;
   domainWeights: Record<string, number>;
   allowSkipQuestions: boolean;
+}
+
+export interface CourseFormData {
+  title: string;
+  description: string;
+  courseType: CourseType;
+  hasCertification: boolean;
+  domains: Array<{
+    id: string;
+    name: string;
+    chapters: Array<{
+      id: string;
+      name: string;
+    }>;
+  }>;
+  exam: {
+    totalQuestions: number;
+    totalTimeMinutes: number;
+    domainWeights: Record<string, number>;
+    allowSkipQuestions: boolean;
+  };
 }

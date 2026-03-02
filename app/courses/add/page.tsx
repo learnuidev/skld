@@ -1,33 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { CourseFormData } from "@/modules/course/course.types";
 import { useCreateCourseMutation } from "@/modules/course/use-create-course-mutation";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { CourseForm } from "./components/course-form";
 import { FormSidebar } from "./components/form-sidebar";
-import { Button } from "@/components/ui/button";
-
-export interface CourseFormData {
-  title: string;
-  description: string;
-  courseType: "basic" | "intermediate" | "advanced" | "professional";
-  hasCertification: boolean;
-  domains: Array<{
-    id: string;
-    name: string;
-    chapters: Array<{
-      id: string;
-      name: string;
-    }>;
-  }>;
-  exam: {
-    totalQuestions: number;
-    totalTimeMinutes: number;
-    domainWeights: Record<string, number>;
-    allowSkipQuestions: boolean;
-  };
-}
 
 const initialFormData: CourseFormData = {
   title: "",
@@ -74,7 +54,7 @@ export default function AddCoursePage() {
   const handleCancel = () => {
     if (
       window.confirm(
-        "Are you sure you want to cancel? All progress will be lost.",
+        "Are you sure you want to cancel? All progress will be lost."
       )
     ) {
       router.push("/studio");
@@ -181,7 +161,7 @@ export default function AddCoursePage() {
         return (
           formData.exam.totalQuestions > 0 &&
           formData.domains.every(
-            (domain) => formData.exam.domainWeights[domain.id] > 0,
+            (domain) => formData.exam.domainWeights[domain.id] > 0
           )
         );
       case 5:
