@@ -8,7 +8,7 @@ export default function StudioPage() {
   const { data: profile, isLoading } = useGetProfileQuery();
 
   if (isLoading) {
-    return <div className="p-8">Loading...</div>;
+    return <div className="py-8">Loading...</div>;
   }
 
   const isCreator = profile?.roles?.includes("creator");
