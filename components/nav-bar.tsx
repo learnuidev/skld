@@ -25,7 +25,7 @@ export function NavBar() {
   };
 
   return (
-    <nav className="my-4 flex justify-between items-center">
+    <nav className="my-4 flex justify-between items-center mb-12">
       <Link href="/" className="font-bold uppercase">
         skld
       </Link>
@@ -38,7 +38,9 @@ export function NavBar() {
         <Link className="font-light" href="/studio">
           studio
         </Link>
+      </div>
 
+      <div className="hidden md:flex gap-8 items-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -67,15 +69,27 @@ export function NavBar() {
 
       {isOpen && (
         <div className="absolute top-16 left-0 right-0 bg-background border-b md:hidden flex flex-col gap-4 p-4">
-          <Link className="font-light" href="/dashboard" onClick={() => setIsOpen(false)}>
+          <Link
+            className="font-light"
+            href="/dashboard"
+            onClick={() => setIsOpen(false)}
+          >
             dashboard
           </Link>
 
-          <Link className="font-light" href="/studio" onClick={() => setIsOpen(false)}>
+          <Link
+            className="font-light"
+            href="/studio"
+            onClick={() => setIsOpen(false)}
+          >
             studio
           </Link>
 
-          <Link className="font-light" href="/profile" onClick={() => setIsOpen(false)}>
+          <Link
+            className="font-light"
+            href="/profile"
+            onClick={() => setIsOpen(false)}
+          >
             profile
           </Link>
 
