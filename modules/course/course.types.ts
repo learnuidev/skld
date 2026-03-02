@@ -3,6 +3,8 @@ export interface Course {
   userId: string;
   title: string;
   description?: string;
+  courseType?: "basic" | "intermediate" | "advanced" | "professional";
+  hasCertification?: boolean;
   createdAt: number;
   updatedAt: number;
   domains?: Domain[];
@@ -12,6 +14,8 @@ export interface Course {
 export interface CreateCourseParams {
   title: string;
   description?: string;
+  courseType?: "basic" | "intermediate" | "advanced" | "professional";
+  hasCertification?: boolean;
   domains?: Domain[];
   exam?: ExamInfo;
 }
@@ -19,6 +23,8 @@ export interface CreateCourseParams {
 export interface UpdateCourseParams {
   title?: string;
   description?: string;
+  courseType?: "basic" | "intermediate" | "advanced" | "professional";
+  hasCertification?: boolean;
   domains?: Domain[];
   exam?: ExamInfo;
 }
@@ -32,11 +38,11 @@ export interface Domain {
 export interface Chapter {
   id: string;
   name: string;
-  learningObjectives: string[];
 }
 
 export interface ExamInfo {
   totalQuestions: number;
+  totalTimeMinutes?: number;
   domainWeights: Record<string, number>;
   allowSkipQuestions: boolean;
 }

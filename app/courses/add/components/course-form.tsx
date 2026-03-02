@@ -31,7 +31,6 @@ export function CourseForm({
     "Course Overview",
     "Add Domains",
     "Add Chapters",
-    "Learning Objectives",
     "Exam Configuration",
     "Course Summary",
   ];
@@ -45,10 +44,8 @@ export function CourseForm({
       case 3:
         return renderChapters();
       case 4:
-        return renderLearningObjectives();
-      case 5:
         return renderExamConfig();
-      case 6:
+      case 5:
         return renderSummary();
       default:
         return null;
@@ -89,6 +86,70 @@ export function CourseForm({
           rows={6}
           className="w-full px-5 py-4 text-base bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 resize-none"
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+          Course Type
+        </label>
+        <div className="grid grid-cols-2 gap-4">
+          {["basic", "intermediate", "advanced", "professional"].map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() =>
+                setFormData({
+                  ...formData,
+                  courseType: type as
+                    | "basic"
+                    | "intermediate"
+                    | "advanced"
+                    | "professional",
+                })
+              }
+              className={`px-5 py-4 text-sm font-medium rounded-xl border-2 transition-all capitalize ${
+                formData.courseType === type
+                  ? "border-slate-900 dark:border-white bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                  : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
+              Feature Certification
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Students receive a certificate upon completion
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              setFormData({
+                ...formData,
+                hasCertification: !formData.hasCertification,
+              })
+            }
+            className={`relative inline-flex h-12 w-20 items-center rounded-full transition-colors ${
+              formData.hasCertification
+                ? "bg-green-500"
+                : "bg-slate-300 dark:bg-slate-600"
+            }`}
+          >
+            <span
+              className={`inline-block h-10 w-10 transform rounded-full bg-white shadow-lg transition-transform ${
+                formData.hasCertification ? "translate-x-9" : "translate-x-0.5"
+              }`}
+            />
+          </button>
+        </div>
       </div>
     </motion.div>
   );
@@ -199,7 +260,6 @@ export function CourseForm({
       const newChapter = {
         id: `chapter-${Date.now()}`,
         name: "",
-        learningObjectives: [],
       };
       setFormData({
         ...formData,
@@ -325,198 +385,18 @@ export function CourseForm({
     );
   };
 
-  const renderLearningObjectives = () => {
-    const addObjective = (domainId: string, chapterId: string) => {
-      setFormData({
-        ...formData,
-        domains: formData.domains.map((d) =>
-          d.id === domainId
-            ? {
-                ...d,
-                chapters: d.chapters.map((c) =>
-                  c.id === chapterId
-                    ? {
-                        ...c,
-                        learningObjectives: [...c.learningObjectives, ""],
-                      }
-                    : c,
-                ),
-              }
-            : d,
-        ),
-      });
-    };
-
-    const removeObjective = (
-      domainId: string,
-      chapterId: string,
-      objectiveIndex: number,
-    ) => {
-      setFormData({
-        ...formData,
-        domains: formData.domains.map((d) =>
-          d.id === domainId
-            ? {
-                ...d,
-                chapters: d.chapters.map((c) =>
-                  c.id === chapterId
-                    ? {
-                        ...c,
-                        learningObjectives: c.learningObjectives.filter(
-                          (_, i) => i !== objectiveIndex,
-                        ),
-                      }
-                    : c,
-                ),
-              }
-            : d,
-        ),
-      });
-    };
-
-    const updateObjective = (
-      domainId: string,
-      chapterId: string,
-      objectiveIndex: number,
-      value: string,
-    ) => {
-      setFormData({
-        ...formData,
-        domains: formData.domains.map((d) =>
-          d.id === domainId
-            ? {
-                ...d,
-                chapters: d.chapters.map((c) =>
-                  c.id === chapterId
-                    ? {
-                        ...c,
-                        learningObjectives: c.learningObjectives.map(
-                          (obj, i) => (i === objectiveIndex ? value : obj),
-                        ),
-                      }
-                    : c,
-                ),
-              }
-            : d,
-        ),
-      });
-    };
-
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-        className="space-y-8"
-      >
-        {formData.domains.map((domain, domainIndex) => (
-          <div key={domain.id} className="space-y-6">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white px-2">
-              {domain.name || `Domain ${domainIndex + 1}`}
-            </h3>
-
-            {domain.chapters.map((chapter, chapterIndex) => (
-              <div key={chapter.id} className="space-y-4 ml-4">
-                <h4 className="text-base font-medium text-slate-700 dark:text-slate-300">
-                  {chapter.name || `Chapter ${chapterIndex + 1}`}
-                </h4>
-
-                <div className="space-y-3">
-                  {chapter.learningObjectives.map((objective, objIndex) => (
-                    <div
-                      key={objIndex}
-                      className="group flex items-start gap-3 bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700"
-                    >
-                      <span className="flex items-start pt-1.5 text-slate-400">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      </span>
-                      <input
-                        type="text"
-                        value={objective}
-                        onChange={(e) =>
-                          updateObjective(
-                            domain.id,
-                            chapter.id,
-                            objIndex,
-                            e.target.value,
-                          )
-                        }
-                        placeholder="Learning objective..."
-                        className="flex-1 px-3 py-2 bg-transparent border-0 focus:outline-none focus:ring-0 text-sm placeholder:text-slate-400 dark:placeholder:text-slate-600"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() =>
-                          removeObjective(domain.id, chapter.id, objIndex)
-                        }
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <svg
-                          className="w-3.5 h-3.5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </Button>
-                    </div>
-                  ))}
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => addObjective(domain.id, chapter.id)}
-                    className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                      />
-                    </svg>
-                    Add Learning Objective
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
-      </motion.div>
-    );
-  };
-
   const renderExamConfig = () => {
     const updateTotalQuestions = (value: string) => {
       setFormData({
         ...formData,
         exam: { ...formData.exam, totalQuestions: parseInt(value) || 0 },
+      });
+    };
+
+    const updateTotalTime = (value: string) => {
+      setFormData({
+        ...formData,
+        exam: { ...formData.exam, totalTimeMinutes: parseInt(value) || 0 },
       });
     };
 
@@ -563,6 +443,20 @@ export function CourseForm({
             value={formData.exam.totalQuestions || ""}
             onChange={(e) => updateTotalQuestions(e.target.value)}
             placeholder="Enter total number of questions..."
+            className="w-full px-5 py-4 text-lg bg-transparent border-0 focus:outline-none focus:ring-0 text-base placeholder:text-slate-400 dark:placeholder:text-slate-600"
+          />
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+            Total Exam Time (in minutes)
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={formData.exam.totalTimeMinutes || ""}
+            onChange={(e) => updateTotalTime(e.target.value)}
+            placeholder="Enter total exam time in minutes..."
             className="w-full px-5 py-4 text-lg bg-transparent border-0 focus:outline-none focus:ring-0 text-base placeholder:text-slate-400 dark:placeholder:text-slate-600"
           />
         </div>
@@ -662,11 +556,6 @@ export function CourseForm({
       (sum, d) => sum + d.chapters.length,
       0,
     );
-    const totalObjectives = formData.domains.reduce(
-      (sum, d) =>
-        sum + d.chapters.reduce((s, c) => s + c.learningObjectives.length, 0),
-      0,
-    );
 
     return (
       <motion.div
@@ -699,6 +588,28 @@ export function CourseForm({
                 {formData.description || "Not set"}
               </p>
             </div>
+            <div>
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                Course Type
+              </label>
+              <p className="mt-1 text-base font-medium text-slate-900 dark:text-white capitalize">
+                {formData.courseType}
+              </p>
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                Certification
+              </label>
+              <span
+                className={`text-sm font-semibold ${
+                  formData.hasCertification
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-slate-600 dark:text-slate-400"
+                }`}
+              >
+                {formData.hasCertification ? "Enabled" : "Disabled"}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -709,7 +620,7 @@ export function CourseForm({
             </h3>
           </div>
           <div className="p-6 space-y-6">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 text-center">
                 <p className="text-3xl font-bold text-slate-900 dark:text-white">
                   {formData.domains.length}
@@ -724,14 +635,6 @@ export function CourseForm({
                 </p>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                   Chapters
-                </p>
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 text-center">
-                <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                  {totalObjectives}
-                </p>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                  Objectives
                 </p>
               </div>
             </div>
@@ -762,20 +665,6 @@ export function CourseForm({
                             <p className="font-medium text-slate-700 dark:text-slate-300">
                               {chapter.name || `Chapter ${chapterIndex + 1}`}
                             </p>
-                            {chapter.learningObjectives.length > 0 && (
-                              <ul className="mt-2 ml-4 list-disc space-y-1">
-                                {chapter.learningObjectives.map(
-                                  (objective, objIndex) => (
-                                    <li
-                                      key={objIndex}
-                                      className="text-slate-600 dark:text-slate-400"
-                                    >
-                                      {objective}
-                                    </li>
-                                  ),
-                                )}
-                              </ul>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -800,6 +689,14 @@ export function CourseForm({
               </span>
               <span className="text-base font-semibold text-slate-900 dark:text-white">
                 {formData.exam.totalQuestions || 0}
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                Total Time (minutes)
+              </span>
+              <span className="text-base font-semibold text-slate-900 dark:text-white">
+                {formData.exam.totalTimeMinutes || 0}
               </span>
             </div>
 

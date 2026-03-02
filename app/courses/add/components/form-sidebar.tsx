@@ -17,9 +17,8 @@ export function FormSidebar({
     { id: 1, title: "Course Info", icon: "📚" },
     { id: 2, title: "Domains", icon: "🎯" },
     { id: 3, title: "Chapters", icon: "📖" },
-    { id: 4, title: "Objectives", icon: "✅" },
-    { id: 5, title: "Exam", icon: "📝" },
-    { id: 6, title: "Summary", icon: "📋" },
+    { id: 4, title: "Exam", icon: "📝" },
+    { id: 5, title: "Summary", icon: "📋" },
   ];
 
   const isStepAccessible = (step: number) => {

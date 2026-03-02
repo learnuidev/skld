@@ -11,17 +11,19 @@ import { Button } from "@/components/ui/button";
 export interface CourseFormData {
   title: string;
   description: string;
+  courseType: "basic" | "intermediate" | "advanced" | "professional";
+  hasCertification: boolean;
   domains: Array<{
     id: string;
     name: string;
     chapters: Array<{
       id: string;
       name: string;
-      learningObjectives: string[];
     }>;
   }>;
   exam: {
     totalQuestions: number;
+    totalTimeMinutes: number;
     domainWeights: Record<string, number>;
     allowSkipQuestions: boolean;
   };
@@ -30,9 +32,12 @@ export interface CourseFormData {
 const initialFormData: CourseFormData = {
   title: "",
   description: "",
+  courseType: "basic",
+  hasCertification: false,
   domains: [],
   exam: {
     totalQuestions: 0,
+    totalTimeMinutes: 0,
     domainWeights: {},
     allowSkipQuestions: false,
   },
@@ -48,7 +53,7 @@ export default function AddCoursePage() {
   const [importMethod, setImportMethod] = useState<"paste" | "upload">("paste");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
-  const totalSteps = 6;
+  const totalSteps = 5;
 
   const handleStepChange = (step: number) => {
     setCurrentStep(step);
@@ -150,6 +155,8 @@ export default function AddCoursePage() {
       await createCourseMutation.mutateAsync({
         title: formData.title,
         description: formData.description,
+        courseType: formData.courseType,
+        hasCertification: formData.hasCertification,
         domains: formData.domains,
         exam: formData.exam,
       });
@@ -171,19 +178,13 @@ export default function AddCoursePage() {
       case 3:
         return formData.domains.every((domain) => domain.chapters.length > 0);
       case 4:
-        return formData.domains.every((domain) =>
-          domain.chapters.every(
-            (chapter) => chapter.learningObjectives.length > 0,
-          ),
-        );
-      case 5:
         return (
           formData.exam.totalQuestions > 0 &&
           formData.domains.every(
             (domain) => formData.exam.domainWeights[domain.id] > 0,
           )
         );
-      case 6:
+      case 5:
         return formData.title.trim().length > 0;
       default:
         return false;
