@@ -1,30 +1,35 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
-import { useUpdateMockExamMutation } from "@/modules/user-mock-exams/use-update-mock-exam-mutation";
+import type { Question } from "@/modules/exam-bank/exam-bank.types";
 import {
   useGetExamBankQuery,
   useGetExamBanksQuery,
 } from "@/modules/exam-bank/use-get-exam-bank-query";
-import type { ExamBank, Question } from "@/modules/exam-bank/exam-bank.types";
+import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
+import { useUpdateMockExamMutation } from "@/modules/user-mock-exams/use-update-mock-exam-mutation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
-  Check,
-  Clock,
   ArrowLeft,
+  Check,
   ChevronLeft,
   ChevronRight,
-  XCircle,
+  Clock,
 } from "lucide-react";
-import * as React from "react";
 import Link from "next/link";
-import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MockExamCompleted } from "../components/mock-exam-completed";
+import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
+import { Course } from "@/modules/course/course.types";
 
-export default function MockExamPage() {
+function MockExamPageInner({
+  mockExam,
+  course,
+}: {
+  mockExam: MockExam;
+  course: Course;
+}) {
   const params = useParams<{ courseId: string; mockExamId: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -41,14 +46,7 @@ export default function MockExamPage() {
   >(null);
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
 
-  const { data: course } = useGetCourseQuery(params.courseId);
-  const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
-    params.mockExamId
-  );
   const updateMockExamMutation = useUpdateMockExamMutation(params.mockExamId);
-  const { data: examBanks } = useGetExamBanksQuery(params.courseId);
-
-  const isLoading = mockExamLoading;
 
   const allowSkip = course?.exam?.allowSkipQuestions ?? false;
   const isTimed = mockExam?.examType === "timed";
@@ -70,17 +68,9 @@ export default function MockExamPage() {
     });
   }, [examBank, mockExam?.selectedDomains]);
 
-  console.log("ALL QUESTIONS", allQuestions);
-
   const currentIndex = mockExam?.currentQuestionIndex ?? 0;
 
-  console.log("CURRENT INDEX", currentIndex);
-
-  const questionsCompleted = Object.keys(mockExam?.answers || {}).length;
-
   const totalQuestions = allQuestions?.length || 0;
-
-  console.log("TOTAL Q", totalQuestions);
 
   const totalTimeInMilliSeconds = course?.exam?.totalTimeMinutes
     ? course.exam.totalTimeMinutes * 60 * 1000
@@ -128,8 +118,6 @@ export default function MockExamPage() {
     (question) => !mockExam?.answers?.[question?.id]
   );
 
-  console.log("ANSWERED", answeredQuestions);
-
   const currentQuestion = allQuestions[currentIndex];
   const currentQuestionNumber = currentIndex + 1;
 
@@ -138,36 +126,6 @@ export default function MockExamPage() {
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? "0" : ""}${secs.toFixed(0)}`;
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!mockExam || !course) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-destructive">Exam not found</div>
-      </div>
-    );
-  }
-
-  if (mockExam.status !== "in_progress") {
-    if (mockExam.status === "completed" && examBank) {
-      return <MockExamCompleted mockExam={mockExam} examBank={examBank} />;
-    }
-
-    return (
-      <div className="min-h-screen flex justify-center bg-background lg:mt-32">
-        <div className="text-muted-foreground">
-          This exam has been abondoned
-        </div>
-      </div>
-    );
-  }
 
   if (!currentQuestion || totalQuestions === 0) {
     return (
@@ -272,22 +230,22 @@ export default function MockExamPage() {
 
   const handleSubmit = async () => {
     const newAnswers = { ...mockExam.answers };
-    const questionId = currentQuestion?.question;
+    const questionId = currentQuestion.id;
 
     if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-      newAnswers[currentQuestionNumber] = {
+      newAnswers[questionId] = {
         questionId,
         answer: selectedAnswer,
         timeSpent: elapsedTime,
       };
     } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-      newAnswers[currentQuestionNumber] = {
+      newAnswers[questionId] = {
         questionId,
         answers: Array.from(selectedMultipleAnswers),
         timeSpent: elapsedTime,
       };
     } else if (currentQuestion?.type === "TRUE_FALSE") {
-      newAnswers[currentQuestionNumber] = {
+      newAnswers[questionId] = {
         questionId,
         answer: trueFalseAnswer,
         timeSpent: elapsedTime,
@@ -439,4 +397,51 @@ export default function MockExamPage() {
       </div>
     </div>
   );
+}
+
+export default function MockExamPage() {
+  const params = useParams<{ courseId: string; mockExamId: string }>();
+  const { data: course } = useGetCourseQuery(params.courseId);
+  const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
+    params.mockExamId
+  );
+
+  const { data: examBank, isLoading: isExamBankLoading } = useGetExamBankQuery(
+    mockExam?.courseId || "",
+    mockExam?.examBankIds?.[0] || ""
+  );
+
+  const isLoading = mockExamLoading || isExamBankLoading;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!mockExam || !course || !examBank) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-destructive">Exam not found</div>
+      </div>
+    );
+  }
+
+  if (mockExam.status !== "in_progress") {
+    if (mockExam.status === "completed" && examBank) {
+      return <MockExamCompleted mockExam={mockExam} examBank={examBank} />;
+    }
+
+    return (
+      <div className="min-h-screen flex justify-center bg-background lg:mt-32">
+        <div className="text-muted-foreground">
+          This exam has been abondoned
+        </div>
+      </div>
+    );
+  }
+
+  return <MockExamPageInner mockExam={mockExam} course={course} />;
 }

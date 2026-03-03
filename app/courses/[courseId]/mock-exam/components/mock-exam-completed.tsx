@@ -94,6 +94,8 @@ export function MockExamCompleted({
 
     const allQuestions = examBank.questions;
 
+    console.log("MOCK EXAM", mockExam);
+
     const questionsAnswered = Object.keys(mockExam.answers || {}).length;
     const totalTimeSpent = mockExam.timeSpent || 0;
 
@@ -158,8 +160,12 @@ export function MockExamCompleted({
                 {Object.entries(mockExam.answers || {}).map(
                   ([questionIndex, answer]: [string, any], index) => {
                     const allQuestions = examBank.questions;
-                    const question = allQuestions[parseInt(questionIndex) - 1];
+                    const question = examBank.questions.find(
+                      (question) => question.id === questionIndex
+                    );
                     if (!question) return null;
+
+                    console.log("ANSWER", answer);
 
                     const status = getQuestionStatus(questionIndex, answer);
                     const timeSpent = answer?.timeSpent || 0;
