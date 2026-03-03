@@ -1,12 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
+import { useDeleteMockExamMutation } from "@/modules/user-mock-exams/use-delete-mock-exam-mutation";
 import { useParams, useRouter } from "next/navigation";
-import { Play, ChevronDown, ChevronUp, Clock, CheckCircle } from "lucide-react";
+import {
+  Play,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  CheckCircle,
+  Trash2,
+  AlertTriangle,
+} from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 function CourseHeader({
   course,
@@ -264,6 +283,86 @@ function DomainsList({ course }: { course: any }) {
   );
 }
 
+function DeleteDialog({
+  open,
+  onOpenChange,
+  mockExamTitle,
+  onConfirm,
+  isPending,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  mockExamTitle: string;
+  onConfirm: () => void;
+  isPending: boolean;
+}) {
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+
+  const handleConfirm = () => {
+    if (deleteConfirm === "delete") {
+      onConfirm();
+      setDeleteConfirm("");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+            </div>
+            <DialogTitle className="text-xl">Delete Mock Exam</DialogTitle>
+          </div>
+          <DialogDescription className="text-base pt-4">
+            This action cannot be undone. This will permanently delete the mock
+            exam &quot;{mockExamTitle}&quot; and all your answers.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-4">
+            <p className="text-sm font-medium text-destructive">
+              Warning: All progress and answers will be permanently deleted
+            </p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Type <span className="font-bold">&quot;delete&quot;</span> to
+              confirm
+            </label>
+            <Input
+              placeholder="Enter 'delete'"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              className="w-full"
+            />
+          </div>
+        </div>
+        <DialogFooter className="gap-3 sm:gap-3">
+          <button
+            onClick={() => {
+              onOpenChange(false);
+              setDeleteConfirm("");
+            }}
+            disabled={isPending}
+            className="px-4 py-2 rounded-md border border-border bg-background text-sm font-medium hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={deleteConfirm !== "delete" || isPending}
+            className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isPending ? "Deleting..." : "Delete"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function MyMockExamsTab({
   courseId,
   course,
@@ -273,9 +372,13 @@ function MyMockExamsTab({
 }) {
   const { data: mockExams, isLoading } = useGetMockExamsQuery(courseId);
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const deleteMockExamMutation = useDeleteMockExamMutation();
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">(
     "all",
   );
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [examToDelete, setExamToDelete] = useState<string | null>(null);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -296,6 +399,19 @@ function MyMockExamsTab({
     return domainIds
       .map((id) => course.domains.find((d: any) => d.id === id)?.name)
       .filter(Boolean);
+  };
+
+  const handleDeleteExam = async (examId: string) => {
+    await deleteMockExamMutation.mutateAsync(examId);
+    setDeleteDialogOpen(false);
+    setExamToDelete(null);
+    await queryClient.invalidateQueries({
+      queryKey: ["mockExams", courseId],
+    });
+  };
+
+  const getExamTitle = (exam: any) => {
+    return exam.examType === "timed" ? "Timed Exam" : "Untimed Exam";
   };
 
   if (isLoading) {
@@ -398,13 +514,15 @@ function MyMockExamsTab({
             {inProgressExams.map((exam) => {
               const domainNames = getDomainNames(exam.selectedDomains);
               return (
-                <Link
+                <div
                   key={exam.id}
-                  href={`/courses/${courseId}/mock-exam/${exam.id}`}
-                  className="block p-6 rounded-lg border border-border hover:border-foreground/20 transition-colors"
+                  className="p-6 rounded-lg border border-border hover:border-foreground/20 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
+                    <Link
+                      href={`/courses/${courseId}/mock-exam/${exam.id}`}
+                      className="flex-1"
+                    >
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center">
                           <Clock className="w-4 h-4 text-amber-600" />
@@ -436,17 +554,28 @@ function MyMockExamsTab({
                           </span>
                         )}
                       </div>
-                    </div>
-                    <div className="text-right">
+                    </Link>
+                    <div className="flex flex-col items-end gap-2">
                       <div className="text-sm font-medium text-foreground mb-1">
                         Question {exam.currentQuestionIndex + 1}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {Object.keys(exam.answers).length} answered
                       </div>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setExamToDelete(exam.id);
+                          setDeleteDialogOpen(true);
+                        }}
+                        className="p-2 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
@@ -462,13 +591,15 @@ function MyMockExamsTab({
             {completedExams.map((exam) => {
               const domainNames = getDomainNames(exam.selectedDomains);
               return (
-                <Link
+                <div
                   key={exam.id}
-                  href={`/courses/${courseId}/mock-exam/${exam.id}`}
-                  className="block p-6 rounded-lg border border-border hover:border-foreground/20 transition-colors"
+                  className="p-6 rounded-lg border border-border hover:border-foreground/20 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
+                    <Link
+                      href={`/courses/${courseId}/mock-exam/${exam.id}`}
+                      className="flex-1"
+                    >
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center">
                           <CheckCircle className="w-4 h-4 text-green-600" />
@@ -500,17 +631,28 @@ function MyMockExamsTab({
                           </span>
                         )}
                       </div>
-                    </div>
-                    <div className="text-right">
+                    </Link>
+                    <div className="flex flex-col items-end gap-2">
                       <div className="text-sm font-medium text-foreground mb-1">
                         {Object.keys(exam.answers).length} questions
                       </div>
                       <div className="text-xs text-green-600 font-medium">
                         Completed
                       </div>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setExamToDelete(exam.id);
+                          setDeleteDialogOpen(true);
+                        }}
+                        className="p-2 rounded-lg bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
@@ -541,6 +683,22 @@ function MyMockExamsTab({
             No {filter.replace("_", " ")} mock exams yet.
           </p>
         </div>
+      )}
+
+      {examToDelete && (
+        <DeleteDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          mockExamTitle={getExamTitle(
+            mockExams?.find((e) => e.id === examToDelete),
+          )}
+          onConfirm={() => {
+            if (examToDelete) {
+              handleDeleteExam(examToDelete);
+            }
+          }}
+          isPending={deleteMockExamMutation.isPending}
+        />
       )}
     </div>
   );
