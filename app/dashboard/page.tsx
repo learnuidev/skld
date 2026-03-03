@@ -1,160 +1,250 @@
 "use client";
 
+import { useState } from "react";
 import { useGetEnrollmentsQuery } from "@/modules/enrollment/use-get-enrollment-query";
 import { useGetCoursesQuery } from "@/modules/course/use-get-courses-query";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { BookOpen, Calendar, Clock, GraduationCap, X } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { useCreateEnrollmentMutation } from "@/modules/enrollment/use-create-enrollment-mutation";
 import { useDeleteEnrollmentMutation } from "@/modules/enrollment/use-delete-enrollment-mutation";
-import { useRouter } from "next/navigation";
+import {
+  Search,
+  X,
+  Clock,
+  GraduationCap,
+  BookOpen,
+  Check,
+  ChevronRight,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 export default function Dashboard() {
+  const [searchQuery, setSearchQuery] = useState("");
   const { data: enrollments, isLoading, error } = useGetEnrollmentsQuery();
   const { data: allCourses } = useGetCoursesQuery();
+  const createEnrollmentMutation = useCreateEnrollmentMutation();
   const deleteEnrollmentMutation = useDeleteEnrollmentMutation();
-  const router = useRouter();
 
-  const handleDeleteEnrollment = async (courseId: string) => {
+  const enrolledCourseIds = enrollments?.map((e) => e.courseId) || [];
+  const availableCourses =
+    allCourses?.filter((c) => !enrolledCourseIds.includes(c.id)) || [];
+
+  const filteredCourses = availableCourses.filter((course) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      course.title.toLowerCase().includes(query) ||
+      course.description?.toLowerCase().includes(query)
+    );
+  });
+
+  const handleEnroll = async (courseId: string) => {
+    await createEnrollmentMutation.mutateAsync({ courseId });
+  };
+
+  const handleUnenroll = async (courseId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (window.confirm("Are you sure you want to unenroll from this course?")) {
       await deleteEnrollmentMutation.mutateAsync(courseId);
     }
   };
 
-  const handleNavigateToCourses = () => {
-    router.push("/courses");
-  };
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-muted-foreground">Loading your enrollments...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-destructive">Error loading enrollments</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-destructive">Error loading courses</div>
       </div>
     );
   }
-
-  if (!enrollments || enrollments.length === 0) {
-    return (
-      <div className="max-w-2xl mx-auto py-12 px-4">
-        <Card className="text-center">
-          <CardHeader>
-            <div className="mx-auto mb-4 w-16 h-16 bg-secondary rounded-full flex items-center justify-center">
-              <GraduationCap className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <CardTitle className="text-2xl">No Enrollments Yet</CardTitle>
-            <CardDescription className="text-base">
-              You haven&apos;t enrolled in any courses yet. Start your learning
-              journey by browsing and enrolling in a course.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={handleNavigateToCourses} size="lg">
-              <BookOpen className="w-5 h-5 mr-2" />
-              Browse Courses
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const enrolledCourses = enrollments
-    .map((enrollment) => {
-      const course = allCourses?.find((c) => c.id === enrollment.courseId);
-      return { ...enrollment, course };
-    })
-    .filter((e) => e.course);
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4 space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">My Enrollments</h1>
-        <p className="text-muted-foreground">
-          Manage your enrolled courses and track your progress
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-3xl mx-auto px-6 py-16 lg:py-24">
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-semibold tracking-tight mb-2">
+            Dashboard
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            {enrollments && enrollments.length > 0
+              ? `You have ${enrollments.length} enrollment${enrollments.length === 1 ? "" : "s"}`
+              : "Start your learning journey"}
+          </p>
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {enrolledCourses.map((enrollment) => (
-          <Card key={enrollment.id} className="flex flex-col">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-xl mb-2">
-                    {enrollment.course?.title}
-                  </CardTitle>
-                  <CardDescription className="line-clamp-3">
-                    {enrollment.course?.description}
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDeleteEnrollment(enrollment.courseId)}
-                  className="text-muted-foreground hover:text-destructive"
-                  disabled={deleteEnrollmentMutation.isPending}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-between">
-              <div className="space-y-3 mb-4">
-                {enrollment.course?.courseType && (
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <GraduationCap className="w-4 h-4 mr-2" />
-                    <span className="capitalize">
-                      {enrollment.course.courseType}
-                    </span>
-                  </div>
-                )}
-                {enrollment.course?.domains &&
-                  enrollment.course.domains.length > 0 && (
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      <span>{enrollment.course.domains.length} domains</span>
+        {/* Search Bar */}
+        <div className="mb-12">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search courses..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-secondary/50 border border-border rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-foreground focus:border-transparent transition-all placeholder:text-muted-foreground/60"
+            />
+          </div>
+        </div>
+
+        {/* Enrolled Courses */}
+        {enrollments && enrollments.length > 0 && (
+          <div className="mb-16">
+            <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground mb-6">
+              My Enrollments
+            </h2>
+            <div className="space-y-4">
+              {enrollments.map((enrollment) => {
+                const course = allCourses?.find(
+                  (c) => c.id === enrollment.courseId,
+                );
+                if (!course) return null;
+
+                return (
+                  <Link
+                    key={enrollment.id}
+                    href={`/courses/${enrollment.courseId}`}
+                    className="group flex items-start gap-6 p-6 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-medium text-foreground mb-1">
+                        {course.title}
+                      </h3>
+                      {course.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                          {course.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        {course.courseType && (
+                          <span className="flex items-center gap-1.5">
+                            <GraduationCap className="w-4 h-4" />
+                            <span className="capitalize">
+                              {course.courseType}
+                            </span>
+                          </span>
+                        )}
+                        {course.domains && course.domains.length > 0 && (
+                          <span className="flex items-center gap-1.5">
+                            <BookOpen className="w-4 h-4" />
+                            <span>{course.domains.length} domains</span>
+                          </span>
+                        )}
+                        {course.exam && (
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-4 h-4" />
+                            <span>{course.exam.totalQuestions} questions</span>
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-4 h-4" />
+                          <span className="text-xs">
+                            Enrolled{" "}
+                            {formatDistanceToNow(
+                              new Date(enrollment.enrolledAt),
+                              {
+                                addSuffix: true,
+                              },
+                            )}
+                          </span>
+                        </span>
+                      </div>
                     </div>
-                  )}
-                {enrollment.course?.exam && (
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4 mr-2" />
-                    <span>
-                      {enrollment.course.exam.totalQuestions} questions
-                    </span>
-                    {enrollment.course.exam.totalTimeMinutes && (
-                      <span className="ml-2">
-                        • {enrollment.course.exam.totalTimeMinutes} mins
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => handleUnenroll(enrollment.courseId, e)}
+                        className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-lg transition-colors"
+                        disabled={deleteEnrollmentMutation.isPending}
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Available Courses */}
+        {filteredCourses.length > 0 && (
+          <div>
+            <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground mb-6">
+              Enroll in the following courses
+            </h2>
+            <div className="space-y-4">
+              {filteredCourses.map((course) => (
+                <div
+                  key={course.id}
+                  className="group flex items-start gap-6 p-6 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-medium text-foreground mb-1">
+                      {course.title}
+                    </h3>
+                    {course.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                        {course.description}
+                      </p>
                     )}
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      {course.courseType && (
+                        <span className="flex items-center gap-1.5">
+                          <GraduationCap className="w-4 h-4" />
+                          <span className="capitalize">
+                            {course.courseType}
+                          </span>
+                        </span>
+                      )}
+                      {course.domains && course.domains.length > 0 && (
+                        <span className="flex items-center gap-1.5">
+                          <BookOpen className="w-4 h-4" />
+                          <span>{course.domains.length} domains</span>
+                        </span>
+                      )}
+                      {course.exam && (
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-4 h-4" />
+                          <span>{course.exam.totalQuestions} questions</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="flex items-center text-sm text-muted-foreground border-t pt-4">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>
-                  Enrolled{" "}
-                  {formatDistanceToNow(new Date(enrollment.enrolledAt), {
-                    addSuffix: true,
-                  })}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  <button
+                    onClick={() => handleEnroll(course.id)}
+                    disabled={createEnrollmentMutation.isPending}
+                    className="shrink-0 px-5 py-2.5 bg-foreground text-background rounded-lg font-medium text-sm hover:bg-foreground/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {createEnrollmentMutation.isPending ? (
+                      "Enrolling..."
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Enroll
+                      </>
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {filteredCourses.length === 0 && searchQuery && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">
+              No courses found matching &ldquo;{searchQuery}&rdquo;
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
