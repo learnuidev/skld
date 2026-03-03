@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { useUpdateMockExamMutation } from "@/modules/user-mock-exams/use-update-mock-exam-mutation";
 import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import type { Question } from "@/modules/exam-bank/exam-bank.types";
 import {
   Check,
   Clock,
@@ -18,6 +20,7 @@ import Link from "next/link";
 export default function MockExamPage() {
   const params = useParams<{ courseId: string; mockExamId: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [selectedMultipleAnswers, setSelectedMultipleAnswers] = useState<
@@ -25,6 +28,7 @@ export default function MockExamPage() {
   >(new Set());
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<boolean | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
 
   const { data: course } = useGetCourseQuery(params.courseId);
   const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
@@ -38,22 +42,50 @@ export default function MockExamPage() {
   const allowSkip = course?.exam?.allowSkipQuestions ?? false;
   const isTimed = mockExam?.examType === "timed";
 
-  const getAllQuestions = () => {
+  const allQuestionsRef = useRef<Question[] | null>(null);
+
+  const allQuestions: Question[] = useMemo(() => {
     if (!examBanks || !mockExam) return [];
 
-    let allQuestions = examBanks.flatMap((bank) => bank.questions);
+    let questions = examBanks.flatMap((bank) => bank.questions);
 
     if (mockExam.selectedDomains && mockExam.selectedDomains.length > 0) {
-      allQuestions = allQuestions.filter((question) =>
+      questions = questions.filter((question) =>
         mockExam.selectedDomains.includes(question.domainId)
       );
     }
 
-    return allQuestions;
-  };
+    if (!allQuestionsRef.current) {
+      const shuffled = [...questions];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      allQuestionsRef.current = shuffled;
+      return shuffled;
+    }
 
-  const allQuestions = getAllQuestions();
+    return allQuestionsRef.current;
+  }, [examBanks, mockExam?.selectedDomains]);
+
   const currentIndex = mockExam?.currentQuestionIndex ?? 0;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedTime((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex]);
+
+  useEffect(() => {
+    if (isTimed && mockExam?.timeRemaining) {
+      const remaining = mockExam.timeRemaining - elapsedTime;
+      setRemainingTime(remaining > 0 ? remaining : 0);
+    } else {
+      setRemainingTime(null);
+    }
+  }, [isTimed, mockExam?.timeRemaining, elapsedTime]);
   const currentQuestion = allQuestions[currentIndex];
   const currentQuestionNumber = currentIndex + 1;
   const totalQuestions = allQuestions.length;
@@ -117,14 +149,26 @@ export default function MockExamPage() {
 
   const handleNext = async () => {
     const newAnswers = { ...mockExam.answers };
+    const questionId = currentQuestion?.question;
+
     if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-      newAnswers[currentQuestionNumber] = { answer: selectedAnswer };
+      newAnswers[currentQuestionNumber] = {
+        questionId,
+        answer: selectedAnswer,
+        timeSpent: elapsedTime,
+      };
     } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
       newAnswers[currentQuestionNumber] = {
+        questionId,
         answers: Array.from(selectedMultipleAnswers),
+        timeSpent: elapsedTime,
       };
     } else if (currentQuestion?.type === "TRUE_FALSE") {
-      newAnswers[currentQuestionNumber] = { answer: trueFalseAnswer };
+      newAnswers[currentQuestionNumber] = {
+        questionId,
+        answer: trueFalseAnswer,
+        timeSpent: elapsedTime,
+      };
     }
 
     const newTimeSpent = elapsedTime;
@@ -138,6 +182,10 @@ export default function MockExamPage() {
       answers: newAnswers,
       timeSpent: newTimeSpent,
       timeRemaining: newTimeRemaining,
+    });
+
+    await queryClient.invalidateQueries({
+      queryKey: ["mockExam", params.mockExamId],
     });
 
     setSelectedAnswer(null);
@@ -161,6 +209,10 @@ export default function MockExamPage() {
       timeRemaining: newTimeRemaining,
     });
 
+    await queryClient.invalidateQueries({
+      queryKey: ["mockExam", params.mockExamId],
+    });
+
     setSelectedAnswer(null);
     setSelectedMultipleAnswers(new Set());
     setTrueFalseAnswer(null);
@@ -176,14 +228,26 @@ export default function MockExamPage() {
 
   const handleSubmit = async () => {
     const newAnswers = { ...mockExam.answers };
+    const questionId = currentQuestion?.question;
+
     if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-      newAnswers[currentQuestionNumber] = { answer: selectedAnswer };
+      newAnswers[currentQuestionNumber] = {
+        questionId,
+        answer: selectedAnswer,
+        timeSpent: elapsedTime,
+      };
     } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
       newAnswers[currentQuestionNumber] = {
+        questionId,
         answers: Array.from(selectedMultipleAnswers),
+        timeSpent: elapsedTime,
       };
     } else if (currentQuestion?.type === "TRUE_FALSE") {
-      newAnswers[currentQuestionNumber] = { answer: trueFalseAnswer };
+      newAnswers[currentQuestionNumber] = {
+        questionId,
+        answer: trueFalseAnswer,
+        timeSpent: elapsedTime,
+      };
     }
 
     await updateMockExamMutation.mutateAsync({
@@ -205,14 +269,8 @@ export default function MockExamPage() {
     return false;
   };
 
-  const getRemainingTime = () => {
-    if (!isTimed || !mockExam.timeRemaining) return null;
-    const remaining = mockExam.timeRemaining - elapsedTime;
-    return remaining > 0 ? remaining : 0;
-  };
-
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col max-w-3xl mx-auto">
       <div className="mx-auto w-full py-12 flex-1">
         <header className="mb-12">
           <div className="flex items-baseline gap-4 justify-between mb-4">
@@ -233,7 +291,7 @@ export default function MockExamPage() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="w-4 h-4" />
                 <span className="font-medium">
-                  {formatTime(getRemainingTime() || 0)}
+                  {formatTime(remainingTime || 0)}
                 </span>
               </div>
             )}
@@ -256,7 +314,7 @@ export default function MockExamPage() {
           </p>
 
           <div className="space-y-4">
-            {currentQuestion.options.map((option, index) => {
+            {currentQuestion.options.map((option: string, index: number) => {
               const isSelected =
                 currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
                   ? selectedAnswer === index
