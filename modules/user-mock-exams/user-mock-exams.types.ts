@@ -6,6 +6,7 @@ export interface MockExam {
   id: string;
   userId: string;
   courseId: string;
+  examBankIds: string[];
   examType: ExamType;
   selectedDomains: string[];
   currentQuestionIndex: number;
@@ -22,6 +23,7 @@ export interface CreateMockExamParams {
   examType: ExamType;
   selectedDomains: string[];
   totalTimeSeconds: number;
+  examBankIds: string[];
 }
 
 export interface UpdateMockExamParams {
