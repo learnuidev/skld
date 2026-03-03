@@ -151,11 +151,19 @@ export default function MockExamPage() {
   }
 
   if (mockExam.status !== "in_progress") {
+    if (mockExam.status === "completed") {
+      return (
+        <div className="min-h-screen flex justify-center bg-background lg:mt-32">
+          <div className="text-muted-foreground">
+            This exam has been completed
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-muted-foreground">
-          This exam has been{" "}
-          {mockExam.status === "completed" ? "completed" : "abandoned"}
+          This exam has been abondoned
         </div>
       </div>
     );
