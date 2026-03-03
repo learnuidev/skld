@@ -260,11 +260,15 @@ function MockExamPageInner({
 
     const newTotalTimeSpent = totalTimeSpent + elapsedTime;
 
-    await updateMockExamMutation.mutateAsync({
-      answers: newAnswers,
-      timeSpent: newTotalTimeSpent,
-      status: "completed",
-    });
+    await updateMockExamMutation
+      .mutateAsync({
+        answers: newAnswers,
+        timeSpent: newTotalTimeSpent,
+        status: "completed",
+      })
+      .then(() => {
+        queryClient.refetchQueries({ queryKey: ["mockExam", mockExam.id] });
+      });
 
     router.push(`/courses/${params.courseId}`);
   };

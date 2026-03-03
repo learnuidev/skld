@@ -25,12 +25,12 @@ export function MockExamCompleted({
       let total = 0;
 
       Object.entries(mockExam.answers || {}).forEach(
-        ([questionIndex, answer]: [string, any]) => {
+        ([questionId, answer]: [string, any]) => {
           if (!answer) return;
 
           const allQuestions = examBank.questions;
 
-          const question = allQuestions[parseInt(questionIndex) - 1];
+          const question = allQuestions.find((q) => q.id === questionId);
           if (!question) return;
 
           total++;
@@ -62,12 +62,12 @@ export function MockExamCompleted({
 
     const overallAccuracy = calculateOverallAccuracy();
 
-    const getQuestionStatus = (questionIndex: string, answer: any) => {
+    const getQuestionStatus = (questionId: string, answer: any) => {
       if (!answer) return { status: "skipped", icon: null };
 
       const allQuestions = examBank.questions;
 
-      const question = allQuestions[parseInt(questionIndex) - 1];
+      const question = allQuestions?.find((q) => q.id === questionId);
       if (!question) return { status: "unknown", icon: null };
 
       let isCorrect = false;
