@@ -74,10 +74,33 @@ export default function MockExamPage() {
 
   const currentIndex = mockExam?.currentQuestionIndex ?? 0;
 
+  const questionsCompleted = Object.keys(mockExam?.answers || {}).length;
+  const totalQuestions = (mockExam?.currentQuestionIndex || 0) + 1;
+
+  const totalTimeInMilliSeconds = course?.exam?.totalTimeMinutes
+    ? course.exam.totalTimeMinutes * 60 * 1000
+    : null;
+
+  console.log("COURSE", course);
+  console.log("EXAM", mockExam);
+
+  const elapsedTimeInMilliSeconds = Date.now() - (mockExam?.createdAt || 0);
+
+  const timeRemainingInMilliseconds =
+    totalTimeInMilliSeconds !== null
+      ? Math.max(totalTimeInMilliSeconds - elapsedTimeInMilliSeconds, 0)
+      : null;
+  const timeRemaining =
+    totalTimeInMilliSeconds !== null
+      ? Math.max(totalTimeInMilliSeconds - elapsedTimeInMilliSeconds, 0) / 1000
+      : null;
+
+  console.log("NEW TIME REMAINING", timeRemaining);
+
   useEffect(() => {
     if (isTimed && mockExam?.timeRemaining !== undefined) {
       setInitialTimeRemaining(mockExam.timeRemaining);
-      setRemainingTime(mockExam.timeRemaining);
+      setRemainingTime(timeRemaining);
       setTotalTimeSpent(mockExam.timeSpent || 0);
     } else {
       setInitialTimeRemaining(null);
@@ -100,14 +123,15 @@ export default function MockExamPage() {
 
     return () => clearInterval(interval);
   }, [initialTimeRemaining]);
+
   const currentQuestion = allQuestions[currentIndex];
   const currentQuestionNumber = currentIndex + 1;
-  const totalQuestions = allQuestions.length;
+  // const totalQuestions = allQuestions.length;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs.toFixed(0)}`;
   };
 
   if (isLoading) {
@@ -305,7 +329,7 @@ export default function MockExamPage() {
             {isTimed && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="w-4 h-4" />
-                <span className="font-medium">
+                <span className="font-medium w-8">
                   {formatTime(remainingTime || 0)}
                 </span>
               </div>

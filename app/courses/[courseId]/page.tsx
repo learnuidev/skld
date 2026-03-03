@@ -708,9 +708,11 @@ function MyMockExamsTab({
 function InProgressExamBanner({
   exam,
   onClick,
+  course,
 }: {
   exam: any;
   onClick: () => void;
+  course: any;
 }) {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -720,12 +722,31 @@ function InProgressExamBanner({
 
   const questionsCompleted = Object.keys(exam.answers || {}).length;
   const totalQuestions = exam.currentQuestionIndex + 1;
-  const timeRemaining = exam.timeRemaining;
-  const timeSpent = exam.timeSpent || 0;
 
-  const totalTime = timeRemaining !== null ? timeRemaining + timeSpent : null;
+  const totalTimeInMilliSeconds = course?.exam?.totalTimeMinutes
+    ? course.exam.totalTimeMinutes * 60 * 1000
+    : null;
+
+  console.log("COURSE", course);
+  console.log("EXAM", exam);
+
+  const elapsedTimeInMilliSeconds = Date.now() - exam.createdAt;
+
+  const timeRemainingInMilliseconds =
+    totalTimeInMilliSeconds !== null
+      ? Math.max(totalTimeInMilliSeconds - elapsedTimeInMilliSeconds, 0)
+      : null;
+  const timeRemaining =
+    totalTimeInMilliSeconds !== null
+      ? Math.max(totalTimeInMilliSeconds - elapsedTimeInMilliSeconds, 0) / 1000
+      : null;
+
   const percentageRemaining =
-    totalTime !== null ? Math.round((timeRemaining / totalTime) * 100) : null;
+    totalTimeInMilliSeconds !== null && timeRemainingInMilliseconds !== null
+      ? Math.round(
+          (timeRemainingInMilliseconds / totalTimeInMilliSeconds) * 100
+        )
+      : null;
 
   return (
     <button
@@ -759,7 +780,7 @@ function InProgressExamBanner({
             <>
               <div className="flex items-center gap-2">
                 <div className="text-sm text-muted-foreground">
-                  {formatTime(timeRemaining)} remaining
+                  {formatTime(timeRemaining!)} remaining
                 </div>
                 <div className="h-4 w-px bg-border" />
               </div>
@@ -858,6 +879,7 @@ export default function CoursePage() {
           <InProgressExamBanner
             exam={inProgressExam}
             onClick={handleResumeExam}
+            course={course}
           />
         )}
 
