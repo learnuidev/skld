@@ -36,7 +36,7 @@ export default function MockExamPage() {
 
   const { data: course } = useGetCourseQuery(params.courseId);
   const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
-    params.mockExamId,
+    params.mockExamId
   );
   const updateMockExamMutation = useUpdateMockExamMutation(params.mockExamId);
   const { data: examBanks } = useGetExamBanksQuery(params.courseId);
@@ -55,7 +55,7 @@ export default function MockExamPage() {
 
     if (mockExam.selectedDomains && mockExam.selectedDomains.length > 0) {
       questions = questions.filter((question) =>
-        mockExam.selectedDomains.includes(question.domainId),
+        mockExam.selectedDomains.includes(question.domainId)
       );
     }
 
@@ -163,22 +163,22 @@ export default function MockExamPage() {
 
   const handleNext = async () => {
     const newAnswers = { ...mockExam.answers };
-    const questionId = currentQuestion?.question;
+    const questionId = currentQuestion.id || "";
 
     if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-      newAnswers[currentQuestionNumber] = {
+      newAnswers[questionId] = {
         questionId,
         answer: selectedAnswer,
         timeSpent: elapsedTime,
       };
     } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-      newAnswers[currentQuestionNumber] = {
+      newAnswers[questionId] = {
         questionId,
         answers: Array.from(selectedMultipleAnswers),
         timeSpent: elapsedTime,
       };
     } else if (currentQuestion?.type === "TRUE_FALSE") {
-      newAnswers[currentQuestionNumber] = {
+      newAnswers[questionId] = {
         questionId,
         answer: trueFalseAnswer,
         timeSpent: elapsedTime,
