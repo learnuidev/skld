@@ -2,28 +2,399 @@
 
 import { useState } from "react";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Link from "next/link";
+import { useDeleteCourseMutation } from "@/modules/course/use-delete-course-mutation";
 import { Button } from "@/components/ui/button";
-import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { ExamBankTab } from "./components/exam-bank-tab";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { AlertTriangle, Pencil, ChevronDown, ChevronUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const DESCRIPTION_LIMIT = 200;
+const tabs = ["General Info", "Learning Materials", "Exam Bank"] as const;
+
+function CourseHeader({
+  course,
+  onEdit,
+  onDelete,
+}: {
+  course: any;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const DESCRIPTION_LIMIT = 160;
+
+  const truncated =
+    course.description && course.description.length > DESCRIPTION_LIMIT
+      ? course.description.slice(0, DESCRIPTION_LIMIT) + "..."
+      : course.description;
+
+  return (
+    <header className="flex flex-col gap-6">
+      <div className="flex items-start justify-between gap-6">
+        <div className="flex flex-col gap-1">
+          <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground">
+            Certification Course
+          </p>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground text-balance lg:text-4xl">
+            {course.title}
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          <Link href={`/studio/${course.id}/edit`}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-2 rounded-full border-border text-foreground hover:bg-accent"
+            >
+              <Pencil className="size-3.5" />
+              Edit
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onDelete}
+            className="shrink-0 rounded-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+          >
+            Delete
+          </Button>
+        </div>
+      </div>
+
+      {course.description && (
+        <div className="max-w-2xl my-4">
+          <p className="text-[15px] leading-relaxed text-muted-foreground">
+            {expanded ? course.description : truncated}
+          </p>
+          {course.description.length > DESCRIPTION_LIMIT && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground"
+            >
+              {expanded ? "Show less" : "Read more"}
+              {expanded ? (
+                <ChevronUp className="size-3.5" />
+              ) : (
+                <ChevronDown className="size-3.5" />
+              )}
+            </button>
+          )}
+        </div>
+      )}
+    </header>
+  );
+}
+
+function CourseDetails({ course }: { course: any }) {
+  const details = [
+    { label: "Course Type", value: course.courseType || "Not Specified" },
+    {
+      label: "Certification",
+      value: course.hasCertification ? "Available" : "Not Available",
+    },
+    {
+      label: "Created",
+      value: new Date(course.createdAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    },
+    {
+      label: "Last Updated",
+      value: new Date(course.updatedAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    },
+  ];
+
+  return (
+    <section className="flex flex-col gap-6">
+      <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
+        Course Details
+      </h2>
+      <div className="grid grid-cols-2 gap-x-12 gap-y-6">
+        {details.map((item) => (
+          <div key={item.label} className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">{item.label}</span>
+            <span className="text-sm font-medium text-foreground">
+              {item.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ExamInfo({ course }: { course: any }) {
+  return (
+    <section className="flex flex-col gap-6">
+      <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
+        Exam Info
+      </h2>
+
+      <div className="flex flex-col gap-6">
+        <div className="flex items-baseline justify-between">
+          <span className="text-xs text-muted-foreground">Total Questions</span>
+          <span className="text-2xl font-semibold tabular-nums text-foreground">
+            {course.exam?.totalQuestions || 0}
+          </span>
+        </div>
+
+        {course.exam?.totalTimeMinutes && (
+          <div className="flex items-baseline justify-between">
+            <span className="text-xs text-muted-foreground">Time Limit</span>
+            <span className="text-2xl font-semibold tabular-nums text-foreground">
+              {course.exam.totalTimeMinutes}m
+            </span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">Skip Questions</span>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="h-6 rounded-full text-xs font-normal text-muted-foreground pointer-events-none"
+          >
+            {course.exam?.allowSkipQuestions ? "Enabled" : "Disabled"}
+          </Button>
+        </div>
+      </div>
+
+      {course.exam?.domainWeights &&
+        Object.keys(course.exam.domainWeights).length > 0 && (
+          <>
+            <div className="h-px bg-border" />
+            <div className="flex flex-col gap-5">
+              <span className="text-xs text-muted-foreground">
+                Domain Weights
+              </span>
+              {Object.entries(course.exam.domainWeights).map(
+                ([domainId, weight]) => {
+                  const domain = course.domains?.find(
+                    (d: any) => d.id === domainId
+                  );
+                  return (
+                    <div key={domainId} className="flex flex-col gap-2">
+                      <div className="flex items-baseline justify-between gap-4">
+                        <span className="text-sm text-foreground leading-snug">
+                          {domain?.name || domainId}
+                        </span>
+                        <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                          {Number(weight)}%
+                        </span>
+                      </div>
+                      <div className="h-1 w-full overflow-hidden rounded-full bg-secondary">
+                        <div
+                          className="h-full rounded-full bg-foreground transition-all duration-500"
+                          style={{ width: `${Number(weight)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+          </>
+        )}
+    </section>
+  );
+}
+
+function DomainsList({ course }: { course: any }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  if (!course.domains || course.domains.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="flex flex-col gap-6">
+      <div className="flex items-baseline gap-3">
+        <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
+          Domains
+        </h2>
+        <span className="text-xs tabular-nums text-muted-foreground">
+          {course.domains.length}
+        </span>
+      </div>
+
+      <div className="flex flex-col">
+        {course.domains.map((domain: any, index: number) => {
+          const isOpen = openIndex === index;
+          return (
+            <div
+              key={domain.id}
+              className={cn(
+                "border-b border-border",
+                index === 0 && "border-t"
+              )}
+            >
+              <button
+                onClick={() => setOpenIndex(isOpen ? null : index)}
+                className="flex w-full items-center justify-between gap-4 py-5 text-left transition-colors hover:text-muted-foreground"
+              >
+                <span className="text-[15px] font-medium text-foreground leading-snug">
+                  {domain.name}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                    isOpen && "rotate-180"
+                  )}
+                />
+              </button>
+
+              <div
+                className={cn(
+                  "grid transition-all duration-200 ease-in-out",
+                  isOpen
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0"
+                )}
+              >
+                <div className="overflow-hidden">
+                  <div className="flex flex-wrap gap-2 pb-5">
+                    {domain.chapters && domain.chapters.length > 0 ? (
+                      domain.chapters.map((chapter: any) => (
+                        <span
+                          key={chapter.id}
+                          className="inline-flex rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground"
+                        >
+                          {chapter.name}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        No chapters yet
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function DeleteDialog({
+  open,
+  onOpenChange,
+  courseTitle,
+  onConfirm,
+  isPending,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  courseTitle: string;
+  onConfirm: () => void;
+  isPending: boolean;
+}) {
+  const [courseNameConfirm, setCourseNameConfirm] = useState("");
+
+  const handleConfirm = () => {
+    if (courseNameConfirm === courseTitle) {
+      onConfirm();
+      setCourseNameConfirm("");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+            </div>
+            <DialogTitle className="text-xl">Delete Course</DialogTitle>
+          </div>
+          <DialogDescription className="text-base pt-4">
+            This action cannot be undone. This will permanently delete course
+            &quot;{courseTitle}&quot; and all associated exam banks.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-4">
+            <p className="text-sm font-medium text-destructive mb-2">
+              Warning: All exam banks in this course will also be deleted
+            </p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Type <span className="font-bold">&quot;{courseTitle}&quot;</span>{" "}
+              to confirm
+            </label>
+            <Input
+              placeholder="Enter course name"
+              value={courseNameConfirm}
+              onChange={(e) => setCourseNameConfirm(e.target.value)}
+              className="w-full"
+            />
+          </div>
+        </div>
+        <DialogFooter className="gap-3 sm:gap-3">
+          <Button
+            variant="outline"
+            onClick={() => {
+              onOpenChange(false);
+              setCourseNameConfirm("");
+            }}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleConfirm}
+            disabled={courseNameConfirm !== courseTitle || isPending}
+          >
+            {isPending ? "Deleting..." : "Delete Course"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function CourseDetailPage() {
   const params = useParams<{ courseId: string }>();
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<string>("General Info");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { data: course, isLoading, error } = useGetCourseQuery(params.courseId);
+  const deleteCourseMutation = useDeleteCourseMutation();
+
+  const handleDeleteCourse = async () => {
+    await deleteCourseMutation.mutateAsync(params.courseId);
+    setIsDeleteDialogOpen(false);
+    router.push("/studio");
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-        <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-3xl px-6 py-12 lg:py-20">
           <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-slate-600 dark:text-slate-400">
-              Loading course...
-            </div>
+            <div className="text-muted-foreground">Loading course...</div>
           </div>
         </div>
       </div>
@@ -32,12 +403,10 @@ export default function CourseDetailPage() {
 
   if (error || !course) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-        <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-3xl px-6 py-12 lg:py-20">
           <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-red-600 dark:text-red-400">
-              Failed to load course
-            </div>
+            <div className="text-destructive">Failed to load course</div>
           </div>
         </div>
       </div>
@@ -45,12 +414,12 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-3xl px-6 py-12 lg:pb-20">
         <div className="mb-8">
           <Link
             href="/studio"
-            className="inline-flex items-center text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors mb-6"
+            className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -69,388 +438,89 @@ export default function CourseDetailPage() {
           </Link>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-xl shadow-slate-200/20 dark:shadow-slate-900/20 overflow-hidden">
-          <div className="px-10 py-8 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h1 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight mb-3">
-                  {course.title}
-                </h1>
-                {course.description && (
-                  <div className="max-w-3xl">
-                    <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed my-12">
-                      {isDescriptionExpanded
-                        ? course.description
-                        : course.description.length > DESCRIPTION_LIMIT
-                          ? course.description.slice(0, DESCRIPTION_LIMIT) +
-                            "..."
-                          : course.description}
-                    </p>
-                    {course.description.length > DESCRIPTION_LIMIT && (
-                      <button
-                        onClick={() =>
-                          setIsDescriptionExpanded(!isDescriptionExpanded)
-                        }
-                        className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors inline-flex items-center"
-                      >
-                        {isDescriptionExpanded ? (
-                          <>
-                            Show less
-                            <svg
-                              className="w-4 h-4 ml-1"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 15l7-7 7 7"
-                              />
-                            </svg>
-                          </>
-                        ) : (
-                          <>
-                            Read more
-                            <svg
-                              className="w-4 h-4 ml-1"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 9l-7 7-7-7"
-                              />
-                            </svg>
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-              <Link href={`/studio/${course.id}/edit`}>
-                <Button className="rounded-xl shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 hover:shadow-xl transition-shadow">
-                  Edit Course
-                </Button>
-              </Link>
+        <CourseHeader
+          course={course}
+          onEdit={() => router.push(`/studio/${course.id}/edit`)}
+          onDelete={() => setIsDeleteDialogOpen(true)}
+        />
+
+        {/* Tabs */}
+        <nav className="mt-10 flex gap-1 border-b border-border">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "relative px-4 py-3 text-sm font-medium transition-colors",
+                activeTab === tab
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab}
+              {activeTab === tab && (
+                <span className="absolute inset-x-0 -bottom-px h-px bg-foreground" />
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {/* Content */}
+        {activeTab === "General Info" && (
+          <div className="mt-12 flex flex-col gap-16">
+            <div className="grid gap-16 lg:grid-cols-2">
+              <CourseDetails course={course} />
+              <ExamInfo course={course} />
+            </div>
+
+            <div className="h-px bg-border" />
+
+            <DomainsList course={course} />
+          </div>
+        )}
+
+        {activeTab === "Learning Materials" && (
+          <div className="mt-12 flex flex-col items-center justify-center py-20">
+            <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4">
+              <svg
+                className="w-8 h-8 text-muted-foreground"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              Learning Materials
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Add and manage learning materials for your course here.
+            </p>
+            <div className="mt-4 px-4 py-2 bg-muted text-muted-foreground rounded-full text-sm font-medium">
+              Coming soon
             </div>
           </div>
+        )}
 
-          <div className="p-10">
-            <Tabs defaultValue="general" className="w-full">
-              <TabsList
-                variant="line"
-                className="w-full justify-start border-b border-slate-200 dark:border-slate-800 rounded-none h-14 bg-transparent"
-              >
-                <TabsTrigger
-                  value="general"
-                  className="h-12 px-6 text-base font-medium data-[state=active]:text-slate-900 dark:data-[state=active]:text-white"
-                >
-                  General Info
-                </TabsTrigger>
-                <TabsTrigger
-                  value="materials"
-                  className="h-12 px-6 text-base font-medium data-[state=active]:text-slate-900 dark:data-[state=active]:text-white"
-                >
-                  Learning Materials
-                </TabsTrigger>
-                <TabsTrigger
-                  value="exams"
-                  className="h-12 px-6 text-base font-medium data-[state=active]:text-slate-900 dark:data-[state=active]:text-white"
-                >
-                  Exam Bank
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="general" className="mt-10">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-8">
-                      <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
-                        <svg
-                          className="w-5 h-5 mr-3 text-slate-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        Course Details
-                      </h3>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="group">
-                          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                            Course Type
-                          </label>
-                          <p className="text-base font-medium text-slate-900 dark:text-white capitalize group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
-                            {course.courseType || "Not specified"}
-                          </p>
-                        </div>
-                        <div className="group">
-                          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                            Certification
-                          </label>
-                          <p className="text-base font-medium text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
-                            {course.hasCertification ? (
-                              <span className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full text-xs">
-                                <svg
-                                  className="w-3 h-3 mr-1"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                                Available
-                              </span>
-                            ) : (
-                              "Not Available"
-                            )}
-                          </p>
-                        </div>
-                        <div className="group">
-                          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                            Created
-                          </label>
-                          <p className="text-base font-medium text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
-                            {new Date(course.createdAt).toLocaleDateString(
-                              "en-US",
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              },
-                            )}
-                          </p>
-                        </div>
-                        <div className="group">
-                          <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                            Last Updated
-                          </label>
-                          <p className="text-base font-medium text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
-                            {new Date(course.updatedAt).toLocaleDateString(
-                              "en-US",
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              },
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {course.domains && course.domains.length > 0 && (
-                      <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-8">
-                        <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
-                          <svg
-                            className="w-5 h-5 mr-3 text-slate-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                            />
-                          </svg>
-                          Domains
-                          <span className="ml-3 px-3 py-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full text-sm font-medium">
-                            {course.domains.length}
-                          </span>
-                        </h3>
-                        <div className="space-y-4">
-                          {course.domains.map((domain) => (
-                            <div
-                              key={domain.id}
-                              className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 hover:border-slate-300 dark:hover:border-slate-600 transition-all"
-                            >
-                              <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
-                                {domain.name}
-                              </h4>
-                              {domain.chapters &&
-                                domain.chapters.length > 0 && (
-                                  <div className="flex flex-wrap gap-2">
-                                    {domain.chapters.map((chapter) => (
-                                      <span
-                                        key={chapter.id}
-                                        className="inline-flex items-center px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm"
-                                      >
-                                        <svg
-                                          className="w-3 h-3 mr-2 text-slate-400"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                          />
-                                        </svg>
-                                        {chapter.name}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-8">
-                    {course.exam && (
-                      <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-8">
-                        <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
-                          <svg
-                            className="w-5 h-5 mr-3 text-slate-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                            />
-                          </svg>
-                          Exam Info
-                        </h3>
-                        <div className="space-y-5">
-                          <div className="group">
-                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                              Total Questions
-                            </label>
-                            <p className="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
-                              {course.exam.totalQuestions}
-                            </p>
-                          </div>
-                          {course.exam.totalTimeMinutes && (
-                            <div className="group">
-                              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                                Time Limit
-                              </label>
-                              <p className="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
-                                {course.exam.totalTimeMinutes}m
-                              </p>
-                            </div>
-                          )}
-                          <div className="group">
-                            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                              Skip Questions
-                            </label>
-                            <p className="text-base font-medium text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
-                              {course.exam.allowSkipQuestions ? (
-                                <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 rounded-full text-xs">
-                                  Enabled
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs">
-                                  Disabled
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                          {course.exam.domainWeights &&
-                            Object.keys(course.exam.domainWeights).length >
-                              0 && (
-                              <div>
-                                <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                                  Domain Weights
-                                </label>
-                                <div className="space-y-3">
-                                  {Object.entries(
-                                    course.exam.domainWeights,
-                                  ).map(([domainId, weight]) => {
-                                    const domain = course.domains?.find(
-                                      (d) => d.id === domainId,
-                                    );
-                                    return (
-                                      <div key={domainId}>
-                                        <div className="flex items-center justify-between text-sm mb-1">
-                                          <span className="text-slate-700 dark:text-slate-300 font-medium">
-                                            {domain?.name || domainId}
-                                          </span>
-                                          <span className="text-slate-900 dark:text-white font-semibold">
-                                            {weight}%
-                                          </span>
-                                        </div>
-                                        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
-                                          <div
-                                            className="h-full bg-gradient-to-r from-slate-600 to-slate-500 dark:from-slate-500 dark:to-slate-400 rounded-full transition-all duration-300"
-                                            style={{ width: `${weight}%` }}
-                                          />
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="materials" className="mt-10">
-                <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-16">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-                      <svg
-                        className="w-10 h-10 text-slate-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-3">
-                      Learning Materials
-                    </h3>
-                    <p className="text-slate-600 dark:text-slate-400 max-w-md mb-6 text-lg">
-                      Add and manage learning materials for your course here.
-                    </p>
-                    <div className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-sm font-medium">
-                      Coming soon
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="exams" className="mt-10">
-                <ExamBankTab courseId={course.id} />
-              </TabsContent>
-            </Tabs>
+        {activeTab === "Exam Bank" && (
+          <div className="mt-12">
+            <ExamBankTab courseId={course.id} />
           </div>
-        </div>
+        )}
+
+        <DeleteDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          courseTitle={course.title}
+          onConfirm={handleDeleteCourse}
+          isPending={deleteCourseMutation.isPending}
+        />
       </div>
     </div>
   );
