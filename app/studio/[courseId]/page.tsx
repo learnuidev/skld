@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
+import { ExamBankTab } from "./components/exam-bank-tab";
 
 const DESCRIPTION_LIMIT = 200;
 
@@ -231,7 +232,7 @@ export default function CourseDetailPage() {
                                 month: "short",
                                 day: "numeric",
                                 year: "numeric",
-                              }
+                              },
                             )}
                           </p>
                         </div>
@@ -246,7 +247,7 @@ export default function CourseDetailPage() {
                                 month: "short",
                                 day: "numeric",
                                 year: "numeric",
-                              }
+                              },
                             )}
                           </p>
                         </div>
@@ -379,10 +380,10 @@ export default function CourseDetailPage() {
                                 </label>
                                 <div className="space-y-3">
                                   {Object.entries(
-                                    course.exam.domainWeights
+                                    course.exam.domainWeights,
                                   ).map(([domainId, weight]) => {
                                     const domain = course.domains?.find(
-                                      (d) => d.id === domainId
+                                      (d) => d.id === domainId,
                                     );
                                     return (
                                       <div key={domainId}>
@@ -445,34 +446,7 @@ export default function CourseDetailPage() {
               </TabsContent>
 
               <TabsContent value="exams" className="mt-10">
-                <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-16">
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-                      <svg
-                        className="w-10 h-10 text-slate-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                    </div>
-                    <h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-3">
-                      Exam Bank
-                    </h3>
-                    <p className="text-slate-600 dark:text-slate-400 max-w-md mb-6 text-lg">
-                      Create and manage exam questions for your course here.
-                    </p>
-                    <div className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-sm font-medium">
-                      Coming soon
-                    </div>
-                  </div>
-                </div>
+                <ExamBankTab courseId={course.id} />
               </TabsContent>
             </Tabs>
           </div>
