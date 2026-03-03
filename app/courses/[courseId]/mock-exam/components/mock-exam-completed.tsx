@@ -105,6 +105,42 @@ export function MockExamCompleted({
       setExpandedQuestion(expandedQuestion === questionId ? null : questionId);
     };
 
+    const parseExplanation = (text: string) => {
+      const parts: (string | React.ReactElement)[] = [];
+      let current = "";
+      let i = 0;
+
+      while (i < text.length) {
+        if (text[i] === '"') {
+          if (current) {
+            parts.push(current);
+            current = "";
+          }
+          i++;
+          let quoted = "";
+          while (i < text.length && text[i] !== '"') {
+            quoted += text[i];
+            i++;
+          }
+          parts.push(
+            <span key={`quoted-${parts.length}`} className="font-semibold">
+              "{quoted}"
+            </span>
+          );
+          i++;
+        } else {
+          current += text[i];
+          i++;
+        }
+      }
+
+      if (current) {
+        parts.push(current);
+      }
+
+      return parts;
+    };
+
     const sortedAnswers = React.useMemo(() => {
       return Object.entries(mockExam.answers || {})?.sort(
         (a, b) => a?.[1]?.answeredAt - b?.[1]?.answeredAt
@@ -226,7 +262,7 @@ export function MockExamCompleted({
                             </div>
                           </div>
                           <div className="text-right text-sm font-medium text-foreground">
-                            Q{parseInt(questionId)}
+                            Q{index + 1}
                           </div>
                         </div>
                         {expandedQuestion === questionId && (
@@ -290,12 +326,12 @@ export function MockExamCompleted({
                                 </div>
                               </div>
                               {question.feedback && (
-                                <div>
-                                  <h4 className="text-sm font-semibold text-foreground mb-2">
+                                <div className="my-12">
+                                  <h4 className="text-md font-semibold text-foreground mb-2">
                                     Explanation
                                   </h4>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    {question.feedback}
+                                    {parseExplanation(question.feedback)}
                                   </p>
                                 </div>
                               )}
