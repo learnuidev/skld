@@ -20,10 +20,10 @@ export default function ExamLauncherPage() {
   const params = useParams<{ courseId: string }>();
   const router = useRouter();
   const [selectedDomains, setSelectedDomains] = useState<Set<string>>(
-    new Set(),
+    new Set()
   );
   const [selectedExamBanks, setSelectedExamBanks] = useState<Set<string>>(
-    new Set(),
+    new Set()
   );
   const [examType, setExamType] = useState<"timed" | "untimed">("timed");
   const [isExamBankDropdownOpen, setIsExamBankDropdownOpen] = useState(false);
@@ -46,10 +46,10 @@ export default function ExamLauncherPage() {
   }, []);
 
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId,
+    params.courseId
   );
   const { data: examBanks, isLoading: examBanksLoading } = useGetExamBanksQuery(
-    params.courseId,
+    params.courseId
   );
   const createMockExamMutation = useCreateMockExamMutation();
 
@@ -170,7 +170,7 @@ export default function ExamLauncherPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto px-6 py-16 lg:py-24">
+      <div className="pb-16 lg:pb-24 pt-12 max-w-3xl">
         {/* Back Button */}
         <Link
           href={`/courses/${params.courseId}`}

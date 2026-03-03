@@ -44,7 +44,7 @@ export default function CoursePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto px-6 py-16 lg:py-24">
+      <div className="pb-16 lg:pb-24 pt-12">
         {/* Back Button */}
         <Link
           href="/dashboard"
@@ -56,9 +56,25 @@ export default function CoursePage() {
 
         {/* Header */}
         <header className="mb-12">
-          <h1 className="text-4xl font-semibold tracking-tight mb-4">
-            {course.title}
-          </h1>
+          <div className="flex justify-between items-center mb-12">
+            <h1 className="text-4xl font-semibold tracking-tight">
+              {course.title}
+            </h1>
+
+            {/* Launch Exam Button */}
+            {course.exam && (
+              <button
+                onClick={() =>
+                  router.push(`/courses/${course.id}/exam-launcher`)
+                }
+                className="w-full sm:w-auto px-8 py-2 bg-foreground text-background rounded-xl font-medium text-lg hover:bg-foreground/90 transition-colors flex items-center justify-center gap-3"
+              >
+                <Play className="w-6 h-6" />
+                Launch Exam
+              </button>
+            )}
+          </div>
+
           {course.description && (
             <div className="max-w-2xl">
               <p className="text-[15px] leading-relaxed text-muted-foreground">
@@ -114,7 +130,7 @@ export default function CoursePage() {
             <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground mb-6">
               Domains
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-3 max-w-4xl">
               {course.domains.map((domain) => (
                 <div
                   key={domain.id}
@@ -135,19 +151,6 @@ export default function CoursePage() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Launch Exam Button */}
-        {course.exam && (
-          <div className="pt-8 border-t border-border">
-            <button
-              onClick={() => router.push(`/courses/${course.id}/exam-launcher`)}
-              className="w-full sm:w-auto px-8 py-4 bg-foreground text-background rounded-xl font-medium text-lg hover:bg-foreground/90 transition-colors flex items-center justify-center gap-3"
-            >
-              <Play className="w-6 h-6" />
-              Launch Exam
-            </button>
           </div>
         )}
       </div>

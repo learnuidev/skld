@@ -66,7 +66,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto px-6 py-16 lg:py-24">
+      <div className="pb-16 lg:pb-24 pt-12 max-w-3xl">
         {/* Header */}
         <div className="mb-12">
           <h1 className="text-4xl font-semibold tracking-tight mb-2">
@@ -102,7 +102,7 @@ export default function Dashboard() {
             <div className="space-y-4">
               {enrollments.map((enrollment) => {
                 const course = allCourses?.find(
-                  (c) => c.id === enrollment.courseId,
+                  (c) => c.id === enrollment.courseId
                 );
                 if (!course) return null;
 
@@ -150,7 +150,7 @@ export default function Dashboard() {
                               new Date(enrollment.enrolledAt),
                               {
                                 addSuffix: true,
-                              },
+                              }
                             )}
                           </span>
                         </span>
