@@ -27,6 +27,23 @@ export default function ExamLauncherPage() {
   );
   const [examType, setExamType] = useState<"timed" | "untimed">("timed");
   const [isExamBankDropdownOpen, setIsExamBankDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsExamBankDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
     params.courseId,
@@ -227,7 +244,7 @@ export default function ExamLauncherPage() {
               Select Test Banks
               <span className="ml-2 text-xs font-normal">(optional)</span>
             </h2>
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() =>
                   setIsExamBankDropdownOpen(!isExamBankDropdownOpen)
