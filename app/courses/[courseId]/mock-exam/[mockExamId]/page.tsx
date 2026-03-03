@@ -53,40 +53,32 @@ export default function MockExamPage() {
 
   const allQuestionsRef = useRef<Question[] | null>(null);
 
-  const allQuestions: Question[] = useMemo(() => {
-    if (!examBanks || !mockExam) return [];
-
-    let questions = examBanks.flatMap((bank) => bank.questions);
-
-    if (mockExam.selectedDomains && mockExam.selectedDomains.length > 0) {
-      questions = questions.filter((question) =>
-        mockExam.selectedDomains.includes(question.domainId)
-      );
-    }
-
-    if (!allQuestionsRef.current) {
-      const shuffled = [...questions];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      allQuestionsRef.current = shuffled;
-      return shuffled;
-    }
-
-    return allQuestionsRef.current;
-  }, [examBanks, mockExam?.selectedDomains]);
-
-  const currentIndex = mockExam?.currentQuestionIndex ?? 0;
-
   const { data: examBank } = useGetExamBankQuery(
     mockExam?.courseId || "",
     mockExam?.examBankIds?.[0] || ""
   );
 
+  const allQuestions: Question[] = useMemo(() => {
+    if (!examBank?.questions) {
+      return [];
+    }
+
+    return examBank?.questions?.filter((question) => {
+      return mockExam?.selectedDomains?.includes(question?.domainId);
+    });
+  }, [examBank, mockExam?.selectedDomains]);
+
+  console.log("ALL QUESTIONS", allQuestions);
+
+  const currentIndex = mockExam?.currentQuestionIndex ?? 0;
+
+  console.log("CURRENT INDEX", currentIndex);
+
   const questionsCompleted = Object.keys(mockExam?.answers || {}).length;
 
-  const totalQuestions = examBank?.questions?.length || 0;
+  const totalQuestions = allQuestions?.length || 0;
+
+  console.log("TOTAL Q", totalQuestions);
 
   const totalTimeInMilliSeconds = course?.exam?.totalTimeMinutes
     ? course.exam.totalTimeMinutes * 60 * 1000
@@ -134,7 +126,9 @@ export default function MockExamPage() {
     (question) => !mockExam?.answers?.[question?.id]
   );
 
-  const currentQuestion = answeredQuestions[currentIndex];
+  console.log("ANSWERED", answeredQuestions);
+
+  const currentQuestion = allQuestions[currentIndex];
   const currentQuestionNumber = currentIndex + 1;
 
   const formatTime = (seconds: number) => {
