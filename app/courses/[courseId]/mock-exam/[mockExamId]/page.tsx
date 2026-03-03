@@ -28,11 +28,15 @@ export default function MockExamPage() {
   >(new Set());
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<boolean | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [totalTimeSpent, setTotalTimeSpent] = useState(0);
+  const [initialTimeRemaining, setInitialTimeRemaining] = useState<
+    number | null
+  >(null);
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
 
   const { data: course } = useGetCourseQuery(params.courseId);
   const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
-    params.mockExamId
+    params.mockExamId,
   );
   const updateMockExamMutation = useUpdateMockExamMutation(params.mockExamId);
   const { data: examBanks } = useGetExamBanksQuery(params.courseId);
@@ -51,7 +55,7 @@ export default function MockExamPage() {
 
     if (mockExam.selectedDomains && mockExam.selectedDomains.length > 0) {
       questions = questions.filter((question) =>
-        mockExam.selectedDomains.includes(question.domainId)
+        mockExam.selectedDomains.includes(question.domainId),
       );
     }
 
@@ -71,21 +75,31 @@ export default function MockExamPage() {
   const currentIndex = mockExam?.currentQuestionIndex ?? 0;
 
   useEffect(() => {
+    if (isTimed && mockExam?.timeRemaining !== undefined) {
+      setInitialTimeRemaining(mockExam.timeRemaining);
+      setRemainingTime(mockExam.timeRemaining);
+      setTotalTimeSpent(mockExam.timeSpent || 0);
+    } else {
+      setInitialTimeRemaining(null);
+      setRemainingTime(null);
+      setTotalTimeSpent(mockExam?.timeSpent || 0);
+    }
+  }, [mockExam?.timeRemaining, mockExam?.timeSpent, isTimed]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       setElapsedTime((prev) => prev + 1);
+      if (initialTimeRemaining !== null) {
+        setRemainingTime((prev) => {
+          if (prev === null) return null;
+          const newRemaining = prev - 1;
+          return newRemaining > 0 ? newRemaining : 0;
+        });
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [currentIndex]);
-
-  useEffect(() => {
-    if (isTimed && mockExam?.timeRemaining) {
-      const remaining = mockExam.timeRemaining - elapsedTime;
-      setRemainingTime(remaining > 0 ? remaining : 0);
-    } else {
-      setRemainingTime(null);
-    }
-  }, [isTimed, mockExam?.timeRemaining, elapsedTime]);
+  }, [initialTimeRemaining]);
   const currentQuestion = allQuestions[currentIndex];
   const currentQuestionNumber = currentIndex + 1;
   const totalQuestions = allQuestions.length;
@@ -171,16 +185,14 @@ export default function MockExamPage() {
       };
     }
 
-    const newTimeSpent = elapsedTime;
+    const newTotalTimeSpent = totalTimeSpent + elapsedTime;
     const newTimeRemaining =
-      isTimed && mockExam.timeRemaining
-        ? mockExam.timeRemaining - newTimeSpent || 0
-        : undefined;
+      isTimed && remainingTime !== null ? remainingTime : undefined;
 
     await updateMockExamMutation.mutateAsync({
       currentQuestionIndex: currentIndex + 1,
       answers: newAnswers,
-      timeSpent: newTimeSpent,
+      timeSpent: newTotalTimeSpent,
       timeRemaining: newTimeRemaining,
     });
 
@@ -188,6 +200,7 @@ export default function MockExamPage() {
       queryKey: ["mockExam", params.mockExamId],
     });
 
+    setTotalTimeSpent(newTotalTimeSpent);
     setSelectedAnswer(null);
     setSelectedMultipleAnswers(new Set());
     setTrueFalseAnswer(null);
@@ -197,15 +210,13 @@ export default function MockExamPage() {
   const handleSkip = async () => {
     if (!allowSkip) return;
 
-    const newTimeSpent = elapsedTime;
+    const newTotalTimeSpent = totalTimeSpent + elapsedTime;
     const newTimeRemaining =
-      isTimed && mockExam.timeRemaining
-        ? mockExam.timeRemaining - newTimeSpent || 0
-        : undefined;
+      isTimed && remainingTime !== null ? remainingTime : undefined;
 
     await updateMockExamMutation.mutateAsync({
       currentQuestionIndex: currentIndex + 1,
-      timeSpent: newTimeSpent,
+      timeSpent: newTotalTimeSpent,
       timeRemaining: newTimeRemaining,
     });
 
@@ -213,6 +224,7 @@ export default function MockExamPage() {
       queryKey: ["mockExam", params.mockExamId],
     });
 
+    setTotalTimeSpent(newTotalTimeSpent);
     setSelectedAnswer(null);
     setSelectedMultipleAnswers(new Set());
     setTrueFalseAnswer(null);
@@ -250,8 +262,11 @@ export default function MockExamPage() {
       };
     }
 
+    const newTotalTimeSpent = totalTimeSpent + elapsedTime;
+
     await updateMockExamMutation.mutateAsync({
       answers: newAnswers,
+      timeSpent: newTotalTimeSpent,
       status: "completed",
     });
 

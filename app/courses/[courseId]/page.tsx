@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
 import { useParams, useRouter } from "next/navigation";
-import { Play, ChevronDown, ChevronUp } from "lucide-react";
+import { Play, ChevronDown, ChevronUp, Clock, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -263,33 +264,284 @@ function DomainsList({ course }: { course: any }) {
   );
 }
 
-function MyMockExamsTab({ courseId }: { courseId: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4">
-        <svg
-          className="w-8 h-8 text-muted-foreground"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+function MyMockExamsTab({
+  courseId,
+  course,
+}: {
+  courseId: string;
+  course: any;
+}) {
+  const { data: mockExams, isLoading } = useGetMockExamsQuery(courseId);
+  const router = useRouter();
+  const [filter, setFilter] = useState<"all" | "in_progress" | "completed">(
+    "all",
+  );
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const getDomainNames = (domainIds: string[]) => {
+    if (!course.domains) return [];
+    return domainIds
+      .map((id) => course.domains.find((d: any) => d.id === id)?.name)
+      .filter(Boolean);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-muted-foreground">Loading mock exams...</div>
+      </div>
+    );
+  }
+
+  if (!mockExams || mockExams.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4">
+          <svg
+            className="w-8 h-8 text-muted-foreground"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        </div>
+        <h3 className="text-xl font-semibold text-foreground mb-2">
+          No Mock Exams Yet
+        </h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Start practicing by launching your first mock exam.
+        </p>
+        <button
+          onClick={() => router.push(`/courses/${courseId}/exam-launcher`)}
+          className="px-6 py-2 bg-foreground text-background rounded-xl font-medium text-base hover:bg-foreground/90 transition-colors flex items-center gap-2"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1.5}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
+          <Play className="w-4 h-4" />
+          Launch Exam
+        </button>
       </div>
-      <h3 className="text-xl font-semibold text-foreground mb-2">
-        My Mock Exams
-      </h3>
-      <p className="text-sm text-muted-foreground">
-        View your completed and in-progress mock exams here.
-      </p>
-      <div className="mt-4 px-4 py-2 bg-muted text-muted-foreground rounded-full text-sm font-medium">
-        Coming soon
+    );
+  }
+
+  const filteredExams =
+    filter === "all"
+      ? mockExams
+      : mockExams.filter((exam) => exam.status === filter);
+
+  const inProgressExams = filteredExams.filter(
+    (exam) => exam.status === "in_progress",
+  );
+  const completedExams = filteredExams.filter(
+    (exam) => exam.status === "completed",
+  );
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Filter */}
+      <div className="flex items-center gap-4">
+        <span className="text-sm font-medium text-foreground">Filter:</span>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filter === "all"}
+              onChange={() => setFilter("all")}
+              className="w-4 h-4 rounded border-border"
+            />
+            <span className="text-sm text-muted-foreground">All</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filter === "in_progress"}
+              onChange={() => setFilter("in_progress")}
+              className="w-4 h-4 rounded border-border"
+            />
+            <span className="text-sm text-muted-foreground">In Progress</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filter === "completed"}
+              onChange={() => setFilter("completed")}
+              className="w-4 h-4 rounded border-border"
+            />
+            <span className="text-sm text-muted-foreground">Completed</span>
+          </label>
+        </div>
       </div>
+
+      {inProgressExams.length > 0 && (
+        <div>
+          <h3 className="text-sm font-medium tracking-widest uppercase text-muted-foreground mb-6">
+            In Progress ({inProgressExams.length})
+          </h3>
+          <div className="space-y-3">
+            {inProgressExams.map((exam) => {
+              const domainNames = getDomainNames(exam.selectedDomains);
+              return (
+                <Link
+                  key={exam.id}
+                  href={`/courses/${courseId}/mock-exam/${exam.id}`}
+                  className="block p-6 rounded-lg border border-border hover:border-foreground/20 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                          <Clock className="w-4 h-4 text-amber-600" />
+                        </div>
+                        <h4 className="text-base font-semibold text-foreground">
+                          {exam.examType === "timed"
+                            ? "Timed Exam"
+                            : "Untimed Exam"}
+                        </h4>
+                      </div>
+                      {domainNames.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {domainNames.map((name) => (
+                            <span
+                              key={name}
+                              className="inline-flex rounded-full bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground"
+                            >
+                              {name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span>Started {formatDate(exam.createdAt)}</span>
+                        {exam.timeRemaining !== null && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatTime(exam.timeRemaining)} remaining
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-foreground mb-1">
+                        Question {exam.currentQuestionIndex + 1}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {Object.keys(exam.answers).length} answered
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {completedExams.length > 0 && (
+        <div>
+          <h3 className="text-sm font-medium tracking-widest uppercase text-muted-foreground mb-6">
+            Completed ({completedExams.length})
+          </h3>
+          <div className="space-y-3">
+            {completedExams.map((exam) => {
+              const domainNames = getDomainNames(exam.selectedDomains);
+              return (
+                <Link
+                  key={exam.id}
+                  href={`/courses/${courseId}/mock-exam/${exam.id}`}
+                  className="block p-6 rounded-lg border border-border hover:border-foreground/20 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                        </div>
+                        <h4 className="text-base font-semibold text-foreground">
+                          {exam.examType === "timed"
+                            ? "Timed Exam"
+                            : "Untimed Exam"}
+                        </h4>
+                      </div>
+                      {domainNames.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {domainNames.map((name) => (
+                            <span
+                              key={name}
+                              className="inline-flex rounded-full bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground"
+                            >
+                              {name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span>Completed {formatDate(exam.updatedAt)}</span>
+                        {exam.timeSpent && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatTime(exam.timeSpent)} total
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-foreground mb-1">
+                        {Object.keys(exam.answers).length} questions
+                      </div>
+                      <div className="text-xs text-green-600 font-medium">
+                        Completed
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {filteredExams.length === 0 && filter !== "all" && (
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4">
+            <svg
+              className="w-8 h-8 text-muted-foreground"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-foreground mb-2">
+            No Mock Exams Found
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            No {filter.replace("_", " ")} mock exams yet.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -393,7 +645,7 @@ export default function CoursePage() {
 
         {activeTab === "My Mock Exams" && (
           <div className="mt-12">
-            <MyMockExamsTab courseId={course.id} />
+            <MyMockExamsTab courseId={course.id} course={course} />
           </div>
         )}
       </div>
