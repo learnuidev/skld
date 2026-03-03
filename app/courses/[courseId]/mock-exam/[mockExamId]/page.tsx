@@ -161,7 +161,7 @@ export default function MockExamPage() {
       );
     }
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex justify-center bg-background lg:mt-32">
         <div className="text-muted-foreground">
           This exam has been abondoned
         </div>

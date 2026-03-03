@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
+import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useDeleteMockExamMutation } from "@/modules/user-mock-exams/use-delete-mock-exam-mutation";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -372,6 +373,7 @@ function MyMockExamsTab({
   course: any;
 }) {
   const { data: mockExams, isLoading } = useGetMockExamsQuery(courseId);
+  const { data: examBanks } = useGetExamBanksQuery(courseId);
   const router = useRouter();
   const queryClient = useQueryClient();
   const deleteMockExamMutation = useDeleteMockExamMutation();
@@ -413,6 +415,23 @@ function MyMockExamsTab({
 
   const getExamTitle = (exam: any) => {
     return exam?.examType === "timed" ? "Timed Exam" : "Untimed Exam";
+  };
+
+  const getExamQuestions = (exam: any, examBanks: any[], domains: any[]) => {
+    if (!domains) return [];
+
+    const allQuestions: any[] = [];
+    domains.forEach((domain: any) => {
+      examBanks.forEach((bank: any) => {
+        bank.questions.forEach((q: any) => {
+          if (q.domainId === domain.id) {
+            allQuestions.push(q);
+          }
+        });
+      });
+    });
+
+    return allQuestions;
   };
 
   if (isLoading) {
@@ -591,6 +610,58 @@ function MyMockExamsTab({
           <div className="space-y-3">
             {completedExams.map((exam) => {
               const domainNames = getDomainNames(exam.selectedDomains);
+              const questionsAnswered = Object.keys(exam.answers || {}).length;
+
+              const calculateAccuracy = () => {
+                let correct = 0;
+                let total = 0;
+
+                Object.entries(exam.answers || {}).forEach(
+                  ([questionIndex, answer]: [string, any]) => {
+                    if (!answer) return;
+
+                    const allQuestions = getExamQuestions(
+                      exam,
+                      examBanks || [],
+                      course?.domains || []
+                    );
+                    const question = allQuestions[parseInt(questionIndex) - 1];
+                    if (!question) return;
+
+                    total++;
+
+                    if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
+                      if (answer.answer === question.correctOptionIndex) {
+                        correct++;
+                      }
+                    } else if (
+                      question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE"
+                    ) {
+                      const userAnswers = answer.answers || [];
+                      const correctAnswers =
+                        question.correctOptionIndexes || [];
+                      if (
+                        userAnswers.length === correctAnswers.length &&
+                        userAnswers.every((ans: number) =>
+                          correctAnswers.includes(ans)
+                        )
+                      ) {
+                        correct++;
+                      }
+                    } else if (question.type === "TRUE_FALSE") {
+                      if (answer.answer === question.correctOptionIndex) {
+                        correct++;
+                      }
+                    }
+                  }
+                );
+
+                if (total === 0) return null;
+                return Math.round((correct / total) * 100);
+              };
+
+              const accuracy = calculateAccuracy();
+
               return (
                 <div
                   key={exam.id}
@@ -623,23 +694,8 @@ function MyMockExamsTab({
                           ))}
                         </div>
                       )}
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>Completed {formatDate(exam.updatedAt)}</span>
-                        {exam.timeSpent && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatTime(exam.timeSpent)} total
-                          </span>
-                        )}
-                      </div>
                     </Link>
                     <div className="flex flex-col items-end gap-2">
-                      <div className="text-sm font-medium text-foreground mb-1">
-                        {Object.keys(exam.answers).length} questions
-                      </div>
-                      <div className="text-xs text-green-600 font-medium">
-                        Completed
-                      </div>
                       <button
                         onClick={(e) => {
                           e.preventDefault();
@@ -651,6 +707,41 @@ function MyMockExamsTab({
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>Completed {formatDate(exam.updatedAt)}</span>
+                    {exam.timeSpent && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatTime(exam.timeSpent)} total
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <div className="text-2xl font-semibold tabular-nums text-foreground">
+                            {questionsAnswered}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            questions answered
+                          </div>
+                        </div>
+                        {accuracy !== null && (
+                          <div className="text-center">
+                            <div className="text-2xl font-semibold tabular-nums text-foreground">
+                              {accuracy}%
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              accuracy
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
