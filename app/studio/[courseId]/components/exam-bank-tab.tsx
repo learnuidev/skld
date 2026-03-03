@@ -1,14 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useDeleteExamBankMutation } from "@/modules/exam-bank/use-exam-bank-mutations";
 import { ExamBank } from "@/modules/exam-bank/exam-bank.types";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -18,9 +23,14 @@ interface ExamBankTabProps {
 }
 
 export function ExamBankTab({ courseId }: ExamBankTabProps) {
+  const queryClient = useQueryClient();
   const { data: examBanks, isLoading } = useGetExamBanksQuery(courseId);
   const deleteExamBankMutation = useDeleteExamBankMutation(courseId);
   const [selectedExamBank, setSelectedExamBank] = useState<ExamBank | null>(
+    null,
+  );
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [examBankToDelete, setExamBankToDelete] = useState<ExamBank | null>(
     null,
   );
 
@@ -34,10 +44,102 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
     );
   }
 
-  const handleDelete = async (examBankId: string) => {
-    if (confirm("Are you sure you want to delete this exam bank?")) {
+  function DeleteExamBankDialog({
+    open,
+    onOpenChange,
+    examBankTitle,
+    onConfirm,
+    isPending,
+  }: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    examBankTitle: string;
+    onConfirm: () => void;
+    isPending: boolean;
+  }) {
+    const [deleteConfirm, setDeleteConfirm] = useState("");
+
+    const handleConfirm = () => {
+      if (deleteConfirm === examBankTitle) {
+        onConfirm();
+        setDeleteConfirm("");
+      }
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <DialogTitle className="text-xl">Delete Exam Bank</DialogTitle>
+            </div>
+            <DialogDescription className="text-base pt-4">
+              This action cannot be undone. This will permanently delete the
+              exam bank &quot;{examBankTitle}&quot; and all of its questions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-4">
+              <p className="text-sm font-medium text-destructive">
+                Warning: All questions in this exam bank will be permanently
+                deleted
+              </p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Type the exam bank name{" "}
+                <span className="font-bold">&quot;{examBankTitle}&quot;</span>{" "}
+                to confirm
+              </label>
+              <Input
+                placeholder={`Enter "${examBankTitle}"`}
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-3 sm:gap-3">
+            <button
+              onClick={() => {
+                onOpenChange(false);
+                setDeleteConfirm("");
+              }}
+              disabled={isPending}
+              className="px-4 py-2 rounded-md border border-border bg-background text-sm font-medium hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirm}
+              disabled={deleteConfirm !== examBankTitle || isPending}
+              className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isPending ? "Deleting..." : "Delete"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  const handleDelete = (examBank: ExamBank) => {
+    setExamBankToDelete(examBank);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (examBankToDelete) {
       try {
-        await deleteExamBankMutation.mutateAsync(examBankId);
+        await deleteExamBankMutation.mutateAsync(examBankToDelete.id);
+        setDeleteDialogOpen(false);
+        setExamBankToDelete(null);
+        await queryClient.invalidateQueries({
+          queryKey: ["examBanks", courseId],
+        });
       } catch (error) {
         console.error("Failed to delete exam bank:", error);
       }
@@ -70,7 +172,7 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
               key={examBank.id}
               examBank={examBank}
               onView={() => setSelectedExamBank(examBank)}
-              onDelete={() => handleDelete(examBank.id)}
+              onDelete={() => handleDelete(examBank)}
             />
           ))}
         </div>
@@ -81,6 +183,16 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
           examBank={selectedExamBank}
           open={!!selectedExamBank}
           onOpenChange={(open) => !open && setSelectedExamBank(null)}
+        />
+      )}
+
+      {examBankToDelete && (
+        <DeleteExamBankDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          examBankTitle={examBankToDelete.title}
+          onConfirm={handleConfirmDelete}
+          isPending={deleteExamBankMutation.isPending}
         />
       )}
     </div>

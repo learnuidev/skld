@@ -135,6 +135,10 @@ export default function ExamLauncherPage() {
 
   const getEstimatedTime = () => {
     if (!course.exam || !course.exam.totalTimeMinutes) return 0;
+
+    if (course.exam.totalTimeMinutes) {
+      return course.exam.totalTimeMinutes;
+    }
     const totalQuestions = getSelectedQuestions();
     const totalCourseQuestions = course.exam.totalQuestions;
     if (totalCourseQuestions === 0) return 0;
