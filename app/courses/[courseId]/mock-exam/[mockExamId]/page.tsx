@@ -213,8 +213,8 @@ export default function MockExamPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="mx-auto w-full px-6 py-12 flex-1">
-        <header className="">
+      <div className="mx-auto w-full py-12 flex-1">
+        <header className="mb-12">
           <div className="flex items-baseline gap-4 justify-between mb-4">
             <Link
               href={`/courses/${params.courseId}`}
@@ -240,7 +240,7 @@ export default function MockExamPage() {
           </div>
         </header>
 
-        <div className="mb-12">
+        <div className="mb-20">
           <div className="h-px w-full bg-border" />
           <div
             className="h-px bg-foreground transition-all duration-300"
