@@ -14,6 +14,7 @@ import {
   CheckCircle,
   Trash2,
   AlertTriangle,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -175,7 +176,7 @@ function ExamInfo({ course }: { course: any }) {
               {Object.entries(course.exam.domainWeights).map(
                 ([domainId, weight]) => {
                   const domain = course.domains?.find(
-                    (d: any) => d.id === domainId,
+                    (d: any) => d.id === domainId
                   );
                   return (
                     <div key={domainId} className="flex flex-col gap-2">
@@ -195,7 +196,7 @@ function ExamInfo({ course }: { course: any }) {
                       </div>
                     </div>
                   );
-                },
+                }
               )}
             </div>
           </>
@@ -230,7 +231,7 @@ function DomainsList({ course }: { course: any }) {
               key={domain.id}
               className={cn(
                 "border-b border-border",
-                index === 0 && "border-t",
+                index === 0 && "border-t"
               )}
             >
               <button
@@ -243,7 +244,7 @@ function DomainsList({ course }: { course: any }) {
                 <ChevronDown
                   className={cn(
                     "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                    isOpen && "rotate-180",
+                    isOpen && "rotate-180"
                   )}
                 />
               </button>
@@ -253,7 +254,7 @@ function DomainsList({ course }: { course: any }) {
                   "grid transition-all duration-200 ease-in-out",
                   isOpen
                     ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-0",
+                    : "grid-rows-[0fr] opacity-0"
                 )}
               >
                 <div className="overflow-hidden">
@@ -316,8 +317,8 @@ function DeleteDialog({
             <DialogTitle className="text-xl">Delete Mock Exam</DialogTitle>
           </div>
           <DialogDescription className="text-base pt-4">
-            This action cannot be undone. This will permanently delete the mock
-            exam &quot;{mockExamTitle}&quot; and all your answers.
+            This action cannot be undone. This will permanently delete mock exam
+            &quot;{mockExamTitle}&quot; and all your answers.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -375,7 +376,7 @@ function MyMockExamsTab({
   const queryClient = useQueryClient();
   const deleteMockExamMutation = useDeleteMockExamMutation();
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">(
-    "all",
+    "all"
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
@@ -411,7 +412,7 @@ function MyMockExamsTab({
   };
 
   const getExamTitle = (exam: any) => {
-    return exam.examType === "timed" ? "Timed Exam" : "Untimed Exam";
+    return exam?.examType === "timed" ? "Timed Exam" : "Untimed Exam";
   };
 
   if (isLoading) {
@@ -463,10 +464,10 @@ function MyMockExamsTab({
       : mockExams.filter((exam) => exam.status === filter);
 
   const inProgressExams = filteredExams.filter(
-    (exam) => exam.status === "in_progress",
+    (exam) => exam.status === "in_progress"
   );
   const completedExams = filteredExams.filter(
-    (exam) => exam.status === "completed",
+    (exam) => exam.status === "completed"
   );
 
   return (
@@ -690,7 +691,7 @@ function MyMockExamsTab({
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
           mockExamTitle={getExamTitle(
-            mockExams?.find((e) => e.id === examToDelete),
+            mockExams?.find((e) => e.id === examToDelete)
           )}
           onConfirm={() => {
             if (examToDelete) {
@@ -704,15 +705,101 @@ function MyMockExamsTab({
   );
 }
 
+function InProgressExamBanner({
+  exam,
+  onClick,
+}: {
+  exam: any;
+  onClick: () => void;
+}) {
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const questionsCompleted = Object.keys(exam.answers || {}).length;
+  const totalQuestions = exam.currentQuestionIndex + 1;
+  const timeRemaining = exam.timeRemaining;
+  const timeSpent = exam.timeSpent || 0;
+
+  const totalTime = timeRemaining !== null ? timeRemaining + timeSpent : null;
+  const percentageRemaining =
+    totalTime !== null ? Math.round((timeRemaining / totalTime) * 100) : null;
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full my-4 px-6 py-4 bg-foreground/5 hover:bg-foreground/10 border border-foreground/20 rounded-xl transition-colors cursor-pointer"
+    >
+      <div className="flex items-center justify-between gap-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-foreground rounded-lg flex items-center justify-center">
+            <Clock className="w-5 h-5 text-background" />
+          </div>
+          <div className="flex flex-col items-start">
+            <span className="text-sm font-medium text-foreground">
+              Exam in Progress
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Question {totalQuestions}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-2">
+            <div className="text-sm text-muted-foreground">
+              {questionsCompleted} completed
+            </div>
+            <div className="h-4 w-px bg-border" />
+          </div>
+
+          {timeRemaining !== null && (
+            <>
+              <div className="flex items-center gap-2">
+                <div className="text-sm text-muted-foreground">
+                  {formatTime(timeRemaining)} remaining
+                </div>
+                <div className="h-4 w-px bg-border" />
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+                {percentageRemaining !== null
+                  ? `(${percentageRemaining}%)`
+                  : ""}
+              </div>
+            </>
+          )}
+        </div>
+
+        <ChevronRight className="w-5 h-5 text-muted-foreground" />
+      </div>
+    </button>
+  );
+}
+
 export default function CoursePage() {
   const params = useParams<{ courseId: string }>();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("General Info");
+  const queryClient = useQueryClient();
 
   const { data: course, isLoading, error } = useGetCourseQuery(params.courseId);
+  const { data: mockExams } = useGetMockExamsQuery(params.courseId);
 
   const handleLaunchExam = () => {
     router.push(`/courses/${params.courseId}/exam-launcher`);
+  };
+
+  const inProgressExam = mockExams?.find(
+    (exam) => exam.status === "in_progress"
+  );
+
+  const handleResumeExam = () => {
+    if (inProgressExam) {
+      router.push(`/courses/${params.courseId}/mock-exam/${inProgressExam.id}`);
+    }
   };
 
   if (isLoading) {
@@ -766,6 +853,14 @@ export default function CoursePage() {
 
         <CourseHeader course={course} onLaunchExam={handleLaunchExam} />
 
+        {/* In Progress Exam Banner */}
+        {inProgressExam && (
+          <InProgressExamBanner
+            exam={inProgressExam}
+            onClick={handleResumeExam}
+          />
+        )}
+
         {/* Tabs */}
         <nav className="mt-10 flex gap-1 border-b border-border">
           {["General Info", "My Mock Exams"].map((tab) => (
@@ -776,7 +871,7 @@ export default function CoursePage() {
                 "relative px-4 py-3 text-sm font-medium transition-colors",
                 activeTab === tab
                   ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {tab}
