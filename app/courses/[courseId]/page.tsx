@@ -818,9 +818,6 @@ function InProgressExamBanner({
     ? course.exam.totalTimeMinutes * 60 * 1000
     : null;
 
-  console.log("COURSE", course);
-  console.log("EXAM", exam);
-
   const elapsedTimeInMilliSeconds = Date.now() - exam.createdAt;
 
   const timeRemainingInMilliseconds =

@@ -175,7 +175,6 @@ export function MockExamCompleted({
                       (question) => question.id === questionId
                     );
 
-                    console.log("QUESTION ID", questionId);
                     if (!question) return null;
 
                     const status = getQuestionStatus(questionId, answer);
