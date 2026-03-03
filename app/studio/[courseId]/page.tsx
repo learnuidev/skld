@@ -392,7 +392,7 @@ export default function CourseDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-3xl px-6 py-12 lg:py-20">
+        <div className="mx-auto max-w-3xl py-12 lg:py-20">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-muted-foreground">Loading course...</div>
           </div>
@@ -404,7 +404,7 @@ export default function CourseDetailPage() {
   if (error || !course) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-3xl px-6 py-12 lg:py-20">
+        <div className="mx-auto max-w-3xl py-12 lg:py-20">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-destructive">Failed to load course</div>
           </div>
@@ -415,8 +415,8 @@ export default function CourseDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-3xl px-6 py-12 lg:pb-20">
-        <div className="mb-8">
+      <div className="pb-40 lg:pb-40">
+        <div className="mb-20">
           <Link
             href="/studio"
             className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
