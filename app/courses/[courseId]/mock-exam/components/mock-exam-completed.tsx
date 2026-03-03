@@ -94,10 +94,22 @@ export function MockExamCompleted({
 
     const allQuestions = examBank.questions;
 
-    console.log("MOCK EXAM", mockExam);
-
     const questionsAnswered = Object.keys(mockExam.answers || {}).length;
     const totalTimeSpent = mockExam.timeSpent || 0;
+
+    const [expandedQuestion, setExpandedQuestion] = React.useState<
+      string | null
+    >(null);
+
+    const toggleAccordion = (questionId: string) => {
+      setExpandedQuestion(expandedQuestion === questionId ? null : questionId);
+    };
+
+    const sortedAnswers = React.useMemo(() => {
+      return Object.entries(mockExam.answers || {})?.sort(
+        (a, b) => a?.[1]?.answeredAt - b?.[1]?.answeredAt
+      );
+    }, [mockExam.answers]);
 
     return (
       <div className="min-h-screen flex justify-center bg-background py-12">
@@ -157,63 +169,140 @@ export function MockExamCompleted({
               </h2>
 
               <div className="space-y-3">
-                {Object.entries(mockExam.answers || {}).map(
-                  ([questionIndex, answer]: [string, any], index) => {
-                    const allQuestions = examBank.questions;
+                {sortedAnswers.map(
+                  ([questionId, answer]: [string, any], index) => {
                     const question = examBank.questions.find(
-                      (question) => question.id === questionIndex
+                      (question) => question.id === questionId
                     );
+
+                    console.log("QUESTION ID", questionId);
                     if (!question) return null;
 
-                    console.log("ANSWER", answer);
-
-                    const status = getQuestionStatus(questionIndex, answer);
+                    const status = getQuestionStatus(questionId, answer);
                     const timeSpent = answer?.timeSpent || 0;
 
                     return (
                       <div
-                        key={questionIndex}
-                        className="flex items-start justify-between gap-4 p-6 rounded-lg border border-border"
+                        key={questionId}
+                        className="rounded-lg border border-border overflow-hidden"
                       >
-                        <div className="flex-1">
-                          <div className="flex items-start gap-3 mb-3">
-                            <div className="w-8 h-8 bg-secondary/50 rounded-lg flex items-center justify-center flex-shrink-0">
-                              {status.icon &&
-                                React.createElement(status.icon, {
-                                  className: `w-5 h-5 ${
-                                    status.status === "correct"
-                                      ? "text-green-600"
+                        <div
+                          onClick={() => toggleAccordion(questionId)}
+                          className="flex items-start justify-between gap-4 p-6 cursor-pointer hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-start gap-3 mb-3">
+                              <div className="w-8 h-8 bg-secondary/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                {status.icon &&
+                                  React.createElement(status.icon, {
+                                    className: `w-5 h-5 ${
+                                      status.status === "correct"
+                                        ? "text-green-600"
+                                        : status.status === "incorrect"
+                                          ? "text-red-500"
+                                          : "text-muted-foreground"
+                                    }`,
+                                  })}
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-base text-foreground font-medium mb-2 leading-relaxed">
+                                  {question.question}
+                                </p>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {formatTime(timeSpent)}
+                                  </span>
+                                  <span className="px-2 py-1 rounded bg-secondary text-secondary-foreground">
+                                    {status.status === "correct"
+                                      ? "Correct"
                                       : status.status === "incorrect"
-                                        ? "text-red-500"
-                                        : "text-muted-foreground"
-                                  }`,
-                                })}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-base text-foreground font-medium mb-2 leading-relaxed">
-                                {question.question}
-                              </p>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {formatTime(timeSpent)}
-                                </span>
-                                <span className="px-2 py-1 rounded bg-secondary text-secondary-foreground">
-                                  {status.status === "correct"
-                                    ? "Correct"
-                                    : status.status === "incorrect"
-                                      ? "Incorrect"
-                                      : status.status === "skipped"
-                                        ? "Skipped"
-                                        : "Unknown"}
-                                </span>
+                                        ? "Incorrect"
+                                        : status.status === "skipped"
+                                          ? "Skipped"
+                                          : "Unknown"}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
+                          <div className="text-right text-sm font-medium text-foreground">
+                            Q{parseInt(questionId)}
+                          </div>
                         </div>
-                        <div className="text-right text-sm font-medium text-foreground">
-                          Q{parseInt(questionIndex)}
-                        </div>
+                        {expandedQuestion === questionId && (
+                          <div className="px-6 pb-6 pt-0 border-t border-border bg-muted/30">
+                            <div className="pt-4 space-y-4">
+                              <div>
+                                <h4 className="text-sm font-semibold text-foreground mb-2">
+                                  Options
+                                </h4>
+                                <div className="space-y-2">
+                                  {question.options.map(
+                                    (option: string, idx: number) => {
+                                      let optionClass = "bg-muted/50";
+                                      let icon = null;
+
+                                      const isCorrect =
+                                        question.type ===
+                                          "SINGLE_SELECT_MULTIPLE_CHOICE" ||
+                                        question.type === "TRUE_FALSE"
+                                          ? idx === question.correctOptionIndex
+                                          : question.correctOptionIndexes?.includes(
+                                              idx
+                                            );
+
+                                      const isSelected =
+                                        question.type ===
+                                          "SINGLE_SELECT_MULTIPLE_CHOICE" ||
+                                        question.type === "TRUE_FALSE"
+                                          ? answer?.answer === idx
+                                          : answer?.answers?.includes(idx);
+
+                                      if (isCorrect) {
+                                        optionClass =
+                                          "bg-green-500/10 border-green-500/30 border";
+                                        icon = (
+                                          <Check className="w-4 h-4 text-green-600" />
+                                        );
+                                      } else if (isSelected) {
+                                        optionClass =
+                                          "bg-red-500/10 border-red-500/30 border";
+                                        icon = (
+                                          <XCircle className="w-4 h-4 text-red-500" />
+                                        );
+                                      }
+
+                                      return (
+                                        <div
+                                          key={idx}
+                                          className={`p-3 rounded-md flex items-start gap-3 ${optionClass}`}
+                                        >
+                                          <div className="flex-shrink-0 mt-0.5">
+                                            {icon}
+                                          </div>
+                                          <p className="text-sm text-foreground">
+                                            {option}
+                                          </p>
+                                        </div>
+                                      );
+                                    }
+                                  )}
+                                </div>
+                              </div>
+                              {question.feedback && (
+                                <div>
+                                  <h4 className="text-sm font-semibold text-foreground mb-2">
+                                    Explanation
+                                  </h4>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    {question.feedback}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   }

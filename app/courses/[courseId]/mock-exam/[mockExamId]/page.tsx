@@ -160,18 +160,21 @@ function MockExamPageInner({
         questionId,
         answer: selectedAnswer,
         timeSpent: elapsedTime,
+        answeredAt: Date.now(),
       };
     } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
       newAnswers[questionId] = {
         questionId,
         answers: Array.from(selectedMultipleAnswers),
         timeSpent: elapsedTime,
+        answeredAt: Date.now(),
       };
     } else if (currentQuestion?.type === "TRUE_FALSE") {
       newAnswers[questionId] = {
         questionId,
         answer: trueFalseAnswer,
         timeSpent: elapsedTime,
+        answeredAt: Date.now(),
       };
     }
 
@@ -237,18 +240,21 @@ function MockExamPageInner({
         questionId,
         answer: selectedAnswer,
         timeSpent: elapsedTime,
+        answeredAt: Date.now(),
       };
     } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
       newAnswers[questionId] = {
         questionId,
         answers: Array.from(selectedMultipleAnswers),
         timeSpent: elapsedTime,
+        answeredAt: Date.now(),
       };
     } else if (currentQuestion?.type === "TRUE_FALSE") {
       newAnswers[questionId] = {
         questionId,
         answer: trueFalseAnswer,
         timeSpent: elapsedTime,
+        answeredAt: Date.now(),
       };
     }
 

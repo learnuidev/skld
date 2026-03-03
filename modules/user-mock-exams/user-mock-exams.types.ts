@@ -2,6 +2,15 @@ export type ExamType = "timed" | "untimed";
 
 export type MockExamStatus = "in_progress" | "completed" | "abandoned";
 
+type AnswerItem = number | string | boolean | null;
+
+interface Answer {
+  questionId: string;
+  answer?: AnswerItem;
+  answers?: AnswerItem[];
+  timeSpent: number;
+  answeredAt: number;
+}
 export interface MockExam {
   id: string;
   userId: string;
@@ -10,7 +19,7 @@ export interface MockExam {
   examType: ExamType;
   selectedDomains: string[];
   currentQuestionIndex: number;
-  answers: Record<string, unknown>;
+  answers: Record<string, Answer>;
   timeSpent: number;
   timeRemaining: number | null;
   status: MockExamStatus;
