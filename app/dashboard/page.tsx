@@ -66,13 +66,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="pb-16 lg:pb-24 pt-12 max-w-3xl">
+      <div className="pb-16 lg:pb-24 pt-8 max-w-3xl">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-4xl font-semibold tracking-tight mb-2">
-            Dashboard
-          </h1>
-          <p className="text-muted-foreground text-lg">
+          <h1 className="text-2xl font-light tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             {enrollments && enrollments.length > 0
               ? `You have ${enrollments.length} enrollment${enrollments.length === 1 ? "" : "s"}`
               : "Start your learning journey"}

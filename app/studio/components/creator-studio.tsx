@@ -67,12 +67,9 @@ export function CreatorStudio() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Your Courses
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {courses.length} {courses.length === 1 ? "course" : "courses"}{" "}
             created
           </p>

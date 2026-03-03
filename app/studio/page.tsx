@@ -15,7 +15,7 @@ export default function StudioPage() {
 
   return (
     <div className="py-8">
-      <h1 className="text-3xl font-bold mb-6">Studio</h1>
+      <h1 className="text-2xl font-light tracking-tight">Studio</h1>
       {!isCreator ? <BecomeCreatorBanner /> : <CreatorStudio />}
     </div>
   );
