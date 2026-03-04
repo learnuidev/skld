@@ -12,7 +12,7 @@ export type QuestionTypeCategory =
   | "identification";
 
 export interface Question {
-  id?: string;
+  id: string;
   domainId: string;
   question: string;
   options: string[];
