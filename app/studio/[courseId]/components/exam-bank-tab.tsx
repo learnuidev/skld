@@ -26,9 +26,6 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
   const queryClient = useQueryClient();
   const { data: examBanks, isLoading } = useGetExamBanksQuery(courseId);
   const deleteExamBankMutation = useDeleteExamBankMutation(courseId);
-  const [selectedExamBank, setSelectedExamBank] = useState<ExamBank | null>(
-    null
-  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [examBankToDelete, setExamBankToDelete] = useState<ExamBank | null>(
     null
@@ -171,19 +168,10 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
             <ExamBankCard
               key={examBank.id}
               examBank={examBank}
-              onView={() => setSelectedExamBank(examBank)}
               onDelete={() => handleDelete(examBank)}
             />
           ))}
         </div>
-      )}
-
-      {selectedExamBank && (
-        <ViewExamBankDialog
-          examBank={selectedExamBank}
-          open={!!selectedExamBank}
-          onOpenChange={(open) => !open && setSelectedExamBank(null)}
-        />
       )}
 
       {examBankToDelete && (
@@ -234,19 +222,17 @@ function EmptyState({ courseId }: { courseId: string }) {
 
 function ExamBankCard({
   examBank,
-  onView,
   onDelete,
 }: {
   examBank: ExamBank;
-  onView: () => void;
   onDelete: () => void;
 }) {
   const questionCount = examBank.questions?.length || 0;
 
   return (
-    <div
-      onClick={onView}
-      className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group"
+    <Link
+      href={`/studio/${examBank.courseId}/exam-banks/${examBank.id}`}
+      className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group block"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center">
@@ -317,137 +303,6 @@ function ExamBankCard({
           />
         </svg>
       </div>
-    </div>
-  );
-}
-
-function ViewExamBankDialog({
-  examBank,
-  open,
-  onOpenChange,
-}: {
-  examBank: ExamBank;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">{examBank.title}</DialogTitle>
-          {examBank.description && (
-            <p className="text-slate-600 dark:text-slate-400 mt-2">
-              {examBank.description}
-            </p>
-          )}
-        </DialogHeader>
-
-        <div className="space-y-4 mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Questions ({examBank.questions?.length || 0})
-            </h3>
-          </div>
-
-          {examBank.questions?.map((question, index) => (
-            <QuestionCard key={index} question={question} index={index + 1} />
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function QuestionCard({ question, index }: { question: any; index: number }) {
-  const isOptionCorrect = (optionIndex: number) => {
-    if (
-      question.type === "SINGLE_SELECT_MULTIPLE_CHOICE" ||
-      question.type === "TRUE_FALSE"
-    ) {
-      return question.correctOptionIndex === optionIndex;
-    } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-      return question.correctOptionIndexes?.includes(optionIndex) || false;
-    }
-    return false;
-  };
-
-  return (
-    <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-      <div className="flex items-start justify-between mb-4">
-        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          Question {index}
-        </span>
-        <div className="flex gap-2">
-          {question.difficulty && (
-            <span className="px-2 py-1 text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full">
-              {question.difficulty}
-            </span>
-          )}
-          {question.questionType && (
-            <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded-full">
-              {question.questionType}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <h4 className="text-base font-semibold text-slate-900 dark:text-white mb-4">
-        {question.question}
-      </h4>
-
-      {question.options && question.options.length > 0 && (
-        <div className="space-y-2 mb-4">
-          {question.options.map((option: string, i: number) => (
-            <div
-              key={i}
-              className={`px-4 py-3 rounded-lg border text-sm ${
-                isOptionCorrect(i)
-                  ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-800 dark:text-green-400"
-                  : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-slate-500 dark:text-slate-400 mr-2">
-                  {String.fromCharCode(65 + i)}.
-                </span>
-                <span className="flex-1">{option}</span>
-                {isOptionCorrect(i) && (
-                  <svg
-                    className="w-4 h-4 text-green-600 dark:text-green-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 text-xs">
-        <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400 rounded-full">
-          {question.type}
-        </span>
-        <span className="text-slate-500 dark:text-slate-400">
-          Domain ID: {question.domainId}
-        </span>
-      </div>
-
-      {question.feedback && (
-        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-sm text-blue-900 dark:text-blue-300">
-            <span className="font-semibold">Feedback:</span> {question.feedback}
-          </p>
-        </div>
-      )}
-    </div>
+    </Link>
   );
 }
