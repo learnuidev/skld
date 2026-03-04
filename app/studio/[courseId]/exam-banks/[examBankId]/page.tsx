@@ -173,60 +173,34 @@ export default function ExamBankDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[rgb(11,12,13)]">
-      <div className="py-16 px-4">
-        <div className="mb-16">
-          <Link
-            href={`/studio/${courseId}`}
-            className="inline-flex items-center text-sm text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 transition-colors mb-8"
-          >
-            <svg
-              className="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            Back to Course
-          </Link>
-
-          <div className="mb-12">
-            <input
-              type="text"
-              value={examBankData.title}
-              onChange={(e) => {
-                setExamBankData({ ...examBankData, title: e.target.value });
-                setHasUnsavedChanges(true);
-              }}
-              className="text-4xl font-light text-slate-900 dark:text-white tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 w-full mb-6 placeholder-slate-300 dark:placeholder-slate-700"
-              placeholder="Exam Bank Title"
-            />
-            <input
-              type="text"
-              value={examBankData.description}
-              onChange={(e) => {
-                setExamBankData({
-                  ...examBankData,
-                  description: e.target.value,
-                });
-                setHasUnsavedChanges(true);
-              }}
-              className="text-lg text-slate-500 dark:text-slate-400 bg-transparent border-none focus:outline-none focus:ring-0 w-full placeholder-slate-300 dark:placeholder-slate-700"
-              placeholder="Add a description..."
-            />
-          </div>
-
+    <div className="min-h-screen bg-white dark:bg-black">
+      <div className="sticky top-0 bg-white dark:bg-black z-50 border-b border-slate-100 dark:border-slate-900">
+        <div className="px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-slate-400 dark:text-slate-600">
-              {questions.length} question{questions.length !== 1 ? "s" : ""}
-            </div>
+            <Link
+              href={`/studio/${courseId}`}
+              className="inline-flex items-center text-sm text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
+            >
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              Back to Course
+            </Link>
+
             <div className="flex items-center gap-6">
+              <div className="text-sm text-slate-400 dark:text-slate-600">
+                {questions.length} question{questions.length !== 1 ? "s" : ""}
+              </div>
               {hasUnsavedChanges && (
                 <span className="text-sm text-slate-500 dark:text-slate-400">
                   Unsaved
@@ -243,6 +217,34 @@ export default function ExamBankDetailPage() {
               </Button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="px-6 py-12 pb-24">
+        <div className="mb-16">
+          <input
+            type="text"
+            value={examBankData.title}
+            onChange={(e) => {
+              setExamBankData({ ...examBankData, title: e.target.value });
+              setHasUnsavedChanges(true);
+            }}
+            className="text-4xl font-light text-slate-900 dark:text-white tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 w-full mb-6 placeholder-slate-300 dark:placeholder-slate-700"
+            placeholder="Exam Bank Title"
+          />
+          <input
+            type="text"
+            value={examBankData.description}
+            onChange={(e) => {
+              setExamBankData({
+                ...examBankData,
+                description: e.target.value,
+              });
+              setHasUnsavedChanges(true);
+            }}
+            className="text-lg text-slate-500 dark:text-slate-400 bg-transparent border-none focus:outline-none focus:ring-0 w-full placeholder-slate-300 dark:placeholder-slate-700"
+            placeholder="Add a description..."
+          />
         </div>
 
         <div className="space-y-4">
@@ -364,27 +366,26 @@ function QuestionEditorCard({
   };
 
   return (
-    <div className="bg-white dark:bg-[rgb(10,11,12)] border-b border-slate-100 dark:border-slate-900">
+    <div className="bg-white dark:bg-[rgb(10,11,12)] border-b border-slate-100 dark:border-slate-900 px-2">
       <div className="py-6">
         <div className="flex items-start justify-between gap-8">
           <div className="flex items-center gap-6 flex-1">
             <span className="text-sm text-slate-300 dark:text-slate-700 w-6">
               {index + 1}.
             </span>
-            <div className="flex-1">
-              <input
-                type="text"
+            <div className="flex-1 min-w-0">
+              <textarea
                 value={question.question}
                 onChange={(e) => onUpdate("question", e.target.value)}
                 placeholder="Enter your question here..."
-                className="text-lg font-light text-slate-900 dark:text-white bg-transparent border-none focus:outline-none focus:ring-0 w-full placeholder-slate-300 dark:placeholder-slate-700"
+                className="text-lg font-light text-slate-900 dark:text-white bg-transparent border-none focus:outline-none focus:ring-0 w-full whitespace-normal placeholder-slate-300 dark:placeholder-slate-700"
               />
               <div className="flex items-center gap-3 mt-2">
-                <span className="text-xs text-slate-400 dark:text-slate-600">
+                <span className="text-xs text-slate-400 dark:text-slate-600 whitespace-nowrap">
                   {question.type}
                 </span>
                 {question.difficulty && (
-                  <span className="text-xs text-slate-400 dark:text-slate-600">
+                  <span className="text-xs text-slate-400 dark:text-slate-600 whitespace-nowrap">
                     {question.difficulty}
                   </span>
                 )}
@@ -512,7 +513,7 @@ function QuestionEditorCard({
                       type="text"
                       value={option}
                       onChange={(e) => onOptionUpdate(oi, e.target.value)}
-                      className="flex-1 px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
+                      className="flex-1 px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words"
                       placeholder={`Option ${String.fromCharCode(65 + oi)}`}
                     />
                     <button
@@ -567,7 +568,7 @@ function QuestionEditorCard({
                 value={question.feedback}
                 onChange={(e) => onUpdate("feedback", e.target.value)}
                 rows={2}
-                className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 resize-none"
+                className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 resize-none whitespace-normal break-words"
                 placeholder="Explain why this answer is correct..."
               />
             </div>

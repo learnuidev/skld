@@ -217,12 +217,12 @@ function ExamBankCard({
       className="bg-white dark:bg-black border-b border-slate-100 dark:border-slate-900 py-6 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer group block"
     >
       <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <h3 className="text-base font-light text-slate-900 dark:text-white mb-1">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base font-light text-slate-900 dark:text-white mb-1 whitespace-normal break-words">
             {examBank.title}
           </h3>
 
-          <p className="text-sm text-slate-400 dark:text-slate-600 line-clamp-1">
+          <p className="text-sm text-slate-400 dark:text-slate-600 line-clamp-2">
             {examBank.description || "No description"}
           </p>
 
