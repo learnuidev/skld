@@ -25,6 +25,11 @@ export default function ExamBankDetailPage() {
     description: string;
   }>({ title: "", description: "" });
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterDifficulty, setFilterDifficulty] = useState<string>("");
+  const [filterDomain, setFilterDomain] = useState<string>("");
+  const [filterQuestionType, setFilterQuestionType] = useState<string>("");
+
   const { data: examBank, isLoading } = useGetExamBankQuery(
     courseId,
     examBankId
@@ -36,6 +41,22 @@ export default function ExamBankDetailPage() {
   );
 
   const domains = course?.domains || [];
+
+  const filteredQuestions = questions.filter((question) => {
+    const matchesSearch =
+      !searchQuery ||
+      question.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      question.options.some((opt) =>
+        opt.toLowerCase().includes(searchQuery.toLowerCase())
+      ) ||
+      (question.feedback || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesDifficulty = !filterDifficulty || question.difficulty === filterDifficulty;
+    const matchesDomain = !filterDomain || question.domainId === filterDomain;
+    const matchesType = !filterQuestionType || question.type === filterQuestionType;
+
+    return matchesSearch && matchesDifficulty && matchesDomain && matchesType;
+  });
 
   if (isLoading) {
     return (
@@ -247,8 +268,75 @@ export default function ExamBankDetailPage() {
           />
         </div>
 
+        <div className="mb-8">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search questions..."
+            className="w-full px-4 py-3 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 placeholder-slate-300 dark:placeholder-slate-700"
+          />
+        </div>
+
+        <div className="flex gap-4 mb-8">
+          <select
+            value={filterDifficulty}
+            onChange={(e) => setFilterDifficulty(e.target.value)}
+            className="px-4 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
+          >
+            <option value="">All Difficulties</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+
+          <select
+            value={filterDomain}
+            onChange={(e) => setFilterDomain(e.target.value)}
+            className="px-4 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 flex-1"
+          >
+            <option value="">All Domains</option>
+            {domains.map((domain: Domain) => (
+              <option key={domain.id} value={domain.id}>
+                {domain.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={filterQuestionType}
+            onChange={(e) => setFilterQuestionType(e.target.value)}
+            className="px-4 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
+          >
+            <option value="">All Types</option>
+            <option value="SINGLE_SELECT_MULTIPLE_CHOICE">Single Choice</option>
+            <option value="MULTIPLE_SELECT_MULTIPLE_CHOICE">Multiple Choice</option>
+            <option value="TRUE_FALSE">True/False</option>
+          </select>
+
+          {(searchQuery || filterDifficulty || filterDomain || filterQuestionType) && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setFilterDifficulty("");
+                setFilterDomain("");
+                setFilterQuestionType("");
+              }}
+              className="text-sm text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+
+        {(searchQuery || filterDifficulty || filterDomain || filterQuestionType) && (
+          <div className="mb-6 text-sm text-slate-400 dark:text-slate-600">
+            Showing {filteredQuestions.length} of {questions.length} questions
+          </div>
+        )}
+
         <div className="space-y-4">
-          {questions.map((question, index) => (
+          {filteredQuestions.map((question, index) => (
             <QuestionEditorCard
               key={index}
               index={index}
