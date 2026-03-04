@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ExamBankTab } from "./components/exam-bank-tab";
+import { ContentTab } from "./components/content-tab";
 import {
   Dialog,
   DialogContent,
@@ -186,7 +187,7 @@ function ExamInfo({ course }: { course: any }) {
               {Object.entries(course.exam.domainWeights).map(
                 ([domainId, weight]) => {
                   const domain = course.domains?.find(
-                    (d: any) => d.id === domainId
+                    (d: any) => d.id === domainId,
                   );
                   return (
                     <div key={domainId} className="flex flex-col gap-2">
@@ -206,7 +207,7 @@ function ExamInfo({ course }: { course: any }) {
                       </div>
                     </div>
                   );
-                }
+                },
               )}
             </div>
           </>
@@ -241,7 +242,7 @@ function DomainsList({ course }: { course: any }) {
               key={domain.id}
               className={cn(
                 "border-b border-border",
-                index === 0 && "border-t"
+                index === 0 && "border-t",
               )}
             >
               <button
@@ -254,7 +255,7 @@ function DomainsList({ course }: { course: any }) {
                 <ChevronDown
                   className={cn(
                     "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                    isOpen && "rotate-180"
+                    isOpen && "rotate-180",
                   )}
                 />
               </button>
@@ -264,7 +265,7 @@ function DomainsList({ course }: { course: any }) {
                   "grid transition-all duration-200 ease-in-out",
                   isOpen
                     ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-0"
+                    : "grid-rows-[0fr] opacity-0",
                 )}
               >
                 <div className="overflow-hidden">
@@ -454,7 +455,7 @@ export default function CourseDetailPage() {
                 "relative px-4 py-3 text-sm font-medium transition-colors",
                 activeTab === tab
                   ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {tab}
@@ -480,31 +481,15 @@ export default function CourseDetailPage() {
         )}
 
         {activeTab === "Content" && (
-          <div className="mt-12 flex flex-col items-center justify-center py-20">
-            <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4">
-              <svg
-                className="w-8 h-8 text-muted-foreground"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              Content
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Add and manage learning materials for your course here.
-            </p>
-            <div className="mt-4 px-4 py-2 bg-muted text-muted-foreground rounded-full text-sm font-medium">
-              Coming soon
-            </div>
+          <div className="mt-12">
+            <ContentTab
+              courseId={course.id}
+              chapters={
+                course.domains?.flatMap((d) =>
+                  d.chapters.map((c) => ({ ...c })),
+                ) || []
+              }
+            />
           </div>
         )}
 

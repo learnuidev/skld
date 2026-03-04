@@ -27,11 +27,11 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
   const { data: examBanks, isLoading } = useGetExamBanksQuery(courseId);
   const deleteExamBankMutation = useDeleteExamBankMutation(courseId);
   const [selectedExamBank, setSelectedExamBank] = useState<ExamBank | null>(
-    null,
+    null
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [examBankToDelete, setExamBankToDelete] = useState<ExamBank | null>(
-    null,
+    null
   );
 
   if (isLoading) {
@@ -246,7 +246,7 @@ function ExamBankCard({
   return (
     <div
       onClick={onView}
-      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group"
+      className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center">

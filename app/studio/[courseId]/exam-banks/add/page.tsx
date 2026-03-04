@@ -288,7 +288,7 @@ export default function AddExamBankPage() {
             </Button>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden mb-8">
+          <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden mb-8">
             <div className="divide-y divide-slate-200 dark:divide-slate-800">
               {questions.map((question, index) => (
                 <QuestionEditorCard
@@ -339,7 +339,7 @@ export default function AddExamBankPage() {
             </Button>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-8">
+          <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-8">
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
@@ -350,7 +350,7 @@ export default function AddExamBankPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Enter exam bank title..."
-                  className="w-full px-5 py-4 text-lg bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all"
+                  className="w-full px-5 py-4 text-lg bg-white dark:bg-[rgb(10,11,12)] border-2 border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all"
                   required
                 />
               </div>
@@ -364,7 +364,7 @@ export default function AddExamBankPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Enter description..."
                   rows={3}
-                  className="w-full px-5 py-4 text-base bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all resize-none"
+                  className="w-full px-5 py-4 text-base bg-white dark:bg-[rgb(10,11,12)] border-2 border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all resize-none"
                 />
               </div>
 
@@ -427,7 +427,7 @@ export default function AddExamBankPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl p-12 text-center cursor-pointer hover:border-slate-400 dark:hover:border-slate-600 transition-colors bg-white dark:bg-slate-900 hover:shadow-xl hover:shadow-slate-200/20 dark:hover:shadow-slate-900/20 transition-all"
+            className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl p-12 text-center cursor-pointer hover:border-slate-400 dark:hover:border-slate-600 transition-colors bg-white dark:bg-[rgb(10,11,12)] hover:shadow-xl hover:shadow-slate-200/20 dark:hover:shadow-slate-900/20 transition-all"
           >
             <input
               ref={fileInputRef}
@@ -459,7 +459,7 @@ export default function AddExamBankPage() {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8">
+          <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-3xl border border-slate-200 dark:border-slate-800 p-8">
             <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center">
               <svg
                 className="w-6 h-6 mr-3 text-slate-400"
@@ -502,7 +502,7 @@ export default function AddExamBankPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-8">
+        <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-8">
           <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
             Or Paste JSON
           </h3>

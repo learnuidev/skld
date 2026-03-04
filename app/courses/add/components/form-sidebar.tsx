@@ -42,7 +42,7 @@ export function FormSidebar({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden sticky top-8"
+      className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden sticky top-8"
     >
       <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -68,16 +68,16 @@ export function FormSidebar({
                 isActive
                   ? "bg-slate-100 dark:bg-slate-800"
                   : isCompleted
-                    ? "bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    ? "bg-slate-50 dark:bg-[rgb(10,11,12)]/50 hover:bg-slate-100 dark:hover:bg-slate-800"
                     : isAccessible
-                      ? "bg-transparent hover:bg-slate-50 dark:hover:bg-slate-900/50"
+                      ? "bg-transparent hover:bg-slate-50 dark:hover:bg-[rgb(10,11,12)]/50"
                       : "bg-transparent opacity-40 cursor-not-allowed"
               }`}
             >
               <span
                 className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold transition-all ${
                   isActive
-                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                    ? "bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
                     : isCompleted
                       ? "bg-green-500 text-white"
                       : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
@@ -130,7 +130,7 @@ export function FormSidebar({
             initial={{ width: 0 }}
             animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
             transition={{ duration: 0.3 }}
-            className="h-full bg-slate-900 dark:bg-white rounded-full"
+            className="h-full bg-[rgb(10,11,12)] dark:bg-white rounded-full"
           />
         </div>
 

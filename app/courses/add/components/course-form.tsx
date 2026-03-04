@@ -69,7 +69,7 @@ export function CourseForm({
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           placeholder="Enter your course title..."
-          className="w-full px-5 py-4 text-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600"
+          className="w-full px-5 py-4 text-lg bg-white dark:bg-[rgb(10,11,12)] border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600"
         />
       </div>
 
@@ -84,7 +84,7 @@ export function CourseForm({
           }
           placeholder="Describe what students will learn..."
           rows={6}
-          className="w-full px-5 py-4 text-base bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 resize-none"
+          className="w-full px-5 py-4 text-base bg-white dark:bg-[rgb(10,11,12)] border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 resize-none"
         />
       </div>
 
@@ -109,7 +109,7 @@ export function CourseForm({
               }
               className={`px-5 py-4 text-sm font-medium rounded-xl border-2 transition-all capitalize ${
                 formData.courseType === type
-                  ? "border-slate-900 dark:border-white bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                  ? "border-slate-900 dark:border-white bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
                   : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
               }`}
             >
@@ -119,7 +119,7 @@ export function CourseForm({
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+      <div className="bg-white dark:bg-[rgb(10,11,12)] p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
@@ -194,7 +194,7 @@ export function CourseForm({
         {formData.domains.map((domain, index) => (
           <div
             key={domain.id}
-            className="group bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all"
+            className="group bg-white dark:bg-[rgb(10,11,12)] p-6 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all"
           >
             <div className="flex items-center gap-4">
               <span className="flex items-center justify-center w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -319,7 +319,7 @@ export function CourseForm({
             {domain.chapters.map((chapter, chapterIndex) => (
               <div
                 key={chapter.id}
-                className="group bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all"
+                className="group bg-white dark:bg-[rgb(10,11,12)] p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all"
               >
                 <div className="flex items-center gap-3">
                   <span className="flex items-center justify-center w-7 h-7 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -433,7 +433,7 @@ export function CourseForm({
         transition={{ duration: 0.3 }}
         className="space-y-8"
       >
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-[rgb(10,11,12)] p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
           <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
             Total Exam Questions
           </label>
@@ -447,7 +447,7 @@ export function CourseForm({
           />
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-[rgb(10,11,12)] p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
           <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
             Total Exam Time (in minutes)
           </label>
@@ -469,7 +469,7 @@ export function CourseForm({
           {formData.domains.map((domain, index) => (
             <div
               key={domain.id}
-              className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-700"
+              className="bg-white dark:bg-[rgb(10,11,12)] p-5 rounded-xl border border-slate-200 dark:border-slate-700"
             >
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 {domain.name || `Domain ${index + 1}`}
@@ -516,7 +516,7 @@ export function CourseForm({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-[rgb(10,11,12)] p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
@@ -565,7 +565,7 @@ export function CourseForm({
         transition={{ duration: 0.3 }}
         className="space-y-6"
       >
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
           <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
               Course Information
@@ -613,7 +613,7 @@ export function CourseForm({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
           <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
               Structure Overview
@@ -676,7 +676,7 @@ export function CourseForm({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
           <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
               Exam Configuration
@@ -776,7 +776,7 @@ export function CourseForm({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+    <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
       <div className="px-8 py-6 border-b border-slate-200 dark:border-slate-800">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
           {stepTitles[currentStep - 1]}

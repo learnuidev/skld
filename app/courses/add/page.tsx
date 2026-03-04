@@ -269,7 +269,7 @@ export default function AddCoursePage() {
 
       {showJsonModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+          <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
             <div className="p-6 border-b border-slate-200 dark:border-slate-800">
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                 Import Course JSON
@@ -285,7 +285,7 @@ export default function AddCoursePage() {
                   onClick={() => setImportMethod("paste")}
                   className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
                     importMethod === "paste"
-                      ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                      ? "bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
@@ -308,7 +308,7 @@ export default function AddCoursePage() {
                   onClick={() => setImportMethod("upload")}
                   className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
                     importMethod === "upload"
-                      ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                      ? "bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >

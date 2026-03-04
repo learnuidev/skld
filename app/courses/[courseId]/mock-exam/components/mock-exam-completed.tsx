@@ -150,7 +150,7 @@ export function MockExamCompleted({
     return (
       <div className="min-h-screen flex justify-center bg-background py-12">
         <div className="w-full max-w-5xl mx-auto px-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-border shadow-lg p-8">
+          <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-border shadow-lg p-8">
             <div className="mb-8">
               <Link
                 href={`/courses/${examBank.courseId}`}
