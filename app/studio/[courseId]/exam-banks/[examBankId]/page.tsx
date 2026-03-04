@@ -6,9 +6,12 @@ import Link from "next/link";
 import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useUpdateExamBankMutation } from "@/modules/exam-bank/use-exam-bank-mutations";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
 import { Question } from "@/modules/exam-bank/exam-bank.types";
-import { Domain } from "@/modules/course/course.types";
+import { Chapter, Domain } from "@/modules/course/course.types";
+import { CourseContent } from "@/modules/course-content/course-content.types";
 import { Button } from "@/components/ui/button";
+import { Search, X } from "lucide-react";
 
 export default function ExamBankDetailPage() {
   const params = useParams<{ courseId: string; examBankId: string }>();
@@ -35,12 +38,15 @@ export default function ExamBankDetailPage() {
     examBankId
   );
   const { data: course } = useGetCourseQuery(courseId);
+  const { data: courseContents } = useListCourseContentsQuery(courseId);
   const updateExamBankMutation = useUpdateExamBankMutation(
     courseId,
     examBankId
   );
 
   const domains = course?.domains || [];
+  const hasFilters =
+    searchQuery || filterDifficulty || filterDomain || filterQuestionType;
 
   const filteredQuestions = questions.filter((question) => {
     const matchesSearch =
@@ -49,11 +55,15 @@ export default function ExamBankDetailPage() {
       question.options.some((opt) =>
         opt.toLowerCase().includes(searchQuery.toLowerCase())
       ) ||
-      (question.feedback || "").toLowerCase().includes(searchQuery.toLowerCase());
+      (question.feedback || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-    const matchesDifficulty = !filterDifficulty || question.difficulty === filterDifficulty;
+    const matchesDifficulty =
+      !filterDifficulty || question.difficulty === filterDifficulty;
     const matchesDomain = !filterDomain || question.domainId === filterDomain;
-    const matchesType = !filterQuestionType || question.type === filterQuestionType;
+    const matchesType =
+      !filterQuestionType || question.type === filterQuestionType;
 
     return matchesSearch && matchesDifficulty && matchesDomain && matchesType;
   });
@@ -196,11 +206,11 @@ export default function ExamBankDetailPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       <div className="sticky top-0 bg-white dark:bg-black z-50 border-b border-slate-100 dark:border-slate-900">
-        <div className="px-6 py-6">
+        <div className="py-6">
           <div className="flex items-center justify-between">
             <Link
               href={`/studio/${courseId}`}
-              className="inline-flex items-center text-sm text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
+              className="inline-flex items-center text-sm text-slate-600 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
             >
               <svg
                 className="w-4 h-4 mr-2"
@@ -310,11 +320,16 @@ export default function ExamBankDetailPage() {
           >
             <option value="">All Types</option>
             <option value="SINGLE_SELECT_MULTIPLE_CHOICE">Single Choice</option>
-            <option value="MULTIPLE_SELECT_MULTIPLE_CHOICE">Multiple Choice</option>
+            <option value="MULTIPLE_SELECT_MULTIPLE_CHOICE">
+              Multiple Choice
+            </option>
             <option value="TRUE_FALSE">True/False</option>
           </select>
 
-          {(searchQuery || filterDifficulty || filterDomain || filterQuestionType) && (
+          {(searchQuery ||
+            filterDifficulty ||
+            filterDomain ||
+            filterQuestionType) && (
             <button
               onClick={() => {
                 setSearchQuery("");
@@ -329,7 +344,10 @@ export default function ExamBankDetailPage() {
           )}
         </div>
 
-        {(searchQuery || filterDifficulty || filterDomain || filterQuestionType) && (
+        {(searchQuery ||
+          filterDifficulty ||
+          filterDomain ||
+          filterQuestionType) && (
           <div className="mb-6 text-sm text-slate-400 dark:text-slate-600">
             Showing {filteredQuestions.length} of {questions.length} questions
           </div>
@@ -358,31 +376,58 @@ export default function ExamBankDetailPage() {
                 )
               }
               domains={domains}
+              courseContents={courseContents}
             />
           ))}
         </div>
 
-        <div className="mt-16">
-          <button
-            onClick={addQuestion}
-            className="w-full h-16 border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-3 text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 transition-all"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        {filteredQuestions.length === 0 && hasFilters ? (
+          <div className="mt-16 py-12 flex flex-col items-center justify-center text-center">
+            <Search className="w-12 h-12 text-slate-300 dark:text-slate-700 mb-4" />
+            <h3 className="text-lg font-light text-slate-900 dark:text-white mb-2">
+              No results found
+            </h3>
+            <p className="text-slate-400 dark:text-slate-600 mb-6">
+              Try adjusting your search or filters
+            </p>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setFilterDifficulty("");
+                setFilterDomain("");
+                setFilterQuestionType("");
+              }}
+              className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-            <span className="font-light">Add Question</span>
-          </button>
-        </div>
+              <X className="w-4 h-4" />
+              Clear all filters
+            </button>
+          </div>
+        ) : null}
+
+        {!hasFilters && (
+          <div className="mt-16">
+            <button
+              onClick={addQuestion}
+              className="w-full h-16 border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-3 text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+              <span className="font-light">Add Question</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -399,6 +444,7 @@ function QuestionEditorCard({
   isExpanded,
   onToggle,
   domains,
+  courseContents,
 }: {
   index: number;
   question: Question;
@@ -413,6 +459,7 @@ function QuestionEditorCard({
   isExpanded: boolean;
   onToggle: () => void;
   domains?: Domain[];
+  courseContents?: CourseContent[];
 }) {
   const handleCorrectOptionChange = (optionIndex: number) => {
     if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
@@ -454,7 +501,7 @@ function QuestionEditorCard({
   };
 
   return (
-    <div className="bg-white dark:bg-[rgb(10,11,12)] border-b border-slate-100 dark:border-slate-900 px-2">
+    <div className="bg-gray-50 dark:bg-[rgb(10,11,12)] border-b border-slate-100 dark:border-slate-900 px-2">
       <div className="py-6">
         <div className="flex items-start justify-between gap-8">
           <div className="flex items-center gap-6 flex-1">
@@ -524,7 +571,7 @@ function QuestionEditorCard({
 
         {isExpanded && (
           <div className="space-y-6 pt-6 mt-6 border-t border-slate-100 dark:border-slate-900">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-3 gap-6">
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                   Domain
@@ -548,6 +595,28 @@ function QuestionEditorCard({
                   )}
                 </select>
               </div>
+
+              {courseContents && courseContents.length > 0 && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+                    Course Content
+                  </label>
+                  <select
+                    value={question.contentId || ""}
+                    onChange={(e) =>
+                      onUpdate("contentId", e.target.value || undefined)
+                    }
+                    className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
+                  >
+                    <option value="">Select course content</option>
+                    {courseContents.map((content: CourseContent) => (
+                      <option key={content.id} value={content.id}>
+                        {content.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
@@ -655,8 +724,7 @@ function QuestionEditorCard({
               <textarea
                 value={question.feedback}
                 onChange={(e) => onUpdate("feedback", e.target.value)}
-                rows={2}
-                className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 resize-none whitespace-normal break-words"
+                className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words h-auto"
                 placeholder="Explain why this answer is correct..."
               />
             </div>

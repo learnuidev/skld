@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query copy";
+import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
 import { useCreateCourseContentMutation } from "@/modules/course-content/use-create-course-content-mutation";
 import { useBulkCreateCourseContentsMutation } from "@/modules/course-content/use-bulk-create-course-contents-mutation";
 import {
@@ -89,7 +89,7 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
   };
 
   const parseChapterId = (
-    chapterInput: string | number | undefined,
+    chapterInput: string | number | undefined
   ): string | undefined => {
     if (!chapterInput) return undefined;
 
@@ -113,7 +113,7 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
   };
 
   const validateParsedContents = (
-    items: ParsedContent[],
+    items: ParsedContent[]
   ): { valid: ParsedContent[]; errors: string[] } => {
     const valid: ParsedContent[] = [];
     const errors: string[] = [];
@@ -129,7 +129,7 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
 
       if (!chapterId && (item.chapter || item.chapterNumber)) {
         errors.push(
-          `Row ${index + 1}: Could not find chapter "${item.chapter || item.chapterNumber}"`,
+          `Row ${index + 1}: Could not find chapter "${item.chapter || item.chapterNumber}"`
         );
         return;
       }
