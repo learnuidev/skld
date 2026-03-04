@@ -1,18 +1,14 @@
-export type CourseContentType =
-  | "text"
-  | "video"
-  | "document"
-  | "quiz"
-  | "assignment";
+export type CourseContentVariants = "text" | "video" | "audio" | "interactive";
 
 export interface CourseContent {
   id: string;
   courseId: string;
+  contentVaraints?: CourseContentVariants[];
   userId: string;
+  chapterId?: string;
   title: string;
   description?: string;
   content?: string;
-  contentType?: CourseContentType;
   order: number;
   createdAt: number;
   updatedAt: number;
@@ -21,16 +17,22 @@ export interface CourseContent {
 export interface CreateCourseContentParams {
   courseId: string;
   title: string;
+  contentVaraints?: CourseContentVariants[];
   description?: string;
   content?: string;
-  contentType?: CourseContentType;
+  chapterId?: string;
   order?: number;
+}
+
+export interface BulkCreateCourseContentsParams {
+  courseId: string;
+  contents: CreateCourseContentParams[];
 }
 
 export interface UpdateCourseContentParams {
   title?: string;
   description?: string;
   content?: string;
-  contentType?: CourseContentType;
   order?: number;
+  contentVaraints?: CourseContentVariants[];
 }

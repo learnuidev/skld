@@ -35,7 +35,7 @@ export function useCreateCourseContentMutation() {
             title: params.title,
             description: params.description,
             content: params.content,
-            contentType: params.contentType,
+            contentVariants: params.contentVaraints,
             order: params.order,
           }),
         }
