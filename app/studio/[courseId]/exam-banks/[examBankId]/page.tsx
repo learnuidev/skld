@@ -39,9 +39,11 @@ export default function ExamBankDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-        <div className="max-w-7xl mx-auto px-8 py-16">
-          <div className="text-center text-slate-500">Loading...</div>
+      <div className="min-h-screen bg-white dark:bg-black">
+        <div className="px-6 py-16">
+          <div className="text-center text-slate-400 dark:text-slate-600">
+            Loading...
+          </div>
         </div>
       </div>
     );
@@ -49,9 +51,11 @@ export default function ExamBankDetailPage() {
 
   if (!examBank) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-        <div className="max-w-7xl mx-auto px-8 py-16">
-          <div className="text-center text-red-500">Exam bank not found</div>
+      <div className="min-h-screen bg-white dark:bg-black">
+        <div className="px-6 py-16">
+          <div className="text-center text-slate-400 dark:text-slate-600">
+            Exam bank not found
+          </div>
         </div>
       </div>
     );
@@ -122,7 +126,12 @@ export default function ExamBankDetailPage() {
     setQuestions((prev: Question[]) =>
       prev.map((q: Question, i: number) =>
         i === questionIndex && q.options.length > 1
-          ? { ...q, options: q.options.filter((_: string, oi: number) => oi !== optionIndex) }
+          ? {
+              ...q,
+              options: q.options.filter(
+                (_: string, oi: number) => oi !== optionIndex
+              ),
+            }
           : q
       )
     );
@@ -164,12 +173,12 @@ export default function ExamBankDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <div className="max-w-7xl mx-auto px-8 py-16">
-        <div className="mb-12">
+    <div className="min-h-screen bg-white dark:bg-[rgb(11,12,13)]">
+      <div className="py-16 px-4">
+        <div className="mb-16">
           <Link
             href={`/studio/${courseId}`}
-            className="inline-flex items-center text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors mb-6"
+            className="inline-flex items-center text-sm text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 transition-colors mb-8"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -180,14 +189,14 @@ export default function ExamBankDetailPage() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={1.5}
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
             Back to Course
           </Link>
 
-          <div className="mb-8">
+          <div className="mb-12">
             <input
               type="text"
               value={examBankData.title}
@@ -195,35 +204,40 @@ export default function ExamBankDetailPage() {
                 setExamBankData({ ...examBankData, title: e.target.value });
                 setHasUnsavedChanges(true);
               }}
-              className="text-5xl font-bold text-slate-900 dark:text-white tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 w-full mb-4"
+              className="text-4xl font-light text-slate-900 dark:text-white tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 w-full mb-6 placeholder-slate-300 dark:placeholder-slate-700"
               placeholder="Exam Bank Title"
             />
             <input
               type="text"
               value={examBankData.description}
               onChange={(e) => {
-                setExamBankData({ ...examBankData, description: e.target.value });
+                setExamBankData({
+                  ...examBankData,
+                  description: e.target.value,
+                });
                 setHasUnsavedChanges(true);
               }}
-              className="text-xl text-slate-600 dark:text-slate-400 bg-transparent border-none focus:outline-none focus:ring-0 w-full placeholder-slate-400"
+              className="text-lg text-slate-500 dark:text-slate-400 bg-transparent border-none focus:outline-none focus:ring-0 w-full placeholder-slate-300 dark:placeholder-slate-700"
               placeholder="Add a description..."
             />
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="text-sm text-slate-500 dark:text-slate-400">
+            <div className="text-sm text-slate-400 dark:text-slate-600">
               {questions.length} question{questions.length !== 1 ? "s" : ""}
             </div>
-            <div className="flex gap-4">
+            <div className="flex items-center gap-6">
               {hasUnsavedChanges && (
-                <span className="px-4 py-2 text-sm font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 rounded-full">
-                  Unsaved changes
+                <span className="text-sm text-slate-500 dark:text-slate-400">
+                  Unsaved
                 </span>
               )}
               <Button
                 onClick={handleSave}
-                disabled={!hasUnsavedChanges || updateExamBankMutation.isPending}
-                className="rounded-full px-8"
+                disabled={
+                  !hasUnsavedChanges || updateExamBankMutation.isPending
+                }
+                className="rounded-full px-8 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900"
               >
                 {updateExamBankMutation.isPending ? "Saving..." : "Save"}
               </Button>
@@ -231,15 +245,16 @@ export default function ExamBankDetailPage() {
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {questions.map((question, index) => (
             <QuestionEditorCard
               key={index}
               index={index}
               question={question}
-              onUpdate={(field: keyof Question, value: string | number | number[] | string[] | undefined) =>
-                handleQuestionUpdate(index, field, value)
-              }
+              onUpdate={(
+                field: keyof Question,
+                value: string | number | number[] | string[] | undefined
+              ) => handleQuestionUpdate(index, field, value)}
               onOptionUpdate={(oi: number, v: string) =>
                 handleOptionUpdate(index, oi, v)
               }
@@ -257,13 +272,13 @@ export default function ExamBankDetailPage() {
           ))}
         </div>
 
-        <div className="mt-12">
+        <div className="mt-16">
           <button
             onClick={addQuestion}
-            className="w-full h-24 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl flex items-center justify-center gap-3 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-300 transition-all bg-white dark:bg-[rgb(10,11,12)] hover:shadow-xl"
+            className="w-full h-16 border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-3 text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 transition-all"
           >
             <svg
-              className="w-6 h-6"
+              className="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -271,11 +286,11 @@ export default function ExamBankDetailPage() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={1.5}
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            <span className="text-lg font-medium">Add Question</span>
+            <span className="font-light">Add Question</span>
           </button>
         </div>
       </div>
@@ -297,7 +312,10 @@ function QuestionEditorCard({
 }: {
   index: number;
   question: Question;
-  onUpdate: (field: keyof Question, value: string | number | number[] | string[] | undefined) => void;
+  onUpdate: (
+    field: keyof Question,
+    value: string | number | number[] | string[] | undefined
+  ) => void;
   onOptionUpdate: (optionIndex: number, value: string) => void;
   onAddOption: () => void;
   onRemoveOption: (optionIndex: number) => void;
@@ -346,47 +364,40 @@ function QuestionEditorCard({
   };
 
   return (
-    <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-      <div className="p-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-2xl flex items-center justify-center">
-              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {index + 1}
-              </span>
-            </div>
+    <div className="bg-white dark:bg-[rgb(10,11,12)] border-b border-slate-100 dark:border-slate-900">
+      <div className="py-6">
+        <div className="flex items-start justify-between gap-8">
+          <div className="flex items-center gap-6 flex-1">
+            <span className="text-sm text-slate-300 dark:text-slate-700 w-6">
+              {index + 1}.
+            </span>
             <div className="flex-1">
               <input
                 type="text"
                 value={question.question}
                 onChange={(e) => onUpdate("question", e.target.value)}
                 placeholder="Enter your question here..."
-                className="text-xl font-semibold text-slate-900 dark:text-white bg-transparent border-none focus:outline-none focus:ring-0 w-full placeholder-slate-400"
+                className="text-lg font-light text-slate-900 dark:text-white bg-transparent border-none focus:outline-none focus:ring-0 w-full placeholder-slate-300 dark:placeholder-slate-700"
               />
-              <div className="flex items-center gap-3 mt-3">
-                <span className="px-3 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full">
+              <div className="flex items-center gap-3 mt-2">
+                <span className="text-xs text-slate-400 dark:text-slate-600">
                   {question.type}
                 </span>
                 {question.difficulty && (
-                  <span className="px-3 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full">
+                  <span className="text-xs text-slate-400 dark:text-slate-600">
                     {question.difficulty}
-                  </span>
-                )}
-                {question.questionType && (
-                  <span className="px-3 py-1 text-sm font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded-full">
-                    {question.questionType}
                   </span>
                 )}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={onToggle}
-              className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+              className="p-2 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-colors text-slate-400 dark:text-slate-600"
             >
               <svg
-                className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${
+                className={`w-4 h-4 transition-transform duration-200 ${
                   isExpanded ? "rotate-180" : ""
                 }`}
                 fill="none"
@@ -396,17 +407,17 @@ function QuestionEditorCard({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={1.5}
                   d="M19 9l-7 7-7-7"
                 />
               </svg>
             </button>
             <button
               onClick={onRemove}
-              className="p-3 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors text-red-500"
+              className="p-2 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-colors text-slate-400 dark:text-slate-600"
             >
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -414,7 +425,7 @@ function QuestionEditorCard({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={1.5}
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                 />
               </svg>
@@ -423,16 +434,16 @@ function QuestionEditorCard({
         </div>
 
         {isExpanded && (
-          <div className="space-y-8 pt-8 border-t border-slate-100 dark:border-slate-800">
-            <div className="grid grid-cols-2 gap-8">
+          <div className="space-y-6 pt-6 mt-6 border-t border-slate-100 dark:border-slate-900">
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                   Domain
                 </label>
                 <select
                   value={question.domainId}
                   onChange={(e) => onUpdate("domainId", e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
                 >
                   {domains && domains.length > 0 ? (
                     <>
@@ -450,13 +461,13 @@ function QuestionEditorCard({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                   Question Type
                 </label>
                 <select
                   value={question.type}
                   onChange={(e) => onUpdate("type", e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
                 >
                   <option value="SINGLE_SELECT_MULTIPLE_CHOICE">
                     Single Select Multiple Choice
@@ -470,19 +481,19 @@ function QuestionEditorCard({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-4">
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">
                 Answer Options
               </label>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {question.options.map((option: string, oi: number) => (
-                  <div key={oi} className="flex gap-4 items-start">
-                    <div className="pt-4">
+                  <div key={oi} className="flex gap-4 items-center">
+                    <div className="pt-2">
                       {question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE" ? (
                         <input
                           type="checkbox"
                           checked={isOptionCorrect(oi)}
                           onChange={() => handleCorrectOptionChange(oi)}
-                          className="w-6 h-6 rounded-md border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                          className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:ring-offset-0"
                         />
                       ) : (
                         <input
@@ -490,29 +501,27 @@ function QuestionEditorCard({
                           name={`correct-option-${index}`}
                           checked={isOptionCorrect(oi)}
                           onChange={() => handleCorrectOptionChange(oi)}
-                          className="w-6 h-6 rounded-md border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                          className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:ring-offset-0"
                         />
                       )}
                     </div>
-                    <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <span className="text-base font-bold text-slate-600 dark:text-slate-400">
-                        {String.fromCharCode(65 + oi)}
-                      </span>
-                    </div>
+                    <span className="text-xs text-slate-400 dark:text-slate-600 w-4">
+                      {String.fromCharCode(65 + oi)}
+                    </span>
                     <input
                       type="text"
                       value={option}
                       onChange={(e) => onOptionUpdate(oi, e.target.value)}
-                      className="flex-1 px-5 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                      className="flex-1 px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
                       placeholder={`Option ${String.fromCharCode(65 + oi)}`}
                     />
                     <button
                       onClick={() => onRemoveOption(oi)}
                       disabled={question.options.length <= 1}
-                      className="p-3 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors text-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-colors text-slate-400 dark:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                       <svg
-                        className="w-5 h-5"
+                        className="w-4 h-4"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -520,7 +529,7 @@ function QuestionEditorCard({
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          strokeWidth={2}
+                          strokeWidth={1.5}
                           d="M6 18L18 6M6 6l12 12"
                         />
                       </svg>
@@ -530,10 +539,10 @@ function QuestionEditorCard({
                 <button
                   type="button"
                   onClick={onAddOption}
-                  className="w-full h-14 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-center gap-2 text-slate-500 hover:border-slate-400 hover:text-slate-700 transition-all"
+                  className="w-full py-3 border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2 text-slate-400 dark:text-slate-600 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-all"
                 >
                   <svg
-                    className="w-5 h-5"
+                    className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -541,31 +550,31 @@ function QuestionEditorCard({
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                     />
                   </svg>
-                  <span className="font-medium">Add Option</span>
+                  <span className="font-light">Add Option</span>
                 </button>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                 Feedback / Explanation
               </label>
               <textarea
                 value={question.feedback}
                 onChange={(e) => onUpdate("feedback", e.target.value)}
-                rows={3}
-                className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white resize-none"
+                rows={2}
+                className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 resize-none"
                 placeholder="Explain why this answer is correct..."
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                   Difficulty Level
                 </label>
                 <select
@@ -573,7 +582,7 @@ function QuestionEditorCard({
                   onChange={(e) =>
                     onUpdate("difficulty", e.target.value || undefined)
                   }
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
                 >
                   <option value="">Select difficulty</option>
                   <option value="easy">Easy</option>
@@ -583,7 +592,7 @@ function QuestionEditorCard({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
                   Question Category
                 </label>
                 <select
@@ -591,7 +600,7 @@ function QuestionEditorCard({
                   onChange={(e) =>
                     onUpdate("questionType", e.target.value || undefined)
                   }
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
                 >
                   <option value="">Select category</option>
                   <option value="scenario">Scenario</option>

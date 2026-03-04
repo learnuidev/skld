@@ -33,9 +33,9 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="text-slate-600 dark:text-slate-400">
-          Loading exam banks...
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="text-slate-400 dark:text-slate-600">
+          Loading...
         </div>
       </div>
     );
@@ -65,55 +65,48 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
 
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md border-slate-100 dark:border-slate-800">
           <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
-                <AlertTriangle className="h-5 w-5 text-destructive" />
+            <div className="flex items-center gap-3 pb-6 border-b border-slate-100 dark:border-slate-900">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                <AlertTriangle className="h-4 w-4 text-slate-500 dark:text-slate-400" />
               </div>
-              <DialogTitle className="text-xl">Delete Exam Bank</DialogTitle>
+              <DialogTitle className="text-lg font-light text-slate-900 dark:text-white">
+                Delete Exam Bank
+              </DialogTitle>
             </div>
-            <DialogDescription className="text-base pt-4">
-              This action cannot be undone. This will permanently delete the
-              exam bank &quot;{examBankTitle}&quot; and all of its questions.
+            <DialogDescription className="text-base text-slate-500 dark:text-slate-400 pb-6">
+              This will permanently delete &quot;{examBankTitle}&quot; and all of its questions.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-4">
-              <p className="text-sm font-medium text-destructive">
-                Warning: All questions in this exam bank will be permanently
-                deleted
-              </p>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Type the exam bank name{" "}
-                <span className="font-bold">&quot;{examBankTitle}&quot;</span>{" "}
-                to confirm
+          <div className="space-y-6 py-6">
+            <div className="space-y-3">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                Type &quot;{examBankTitle}&quot; to confirm
               </label>
               <Input
                 placeholder={`Enter "${examBankTitle}"`}
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
-                className="w-full"
+                className="border-slate-200 dark:border-slate-800 focus:border-slate-400 dark:focus:border-slate-600"
               />
             </div>
           </div>
-          <DialogFooter className="gap-3 sm:gap-3">
+          <DialogFooter className="gap-3 pt-6 border-t border-slate-100 dark:border-slate-900">
             <button
               onClick={() => {
                 onOpenChange(false);
                 setDeleteConfirm("");
               }}
               disabled={isPending}
-              className="px-4 py-2 rounded-md border border-border bg-background text-sm font-medium hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleConfirm}
               disabled={deleteConfirm !== examBankTitle || isPending}
-              className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 text-sm text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 disabled:opacity-50"
             >
               {isPending ? "Deleting..." : "Delete"}
             </button>
@@ -144,26 +137,28 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+          <h2 className="text-2xl font-light text-slate-900 dark:text-white">
             Exam Banks
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-400 dark:text-slate-600 mt-1">
             {examBanks?.length || 0} exam bank
-            {examBanks?.length !== 1 ? "s" : ""} available
+            {examBanks?.length !== 1 ? "s" : ""}
           </p>
         </div>
         <Link href={`/studio/${courseId}/exam-banks/add`}>
-          <Button className="rounded-xl">Add Exam Bank</Button>
+          <Button variant="outline" className="rounded-full border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900">
+            Add Exam Bank
+          </Button>
         </Link>
       </div>
 
       {!examBanks || examBanks.length === 0 ? (
         <EmptyState courseId={courseId} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-1">
           {examBanks.map((examBank) => (
             <ExamBankCard
               key={examBank.id}
@@ -189,31 +184,18 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
 
 function EmptyState({ courseId }: { courseId: string }) {
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 p-16">
+    <div className="border-b border-slate-100 dark:border-slate-900 pb-16 pt-12">
       <div className="flex flex-col items-center justify-center text-center">
-        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-          <svg
-            className="w-10 h-10 text-slate-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-        </div>
-        <h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-3">
-          No Exam Banks Yet
+        <h3 className="text-lg font-light text-slate-900 dark:text-white mb-3">
+          No exam banks yet
         </h3>
-        <p className="text-slate-600 dark:text-slate-400 max-w-md mb-6 text-lg">
+        <p className="text-slate-400 dark:text-slate-600 max-w-md mb-8">
           Create your first exam bank to start building your question database.
         </p>
         <Link href={`/studio/${courseId}/exam-banks/add`}>
-          <Button className="rounded-xl">Create Exam Bank</Button>
+          <Button variant="outline" className="rounded-full border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900">
+            Create Exam Bank
+          </Button>
         </Link>
       </div>
     </div>
@@ -232,24 +214,25 @@ function ExamBankCard({
   return (
     <Link
       href={`/studio/${examBank.courseId}/exam-banks/${examBank.id}`}
-      className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer group block"
+      className="bg-white dark:bg-black border-b border-slate-100 dark:border-slate-900 py-6 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer group block"
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center">
-          <svg
-            className="w-6 h-6 text-blue-600 dark:text-blue-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <h3 className="text-base font-light text-slate-900 dark:text-white mb-1">
+            {examBank.title}
+          </h3>
+
+          <p className="text-sm text-slate-400 dark:text-slate-600 line-clamp-1">
+            {examBank.description || "No description"}
+          </p>
+
+          <div className="mt-3">
+            <span className="text-xs text-slate-400 dark:text-slate-600">
+              {questionCount} question{questionCount !== 1 ? "s" : ""}
+            </span>
+          </div>
         </div>
+
         <Button
           variant="ghost"
           size="icon-sm"
@@ -257,7 +240,7 @@ function ExamBankCard({
             e.stopPropagation();
             onDelete();
           }}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl"
+          className="text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg"
         >
           <svg
             className="w-4 h-4"
@@ -268,40 +251,11 @@ function ExamBankCard({
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
+              strokeWidth={1.5}
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
             />
           </svg>
         </Button>
-      </div>
-
-      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2 line-clamp-1">
-        {examBank.title}
-      </h3>
-
-      {examBank.description && (
-        <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4">
-          {examBank.description}
-        </p>
-      )}
-
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-          {questionCount} question{questionCount !== 1 ? "s" : ""}
-        </span>
-        <svg
-          className="w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
       </div>
     </Link>
   );

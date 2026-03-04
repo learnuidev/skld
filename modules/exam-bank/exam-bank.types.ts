@@ -14,6 +14,7 @@ export type QuestionTypeCategory =
 export interface Question {
   id: string;
   domainId: string;
+  contentId?: string;
   question: string;
   options: string[];
   type: QuestionType;
