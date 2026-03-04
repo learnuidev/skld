@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { AlertTriangle, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const tabs = ["General Info", "Learning Materials", "Exam Bank"] as const;
+const tabs = ["General Info", "Content", "Exam Bank"] as const;
 
 function CourseHeader({
   course,
@@ -479,7 +479,7 @@ export default function CourseDetailPage() {
           </div>
         )}
 
-        {activeTab === "Learning Materials" && (
+        {activeTab === "Content" && (
           <div className="mt-12 flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4">
               <svg
@@ -497,7 +497,7 @@ export default function CourseDetailPage() {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">
-              Learning Materials
+              Content
             </h3>
             <p className="text-sm text-muted-foreground">
               Add and manage learning materials for your course here.
