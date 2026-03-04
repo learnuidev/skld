@@ -222,6 +222,7 @@ export default function AddExamBankPage() {
     setQuestions((prev) => [
       ...prev,
       {
+        id: "",
         domainId: "",
         question: "",
         options: ["", "", ""],
