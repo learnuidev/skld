@@ -5,6 +5,7 @@ import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { ArrowLeft, Check, Clock, XCircle } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
+import { LinkedContent } from "./linked-content";
 
 export function MockExamCompleted({
   mockExam,
@@ -53,7 +54,7 @@ export function MockExamCompleted({
               correct++;
             }
           }
-        }
+        },
       );
 
       if (total === 0) return null;
@@ -125,7 +126,7 @@ export function MockExamCompleted({
           parts.push(
             <span key={`quoted-${parts.length}`} className="font-semibold">
               "{quoted}"
-            </span>
+            </span>,
           );
           i++;
         } else {
@@ -143,7 +144,7 @@ export function MockExamCompleted({
 
     const sortedAnswers = React.useMemo(() => {
       return Object.entries(mockExam.answers || {})?.sort(
-        (a, b) => a?.[1]?.answeredAt - b?.[1]?.answeredAt
+        (a, b) => a?.[1]?.answeredAt - b?.[1]?.answeredAt,
       );
     }, [mockExam.answers]);
 
@@ -208,7 +209,7 @@ export function MockExamCompleted({
                 {sortedAnswers.map(
                   ([questionId, answer]: [string, any], index) => {
                     const question = examBank.questions.find(
-                      (question) => question.id === questionId
+                      (question) => question.id === questionId,
                     );
 
                     if (!question) return null;
@@ -284,7 +285,7 @@ export function MockExamCompleted({
                                         question.type === "TRUE_FALSE"
                                           ? idx === question.correctOptionIndex
                                           : question.correctOptionIndexes?.includes(
-                                              idx
+                                              idx,
                                             );
 
                                       const isSelected =
@@ -321,7 +322,7 @@ export function MockExamCompleted({
                                           </p>
                                         </div>
                                       );
-                                    }
+                                    },
                                   )}
                                 </div>
                               </div>
@@ -335,12 +336,18 @@ export function MockExamCompleted({
                                   </p>
                                 </div>
                               )}
+                              {question.contentId && (
+                                <LinkedContent
+                                  courseId={examBank.courseId}
+                                  contentId={question.contentId}
+                                />
+                              )}
                             </div>
                           </div>
                         )}
                       </div>
                     );
-                  }
+                  },
                 )}
               </div>
             </div>
