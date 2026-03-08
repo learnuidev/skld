@@ -570,201 +570,205 @@ function QuestionEditorCard({
         </div>
 
         {isExpanded && (
-          <div className="space-y-6 pt-6 mt-6 border-t border-slate-100 dark:border-slate-900">
-            <div className="grid grid-cols-3 gap-6">
-              <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
-                  Domain
-                </label>
-                <select
-                  value={question.domainId}
-                  onChange={(e) => onUpdate("domainId", e.target.value)}
-                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
-                >
-                  {domains && domains.length > 0 ? (
-                    <>
-                      <option value="">Select domain</option>
-                      {domains.map((domain: Domain) => (
-                        <option key={domain.id} value={domain.id}>
-                          {domain.name}
-                        </option>
-                      ))}
-                    </>
-                  ) : (
-                    <option value={question.domainId}>{getDomainName()}</option>
-                  )}
-                </select>
-              </div>
-
-              {courseContents && courseContents.length > 0 && (
+          <div className="px-12">
+            <div className="space-y-6 pt-6 mt-6 border-t border-slate-100 dark:border-slate-900">
+              <div className="grid grid-cols-3 gap-6">
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
-                    Course Content
+                    Domain
                   </label>
                   <select
-                    value={question.contentId || ""}
+                    value={question.domainId}
+                    onChange={(e) => onUpdate("domainId", e.target.value)}
+                    className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
+                  >
+                    {domains && domains.length > 0 ? (
+                      <>
+                        <option value="">Select domain</option>
+                        {domains.map((domain: Domain) => (
+                          <option key={domain.id} value={domain.id}>
+                            {domain.name}
+                          </option>
+                        ))}
+                      </>
+                    ) : (
+                      <option value={question.domainId}>
+                        {getDomainName()}
+                      </option>
+                    )}
+                  </select>
+                </div>
+
+                {courseContents && courseContents.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+                      Course Content
+                    </label>
+                    <select
+                      value={question.contentId || ""}
+                      onChange={(e) =>
+                        onUpdate("contentId", e.target.value || undefined)
+                      }
+                      className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
+                    >
+                      <option value="">Select course content</option>
+                      {courseContents.map((content: CourseContent) => (
+                        <option key={content.id} value={content.id}>
+                          {content.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+                    Question Type
+                  </label>
+                  <select
+                    value={question.type}
+                    onChange={(e) => onUpdate("type", e.target.value)}
+                    className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
+                  >
+                    <option value="SINGLE_SELECT_MULTIPLE_CHOICE">
+                      Single Select Multiple Choice
+                    </option>
+                    <option value="MULTIPLE_SELECT_MULTIPLE_CHOICE">
+                      Multiple Select Multiple Choice
+                    </option>
+                    <option value="TRUE_FALSE">True/False</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">
+                  Answer Options
+                </label>
+                <div className="space-y-3">
+                  {question.options.map((option: string, oi: number) => (
+                    <div key={oi} className="flex gap-4 items-center">
+                      <div className="pt-2">
+                        {question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE" ? (
+                          <input
+                            type="checkbox"
+                            checked={isOptionCorrect(oi)}
+                            onChange={() => handleCorrectOptionChange(oi)}
+                            className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:ring-offset-0"
+                          />
+                        ) : (
+                          <input
+                            type="radio"
+                            name={`correct-option-${index}`}
+                            checked={isOptionCorrect(oi)}
+                            onChange={() => handleCorrectOptionChange(oi)}
+                            className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:ring-offset-0"
+                          />
+                        )}
+                      </div>
+                      <span className="text-xs text-slate-400 dark:text-slate-600 w-4">
+                        {String.fromCharCode(65 + oi)}
+                      </span>
+                      <input
+                        type="text"
+                        value={option}
+                        onChange={(e) => onOptionUpdate(oi, e.target.value)}
+                        className="flex-1 px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words"
+                        placeholder={`Option ${String.fromCharCode(65 + oi)}`}
+                      />
+                      <button
+                        onClick={() => onRemoveOption(oi)}
+                        disabled={question.options.length <= 1}
+                        className="p-2 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-colors text-slate-400 dark:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={onAddOption}
+                    className="w-full py-3 border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2 text-slate-400 dark:text-slate-600 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-all"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    <span className="font-light">Add Option</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+                  Feedback / Explanation
+                </label>
+                <textarea
+                  value={question.feedback}
+                  onChange={(e) => onUpdate("feedback", e.target.value)}
+                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words h-auto"
+                  placeholder="Explain why this answer is correct..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+                    Difficulty Level
+                  </label>
+                  <select
+                    value={question.difficulty || ""}
                     onChange={(e) =>
-                      onUpdate("contentId", e.target.value || undefined)
+                      onUpdate("difficulty", e.target.value || undefined)
                     }
                     className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
                   >
-                    <option value="">Select course content</option>
-                    {courseContents.map((content: CourseContent) => (
-                      <option key={content.id} value={content.id}>
-                        {content.title}
-                      </option>
-                    ))}
+                    <option value="">Select difficulty</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
                   </select>
                 </div>
-              )}
 
-              <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
-                  Question Type
-                </label>
-                <select
-                  value={question.type}
-                  onChange={(e) => onUpdate("type", e.target.value)}
-                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
-                >
-                  <option value="SINGLE_SELECT_MULTIPLE_CHOICE">
-                    Single Select Multiple Choice
-                  </option>
-                  <option value="MULTIPLE_SELECT_MULTIPLE_CHOICE">
-                    Multiple Select Multiple Choice
-                  </option>
-                  <option value="TRUE_FALSE">True/False</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-3">
-                Answer Options
-              </label>
-              <div className="space-y-3">
-                {question.options.map((option: string, oi: number) => (
-                  <div key={oi} className="flex gap-4 items-center">
-                    <div className="pt-2">
-                      {question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE" ? (
-                        <input
-                          type="checkbox"
-                          checked={isOptionCorrect(oi)}
-                          onChange={() => handleCorrectOptionChange(oi)}
-                          className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:ring-offset-0"
-                        />
-                      ) : (
-                        <input
-                          type="radio"
-                          name={`correct-option-${index}`}
-                          checked={isOptionCorrect(oi)}
-                          onChange={() => handleCorrectOptionChange(oi)}
-                          className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:ring-offset-0"
-                        />
-                      )}
-                    </div>
-                    <span className="text-xs text-slate-400 dark:text-slate-600 w-4">
-                      {String.fromCharCode(65 + oi)}
-                    </span>
-                    <input
-                      type="text"
-                      value={option}
-                      onChange={(e) => onOptionUpdate(oi, e.target.value)}
-                      className="flex-1 px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words"
-                      placeholder={`Option ${String.fromCharCode(65 + oi)}`}
-                    />
-                    <button
-                      onClick={() => onRemoveOption(oi)}
-                      disabled={question.options.length <= 1}
-                      className="p-2 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-colors text-slate-400 dark:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={onAddOption}
-                  className="w-full py-3 border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2 text-slate-400 dark:text-slate-600 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-600 dark:hover:text-slate-400 transition-all"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+                    Question Category
+                  </label>
+                  <select
+                    value={question.questionType || ""}
+                    onChange={(e) =>
+                      onUpdate("questionType", e.target.value || undefined)
+                    }
+                    className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                  <span className="font-light">Add Option</span>
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
-                Feedback / Explanation
-              </label>
-              <textarea
-                value={question.feedback}
-                onChange={(e) => onUpdate("feedback", e.target.value)}
-                className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words h-auto"
-                placeholder="Explain why this answer is correct..."
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
-                  Difficulty Level
-                </label>
-                <select
-                  value={question.difficulty || ""}
-                  onChange={(e) =>
-                    onUpdate("difficulty", e.target.value || undefined)
-                  }
-                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
-                >
-                  <option value="">Select difficulty</option>
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
-                  Question Category
-                </label>
-                <select
-                  value={question.questionType || ""}
-                  onChange={(e) =>
-                    onUpdate("questionType", e.target.value || undefined)
-                  }
-                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600"
-                >
-                  <option value="">Select category</option>
-                  <option value="scenario">Scenario</option>
-                  <option value="definition">Definition</option>
-                  <option value="sequence">Sequence</option>
-                  <option value="identification">Identification</option>
-                </select>
+                    <option value="">Select category</option>
+                    <option value="scenario">Scenario</option>
+                    <option value="definition">Definition</option>
+                    <option value="sequence">Sequence</option>
+                    <option value="identification">Identification</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
