@@ -161,7 +161,10 @@ export default function AddCoursePage() {
       case 2:
         return formData.domains.length > 0;
       case 3:
-        return formData.domains.every((domain) => domain.chapters.length > 0);
+        return (
+          formData.domains.length > 0 &&
+          formData.domains.every((domain) => domain.chapters?.length > 0)
+        );
       case 4:
         return (
           formData.exam.totalQuestions > 0 &&
@@ -201,24 +204,28 @@ export default function AddCoursePage() {
               Studio
             </Link>
             <div className="flex items-center gap-2">
-              <div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setViewMode("minimal")}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <LayoutTemplate className="w-4 h-4 mr-2" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setViewMode("traditional")}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <Layout className="w-4 h-4 mr-2" />
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  setViewMode(
+                    viewMode === "minimal" ? "traditional" : "minimal"
+                  )
+                }
+                className="text-muted-foreground hover:text-foreground"
+              >
+                {viewMode === "minimal" ? (
+                  <>
+                    <LayoutTemplate className="w-4 h-4 mr-2" />
+                    Traditional
+                  </>
+                ) : (
+                  <>
+                    <Layout className="w-4 h-4 mr-2" />
+                    Minimal
+                  </>
+                )}
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -250,6 +257,7 @@ export default function AddCoursePage() {
                     currentStep={currentStep}
                     onStepChange={handleStepChange}
                     totalSteps={totalSteps}
+                    formData={formData}
                   />
                 </div>
               </div>

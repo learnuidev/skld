@@ -7,18 +7,22 @@ import {
   FileText,
   ClipboardCheck,
   Check,
+  AlertTriangle,
 } from "lucide-react";
+import { CourseFormData } from "@/modules/course/course.types";
 
 interface FormSidebarProps {
   currentStep: number;
   onStepChange: (step: number) => void;
   totalSteps: number;
+  formData: CourseFormData;
 }
 
 export function FormSidebar({
   currentStep,
   onStepChange,
   totalSteps,
+  formData,
 }: FormSidebarProps) {
   const steps = [
     { id: 1, title: "Course Info", icon: BookOpen },
@@ -40,8 +44,38 @@ export function FormSidebar({
     }
   };
 
+  console.log("FORM DATA", formData);
+
+  const isStepValid = (step: number) => {
+    switch (step) {
+      case 1:
+        return (
+          formData.title.trim().length > 0 &&
+          formData.description.trim().length > 0
+        );
+      case 2:
+        return formData.domains.length > 0;
+      case 3:
+        return (
+          formData.domains.length > 0 &&
+          formData.domains.every((domain) => domain.chapters?.length > 0)
+        );
+      case 4:
+        return (
+          formData.exam.totalQuestions > 0 &&
+          formData.domains.every(
+            (domain) => formData.exam.domainWeights[domain.id] > 0
+          )
+        );
+      case 5:
+        return formData.title.trim().length > 0;
+      default:
+        return false;
+    }
+  };
+
   const isStepCompleted = (step: number) => {
-    return step < currentStep;
+    return isStepValid(step);
   };
 
   return (
@@ -85,43 +119,25 @@ export function FormSidebar({
                 className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold transition-all ${
                   isActive
                     ? "bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
-                    : isCompleted
-                      ? "bg-green-500 text-white"
-                      : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
+                    : ""
                 }`}
               >
-                {isCompleted ? (
-                  <Check className="w-4 h-4" />
-                ) : (
-                  <step.icon className="w-4 h-4" />
-                )}
+                <step.icon className="w-4 h-4" />
               </span>
               <span
                 className={`text-sm font-medium flex-1 ${
-                  isActive
-                    ? "text-slate-900 dark:text-white"
-                    : isCompleted
-                      ? "text-slate-600 dark:text-slate-400"
-                      : "text-slate-500 dark:text-slate-500"
+                  isActive ? "text-slate-900 dark:text-white" : ""
                 }`}
               >
                 {step.title}
               </span>
-              {isAccessible && (
-                <svg
-                  className="w-4 h-4 text-slate-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              )}
+              <div>
+                {isCompleted ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4" />
+                )}
+              </div>
             </button>
           );
         })}
@@ -145,7 +161,7 @@ export function FormSidebar({
           />
         </div>
 
-        {currentStep === totalSteps && (
+        {currentStep === totalSteps && isStepCompleted(totalSteps) && (
           <div className="mt-4 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
             <p className="text-xs font-medium text-green-800 dark:text-green-300 text-center">
               ✓ Ready to create!
