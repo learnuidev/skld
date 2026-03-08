@@ -634,9 +634,12 @@ function BulkUploadDialog({
           <div className="space-y-3">
             <p className="text-sm font-medium">CSV Format:</p>
             <div className="p-4 bg-muted rounded-lg">
-              <pre className="text-xs text-muted-foreground overflow-x-auto">
-                title,description,content,chapter,chapterNumber,contentVariants,order
-              </pre>
+              <code>
+                <p className="text-xs text-muted-foreground overflow-x">
+                  title, description, content, chapter, chapterNumber,
+                  contentVariants, order
+                </p>
+              </code>
             </div>
           </div>
         </div>
