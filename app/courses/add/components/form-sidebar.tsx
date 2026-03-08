@@ -44,8 +44,6 @@ export function FormSidebar({
     }
   };
 
-  console.log("FORM DATA", formData);
-
   const isStepValid = (step: number) => {
     switch (step) {
       case 1:

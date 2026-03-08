@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CourseFormData } from "@/modules/course/course.types";
+import { CourseFormData, CourseType } from "@/modules/course/course.types";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen,
@@ -129,29 +129,27 @@ export function CourseFormMinimal({
           What's the difficulty level?
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {["basic", "intermediate", "advanced", "professional"].map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() =>
-                setFormData({
-                  ...formData,
-                  courseType: type as
-                    | "basic"
-                    | "intermediate"
-                    | "advanced"
-                    | "professional",
-                })
-              }
-              className={`p-6 text-sm font-medium rounded-2xl border-2 transition-all capitalize hover:border-foreground/40 ${
-                formData.courseType === type
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border text-foreground/70"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
+          {["beginner", "intermediate", "advanced", "professional"].map(
+            (type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    courseType: type as CourseType,
+                  })
+                }
+                className={`p-6 text-sm font-medium rounded-2xl border-2 transition-all capitalize hover:border-foreground/40 ${
+                  formData.courseType === type
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border text-foreground/70"
+                }`}
+              >
+                {type}
+              </button>
+            )
+          )}
         </div>
       </motion.div>
 
@@ -210,7 +208,7 @@ export function CourseFormMinimal({
       setFormData({
         ...formData,
         domains: formData.domains.map((d) =>
-          d.id === domainId ? { ...d, name } : d,
+          d.id === domainId ? { ...d, name } : d
         ),
       });
     };
@@ -292,7 +290,7 @@ export function CourseFormMinimal({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: [...d.chapters, newChapter] }
-            : d,
+            : d
         ),
       });
     };
@@ -303,7 +301,7 @@ export function CourseFormMinimal({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: d.chapters.filter((c) => c.id !== chapterId) }
-            : d,
+            : d
         ),
       });
     };
@@ -311,7 +309,7 @@ export function CourseFormMinimal({
     const updateChapterName = (
       domainId: string,
       chapterId: string,
-      name: string,
+      name: string
     ) => {
       setFormData({
         ...formData,
@@ -320,10 +318,10 @@ export function CourseFormMinimal({
             ? {
                 ...d,
                 chapters: d.chapters.map((c) =>
-                  c.id === chapterId ? { ...c, name } : c,
+                  c.id === chapterId ? { ...c, name } : c
                 ),
               }
-            : d,
+            : d
         ),
       });
     };
@@ -449,7 +447,7 @@ export function CourseFormMinimal({
 
     const totalWeight = Object.values(formData.exam.domainWeights).reduce(
       (a, b) => a + b,
-      0,
+      0
     );
 
     return (
@@ -614,7 +612,7 @@ export function CourseFormMinimal({
   const renderSummary = () => {
     const totalChapters = formData.domains.reduce(
       (sum, d) => sum + d.chapters.length,
-      0,
+      0
     );
 
     return (

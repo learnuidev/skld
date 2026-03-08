@@ -1,44 +1,75 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CourseFormData } from "@/modules/course/course.types";
-import { useCreateCourseMutation } from "@/modules/course/use-create-course-mutation";
+import { CourseFormData, Course } from "@/modules/course/course.types";
+import { useUpdateCourseMutation } from "@/modules/course/use-update-course-mutation";
+import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { CourseFormMinimal } from "./components/course-form-minimal";
-import { CourseFormTraditional } from "./components/course-form-traditional";
-import { FormSidebar } from "./components/form-sidebar";
+import { useParams, useRouter } from "next/navigation";
+import { CourseFormMinimal } from "../../../courses/add/components/course-form-minimal";
+import { CourseFormTraditional } from "../../../courses/add/components/course-form-traditional";
+import { FormSidebar } from "../../../courses/add/components/form-sidebar";
 import { Layout, LayoutTemplate, Download, Upload } from "lucide-react";
 
-const initialFormData: CourseFormData = {
-  title: "",
-  description: "",
-  courseType: "beginner",
-  hasCertification: false,
-  domains: [],
-  exam: {
-    totalQuestions: 0,
-    totalTimeMinutes: 0,
-    domainWeights: {},
-    allowSkipQuestions: false,
-  },
-};
-
-export default function AddCoursePage() {
+export default function EditCoursePage() {
+  const params = useParams<{ courseId: string }>();
   const router = useRouter();
-  const createCourseMutation = useCreateCourseMutation();
-  const [formData, setFormData] = useState<CourseFormData>(initialFormData);
+  const updateCourseMutation = useUpdateCourseMutation(params.courseId);
+  const { data: existingCourse, isLoading } = useGetCourseQuery(
+    params.courseId
+  );
+
+  const [formData, setFormData] = useState<CourseFormData>({
+    title: "",
+    description: "",
+    courseType: "beginner",
+    hasCertification: false,
+    domains: [],
+    exam: {
+      totalQuestions: 0,
+      totalTimeMinutes: 0,
+      domainWeights: {},
+      allowSkipQuestions: false,
+    },
+  });
+
   const [currentStep, setCurrentStep] = useState(1);
   const [showJsonModal, setShowJsonModal] = useState(false);
   const [jsonInput, setJsonInput] = useState("");
   const [importMethod, setImportMethod] = useState<"paste" | "upload">("paste");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [viewMode, setViewMode] = useState<"minimal" | "traditional">(
-    "minimal"
+    "traditional"
   );
 
   const totalSteps = 5;
+
+  useEffect(() => {
+    if (existingCourse) {
+      setFormData({
+        title: existingCourse.title || "",
+        description: existingCourse.description || "",
+        courseType: existingCourse.courseType || "beginner",
+        hasCertification: existingCourse.hasCertification || false,
+        domains: existingCourse.domains || [],
+        exam: existingCourse.exam
+          ? {
+              totalQuestions: existingCourse.exam.totalQuestions || 0,
+              totalTimeMinutes: existingCourse.exam.totalTimeMinutes || 0,
+              domainWeights: existingCourse.exam.domainWeights || {},
+              allowSkipQuestions:
+                existingCourse.exam.allowSkipQuestions || false,
+            }
+          : {
+              totalQuestions: 0,
+              totalTimeMinutes: 0,
+              domainWeights: {},
+              allowSkipQuestions: false,
+            },
+      });
+    }
+  }, [existingCourse]);
 
   const handleStepChange = (step: number) => {
     setCurrentStep(step);
@@ -57,22 +88,13 @@ export default function AddCoursePage() {
   };
 
   const handleCancel = () => {
-    if (
-      window.confirm(
-        "Are you sure you want to cancel? All progress will be lost."
-      )
-    ) {
-      router.push("/studio");
-    }
+    router.push(`/studio/${params.courseId}`);
   };
 
   const handleJsonImport = () => {
     try {
       const parsed = JSON.parse(jsonInput);
-      setFormData({
-        ...initialFormData,
-        ...parsed,
-      });
+      setFormData(parsed);
       setShowJsonModal(false);
       setJsonInput("");
       setUploadedFile(null);
@@ -137,7 +159,7 @@ export default function AddCoursePage() {
 
   const handleSubmit = async () => {
     try {
-      await createCourseMutation.mutateAsync({
+      await updateCourseMutation.mutateAsync({
         title: formData.title,
         description: formData.description,
         courseType: formData.courseType,
@@ -145,9 +167,9 @@ export default function AddCoursePage() {
         domains: formData.domains,
         exam: formData.exam,
       });
-      router.push("/studio");
+      router.push(`/studio/${params.courseId}`);
     } catch (error) {
-      console.error("Failed to create course:", error);
+      console.error("Failed to update course:", error);
     }
   };
 
@@ -161,10 +183,7 @@ export default function AddCoursePage() {
       case 2:
         return formData.domains.length > 0;
       case 3:
-        return (
-          formData.domains.length > 0 &&
-          formData.domains.every((domain) => domain.chapters?.length > 0)
-        );
+        return formData.domains.every((domain) => domain.chapters.length > 0);
       case 4:
         return (
           formData.exam.totalQuestions > 0 &&
@@ -179,13 +198,25 @@ export default function AddCoursePage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-muted-foreground">Loading course...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="">
         <div className="pt-8 pb-32">
           <div className="mb-8 flex items-center justify-between">
             <Link
-              href="/studio"
+              href={`/studio/${params.courseId}`}
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg
@@ -201,7 +232,7 @@ export default function AddCoursePage() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              Studio
+              Back to Course
             </Link>
             <div className="flex items-center gap-2">
               <Button
@@ -263,7 +294,7 @@ export default function AddCoursePage() {
               onNext={handleNext}
               onBack={handleBack}
               onSubmit={handleSubmit}
-              isSubmitting={createCourseMutation.isPending}
+              isSubmitting={updateCourseMutation.isPending}
               isValid={isFormValid()}
               totalSteps={totalSteps}
             />
@@ -287,7 +318,7 @@ export default function AddCoursePage() {
                   onNext={handleNext}
                   onBack={handleBack}
                   onSubmit={handleSubmit}
-                  isSubmitting={createCourseMutation.isPending}
+                  isSubmitting={updateCourseMutation.isPending}
                   isValid={isFormValid()}
                   totalSteps={totalSteps}
                 />

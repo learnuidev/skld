@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CourseFormData } from "@/modules/course/course.types";
+import { CourseFormData, CourseType } from "@/modules/course/course.types";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface CourseFormTraditionalProps {
@@ -93,29 +93,27 @@ export function CourseFormTraditional({
           Course Type
         </label>
         <div className="grid grid-cols-2 gap-4">
-          {["basic", "intermediate", "advanced", "professional"].map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() =>
-                setFormData({
-                  ...formData,
-                  courseType: type as
-                    | "basic"
-                    | "intermediate"
-                    | "advanced"
-                    | "professional",
-                })
-              }
-              className={`px-5 py-4 text-sm font-medium rounded-xl border-2 transition-all capitalize ${
-                formData.courseType === type
-                  ? "border-slate-900 dark:border-white bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
-                  : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
+          {["beginner", "intermediate", "advanced", "professional"].map(
+            (type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    courseType: type as CourseType,
+                  })
+                }
+                className={`px-5 py-4 text-sm font-medium rounded-xl border-2 transition-all capitalize ${
+                  formData.courseType === type
+                    ? "border-slate-900 dark:border-white bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
+                    : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
+                }`}
+              >
+                {type}
+              </button>
+            )
+          )}
         </div>
       </div>
 
@@ -178,7 +176,7 @@ export function CourseFormTraditional({
       setFormData({
         ...formData,
         domains: formData.domains.map((d) =>
-          d.id === domainId ? { ...d, name } : d,
+          d.id === domainId ? { ...d, name } : d
         ),
       });
     };
@@ -266,7 +264,7 @@ export function CourseFormTraditional({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: [...d.chapters, newChapter] }
-            : d,
+            : d
         ),
       });
     };
@@ -277,7 +275,7 @@ export function CourseFormTraditional({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: d.chapters.filter((c) => c.id !== chapterId) }
-            : d,
+            : d
         ),
       });
     };
@@ -285,7 +283,7 @@ export function CourseFormTraditional({
     const updateChapterName = (
       domainId: string,
       chapterId: string,
-      name: string,
+      name: string
     ) => {
       setFormData({
         ...formData,
@@ -294,10 +292,10 @@ export function CourseFormTraditional({
             ? {
                 ...d,
                 chapters: d.chapters.map((c) =>
-                  c.id === chapterId ? { ...c, name } : c,
+                  c.id === chapterId ? { ...c, name } : c
                 ),
               }
-            : d,
+            : d
         ),
       });
     };
@@ -422,7 +420,7 @@ export function CourseFormTraditional({
 
     const totalWeight = Object.values(formData.exam.domainWeights).reduce(
       (a, b) => a + b,
-      0,
+      0
     );
 
     return (
@@ -554,7 +552,7 @@ export function CourseFormTraditional({
   const renderSummary = () => {
     const totalChapters = formData.domains.reduce(
       (sum, d) => sum + d.chapters.length,
-      0,
+      0
     );
 
     return (

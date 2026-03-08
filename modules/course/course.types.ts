@@ -1,4 +1,8 @@
-export type CourseType = "basic" | "intermediate" | "advanced" | "professional";
+export type CourseType =
+  | "beginner"
+  | "intermediate"
+  | "advanced"
+  | "professional";
 
 export interface Course {
   id: string;
