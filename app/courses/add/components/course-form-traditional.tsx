@@ -14,6 +14,7 @@ interface CourseFormTraditionalProps {
   isSubmitting: boolean;
   isValid: boolean;
   totalSteps: number;
+  submitButtonTitle: string;
 }
 
 export function CourseFormTraditional({
@@ -26,6 +27,7 @@ export function CourseFormTraditional({
   isSubmitting,
   isValid,
   totalSteps,
+  submitButtonTitle,
 }: CourseFormTraditionalProps) {
   const stepTitles = [
     "Course Overview",
@@ -801,7 +803,7 @@ export function CourseFormTraditional({
               disabled={!isValid || isSubmitting}
               size="lg"
             >
-              {isSubmitting ? "Creating Course..." : "Create Course"}
+              {submitButtonTitle}
             </Button>
           ) : (
             <Button onClick={onNext} disabled={!isValid} size="lg">

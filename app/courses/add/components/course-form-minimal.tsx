@@ -25,6 +25,7 @@ interface CourseFormProps {
   isSubmitting: boolean;
   isValid: boolean;
   totalSteps: number;
+  submitButtonTitle: string;
 }
 
 export function CourseFormMinimal({
@@ -37,6 +38,7 @@ export function CourseFormMinimal({
   isSubmitting,
   isValid,
   totalSteps,
+  submitButtonTitle,
 }: CourseFormProps) {
   const renderStep = () => {
     switch (currentStep) {

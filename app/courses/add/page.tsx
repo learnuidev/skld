@@ -281,6 +281,9 @@ export default function AddCoursePage() {
               isSubmitting={createCourseMutation.isPending}
               isValid={isFormValid()}
               totalSteps={totalSteps}
+              submitButtonTitle={
+                createCourseMutation.isPending ? "Creating..." : "Create Course"
+              }
             />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -305,6 +308,11 @@ export default function AddCoursePage() {
                   isSubmitting={createCourseMutation.isPending}
                   isValid={isFormValid()}
                   totalSteps={totalSteps}
+                  submitButtonTitle={
+                    createCourseMutation.isPending
+                      ? "Creating..."
+                      : "Create Course"
+                  }
                 />
               </div>
             </div>

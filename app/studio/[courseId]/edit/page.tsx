@@ -312,6 +312,9 @@ export default function EditCoursePage() {
               isSubmitting={updateCourseMutation.isPending}
               isValid={isFormValid()}
               totalSteps={totalSteps}
+              submitButtonTitle={
+                updateCourseMutation.isPending ? "Updating..." : "Update Course"
+              }
             />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -336,6 +339,11 @@ export default function EditCoursePage() {
                   isSubmitting={updateCourseMutation.isPending}
                   isValid={isFormValid()}
                   totalSteps={totalSteps}
+                  submitButtonTitle={
+                    updateCourseMutation.isPending
+                      ? "Updating..."
+                      : "Update Course"
+                  }
                 />
               </div>
             </div>
