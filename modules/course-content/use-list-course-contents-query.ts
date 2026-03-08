@@ -30,7 +30,9 @@ export function useListCourseContentsQuery(courseId: string) {
         throw new Error(error.error || "Failed to fetch course contents");
       }
 
-      return response.json();
+      const courseContents = (await response.json()) as CourseContent[];
+
+      return courseContents.sort((a, b) => a.order - b.order);
     },
     enabled: !!courseId,
   });
