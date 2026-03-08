@@ -63,9 +63,13 @@ function MockExamPageInner({
       return [];
     }
 
-    return examBank?.questions?.filter((question) => {
-      return mockExam?.selectedDomains?.includes(question?.domainId);
-    });
+    if (mockExam?.selectedDomains?.length > 0) {
+      return examBank?.questions?.filter((question) => {
+        return mockExam?.selectedDomains?.includes(question?.domainId);
+      });
+    }
+
+    return examBank?.questions;
   }, [examBank, mockExam?.selectedDomains]);
 
   const currentIndex = mockExam?.currentQuestionIndex ?? 0;

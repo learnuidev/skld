@@ -34,9 +34,7 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
-        <div className="text-slate-400 dark:text-slate-600">
-          Loading...
-        </div>
+        <div className="text-slate-400 dark:text-slate-600">Loading...</div>
       </div>
     );
   }
@@ -76,7 +74,8 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
               </DialogTitle>
             </div>
             <DialogDescription className="text-base text-slate-500 dark:text-slate-400 pb-6">
-              This will permanently delete &quot;{examBankTitle}&quot; and all of its questions.
+              This will permanently delete &quot;{examBankTitle}&quot; and all
+              of its questions.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-6">
@@ -149,7 +148,10 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
           </p>
         </div>
         <Link href={`/studio/${courseId}/exam-banks/add`}>
-          <Button variant="outline" className="rounded-full border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900">
+          <Button
+            variant="outline"
+            className="rounded-full border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900"
+          >
             Add Exam Bank
           </Button>
         </Link>
@@ -193,7 +195,10 @@ function EmptyState({ courseId }: { courseId: string }) {
           Create your first exam bank to start building your question database.
         </p>
         <Link href={`/studio/${courseId}/exam-banks/add`}>
-          <Button variant="outline" className="rounded-full border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900">
+          <Button
+            variant="outline"
+            className="rounded-full border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900"
+          >
             Create Exam Bank
           </Button>
         </Link>
@@ -212,26 +217,25 @@ function ExamBankCard({
   const questionCount = examBank.questions?.length || 0;
 
   return (
-    <Link
-      href={`/studio/${examBank.courseId}/exam-banks/${examBank.id}`}
-      className="bg-white dark:bg-black border-b border-slate-100 dark:border-slate-900 py-6 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer group block"
-    >
+    <div className="bg-white dark:bg-black border-b border-slate-100 dark:border-slate-900 py-6 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer group block">
       <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-base font-light text-slate-900 dark:text-white mb-1 whitespace-normal break-words">
-            {examBank.title}
-          </h3>
+        <Link href={`/studio/${examBank.courseId}/exam-banks/${examBank.id}`}>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-light text-slate-900 dark:text-white mb-1 whitespace-normal break-words">
+              {examBank.title}
+            </h3>
 
-          <p className="text-sm text-slate-400 dark:text-slate-600 line-clamp-2">
-            {examBank.description || "No description"}
-          </p>
+            <p className="text-sm text-slate-400 dark:text-slate-600 line-clamp-2">
+              {examBank.description || "No description"}
+            </p>
 
-          <div className="mt-3">
-            <span className="text-xs text-slate-400 dark:text-slate-600">
-              {questionCount} question{questionCount !== 1 ? "s" : ""}
-            </span>
+            <div className="mt-3">
+              <span className="text-xs text-slate-400 dark:text-slate-600">
+                {questionCount} question{questionCount !== 1 ? "s" : ""}
+              </span>
+            </div>
           </div>
-        </div>
+        </Link>
 
         <Button
           variant="ghost"
@@ -257,6 +261,6 @@ function ExamBankCard({
           </svg>
         </Button>
       </div>
-    </Link>
+    </div>
   );
 }
