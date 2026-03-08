@@ -39,9 +39,7 @@ export function FormSidebar({
   };
 
   const handleStepClick = (step: number) => {
-    if (isStepAccessible(step)) {
-      onStepChange(step);
-    }
+    onStepChange(step);
   };
 
   const isStepValid = (step: number) => {
@@ -102,7 +100,6 @@ export function FormSidebar({
             <button
               key={step.id}
               onClick={() => handleStepClick(step.id)}
-              disabled={!isAccessible}
               className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
                 isActive
                   ? "bg-slate-100 dark:bg-slate-800"
