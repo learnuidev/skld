@@ -173,7 +173,22 @@ export default function AddCoursePage() {
           )
         );
       case 5:
-        return formData.title.trim().length > 0;
+        const totalWeight = Object.values(formData.exam.domainWeights).reduce(
+          (a, b) => a + b,
+          0
+        );
+        return (
+          formData.title.trim().length > 0 &&
+          formData.description.trim().length > 0 &&
+          formData.domains.length > 0 &&
+          formData.domains.every((domain) => domain.chapters?.length > 0) &&
+          formData.exam.totalQuestions > 0 &&
+          formData.exam.totalTimeMinutes > 0 &&
+          totalWeight === 100 &&
+          formData.domains.every(
+            (domain) => formData.exam.domainWeights[domain.id] > 0
+          )
+        );
       default:
         return false;
     }
