@@ -1,6 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
+import {
+  BookOpen,
+  Target,
+  FileText,
+  ClipboardCheck,
+  Check,
+} from "lucide-react";
 
 interface FormSidebarProps {
   currentStep: number;
@@ -14,11 +21,11 @@ export function FormSidebar({
   totalSteps,
 }: FormSidebarProps) {
   const steps = [
-    { id: 1, title: "Course Info", icon: "📚" },
-    { id: 2, title: "Domains", icon: "🎯" },
-    { id: 3, title: "Chapters", icon: "📖" },
-    { id: 4, title: "Exam", icon: "📝" },
-    { id: 5, title: "Summary", icon: "📋" },
+    { id: 1, title: "Course Info", icon: BookOpen },
+    { id: 2, title: "Domains", icon: Target },
+    { id: 3, title: "Chapters", icon: FileText },
+    { id: 4, title: "Exam", icon: ClipboardCheck },
+    { id: 5, title: "Summary", icon: Check },
   ];
 
   const isStepAccessible = (step: number) => {
@@ -83,7 +90,11 @@ export function FormSidebar({
                       : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
                 }`}
               >
-                {isCompleted ? "✓" : step.icon}
+                {isCompleted ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <step.icon className="w-4 h-4" />
+                )}
               </span>
               <span
                 className={`text-sm font-medium flex-1 ${

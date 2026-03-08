@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CourseFormData } from "@/modules/course/course.types";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface CourseFormProps {
+interface CourseFormTraditionalProps {
   formData: CourseFormData;
   setFormData: (data: CourseFormData) => void;
   currentStep: number;
@@ -16,7 +16,7 @@ interface CourseFormProps {
   totalSteps: number;
 }
 
-export function CourseForm({
+export function CourseFormTraditional({
   formData,
   setFormData,
   currentStep,
@@ -26,7 +26,7 @@ export function CourseForm({
   isSubmitting,
   isValid,
   totalSteps,
-}: CourseFormProps) {
+}: CourseFormTraditionalProps) {
   const stepTitles = [
     "Course Overview",
     "Add Domains",
@@ -178,7 +178,7 @@ export function CourseForm({
       setFormData({
         ...formData,
         domains: formData.domains.map((d) =>
-          d.id === domainId ? { ...d, name } : d
+          d.id === domainId ? { ...d, name } : d,
         ),
       });
     };
@@ -266,7 +266,7 @@ export function CourseForm({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: [...d.chapters, newChapter] }
-            : d
+            : d,
         ),
       });
     };
@@ -277,7 +277,7 @@ export function CourseForm({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: d.chapters.filter((c) => c.id !== chapterId) }
-            : d
+            : d,
         ),
       });
     };
@@ -285,7 +285,7 @@ export function CourseForm({
     const updateChapterName = (
       domainId: string,
       chapterId: string,
-      name: string
+      name: string,
     ) => {
       setFormData({
         ...formData,
@@ -294,10 +294,10 @@ export function CourseForm({
             ? {
                 ...d,
                 chapters: d.chapters.map((c) =>
-                  c.id === chapterId ? { ...c, name } : c
+                  c.id === chapterId ? { ...c, name } : c,
                 ),
               }
-            : d
+            : d,
         ),
       });
     };
@@ -422,7 +422,7 @@ export function CourseForm({
 
     const totalWeight = Object.values(formData.exam.domainWeights).reduce(
       (a, b) => a + b,
-      0
+      0,
     );
 
     return (
@@ -554,7 +554,7 @@ export function CourseForm({
   const renderSummary = () => {
     const totalChapters = formData.domains.reduce(
       (sum, d) => sum + d.chapters.length,
-      0
+      0,
     );
 
     return (

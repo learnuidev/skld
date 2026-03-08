@@ -6,8 +6,10 @@ import { useCreateCourseMutation } from "@/modules/course/use-create-course-muta
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CourseForm } from "./components/course-form";
+import { CourseFormMinimal } from "./components/course-form-minimal";
+import { CourseFormTraditional } from "./components/course-form-traditional";
 import { FormSidebar } from "./components/form-sidebar";
+import { Layout, LayoutTemplate } from "lucide-react";
 
 const initialFormData: CourseFormData = {
   title: "",
@@ -32,6 +34,9 @@ export default function AddCoursePage() {
   const [jsonInput, setJsonInput] = useState("");
   const [importMethod, setImportMethod] = useState<"paste" | "upload">("paste");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [viewMode, setViewMode] = useState<"minimal" | "traditional">(
+    "minimal"
+  );
 
   const totalSteps = 5;
 
@@ -172,13 +177,13 @@ export default function AddCoursePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
+    <div className="min-h-screen bg-background">
+      <div className="">
+        <div className="pt-8 pb-32">
+          <div className="mb-8 flex items-center justify-between">
             <Link
               href="/studio"
-              className="inline-flex items-center text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-4 transition-colors"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg
                 className="w-4 h-4 mr-1"
@@ -193,66 +198,40 @@ export default function AddCoursePage() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              Back to Studio
+              Studio
             </Link>
-            <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-2">
-              Create Your Course
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400">
-              Build your course step by step. Progress is tracked in real-time.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={handleExportJson}>
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="flex items-center gap-2">
+              <div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode("minimal")}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <LayoutTemplate className="w-4 h-4 mr-2" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode("traditional")}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <Layout className="w-4 h-4 mr-2" />
+                </Button>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancel}
+                className="text-muted-foreground hover:text-foreground"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              Export
-            </Button>
-            <Button variant="outline" onClick={() => setShowJsonModal(true)}>
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                />
-              </svg>
-              Import JSON
-            </Button>
-            <Button variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
-            <div className="sticky top-8">
-              <FormSidebar
-                currentStep={currentStep}
-                onStepChange={handleStepChange}
-                totalSteps={totalSteps}
-              />
+                Cancel
+              </Button>
             </div>
           </div>
-          <div className="lg:col-span-2">
-            <CourseForm
+
+          {viewMode === "minimal" ? (
+            <CourseFormMinimal
               formData={formData}
               setFormData={setFormData}
               currentStep={currentStep}
@@ -263,69 +242,68 @@ export default function AddCoursePage() {
               isValid={isFormValid()}
               totalSteps={totalSteps}
             />
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1">
+                <div className="sticky top-8">
+                  <FormSidebar
+                    currentStep={currentStep}
+                    onStepChange={handleStepChange}
+                    totalSteps={totalSteps}
+                  />
+                </div>
+              </div>
+              <div className="lg:col-span-2">
+                <CourseFormTraditional
+                  formData={formData}
+                  setFormData={setFormData}
+                  currentStep={currentStep}
+                  onNext={handleNext}
+                  onBack={handleBack}
+                  onSubmit={handleSubmit}
+                  isSubmitting={createCourseMutation.isPending}
+                  isValid={isFormValid()}
+                  totalSteps={totalSteps}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {showJsonModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-            <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                Import Course JSON
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden border border-border shadow-2xl">
+            <div className="p-8 border-b border-border">
+              <h2 className="text-2xl font-light text-foreground">
+                Import Course
               </h2>
-              <p className="text-slate-600 dark:text-slate-400 mt-1">
-                Choose your import method
+              <p className="text-muted-foreground mt-2">
+                Paste or upload your course JSON
               </p>
             </div>
 
-            <div className="p-6">
-              <div className="flex gap-2 mb-6">
+            <div className="p-8">
+              <div className="flex gap-2 mb-8">
                 <button
                   onClick={() => setImportMethod("paste")}
-                  className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
+                  className={`flex-1 py-3 px-6 rounded-xl font-medium text-sm transition-all ${
                     importMethod === "paste"
-                      ? "bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                      ? "bg-foreground text-background"
+                      : "bg-secondary hover:bg-secondary/80 text-foreground/70"
                   }`}
                 >
-                  <svg
-                    className="w-4 h-4 mr-2 inline"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
-                  Paste JSON
+                  Paste
                 </button>
                 <button
                   onClick={() => setImportMethod("upload")}
-                  className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
+                  className={`flex-1 py-3 px-6 rounded-xl font-medium text-sm transition-all ${
                     importMethod === "upload"
-                      ? "bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                      ? "bg-foreground text-background"
+                      : "bg-secondary hover:bg-secondary/80 text-foreground/70"
                   }`}
                 >
-                  <svg
-                    className="w-4 h-4 mr-2 inline"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                  </svg>
-                  Upload File
+                  Upload
                 </button>
               </div>
 
@@ -339,16 +317,16 @@ export default function AddCoursePage() {
   "domains": [...],
   "exam": {...}
 }'
-                  className="w-full h-64 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white font-mono text-sm resize-none"
+                  className="w-full h-64 px-5 py-4 bg-background border border-border rounded-2xl focus:outline-none focus:border-foreground font-mono text-sm resize-none placeholder:text-muted-foreground/50"
                 />
               ) : (
                 <div
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
-                  className={`w-full h-64 border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${
+                  className={`w-full h-64 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer ${
                     uploadedFile
-                      ? "border-green-400 bg-green-50 dark:bg-green-950/20"
-                      : "border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500"
+                      ? "border-green-500/30 bg-green-500/5"
+                      : "border-border bg-secondary/30 hover:border-foreground/30 hover:bg-secondary/50"
                   }`}
                 >
                   <input
@@ -360,12 +338,12 @@ export default function AddCoursePage() {
                   />
                   <label
                     htmlFor="json-upload"
-                    className="cursor-pointer flex flex-col items-center"
+                    className="cursor-pointer flex flex-col items-center w-full h-full justify-center"
                   >
                     {uploadedFile ? (
                       <>
                         <svg
-                          className="w-12 h-12 text-green-600 dark:text-green-400 mb-3"
+                          className="w-12 h-12 text-green-500 mb-3"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -377,20 +355,17 @@ export default function AddCoursePage() {
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
-                        <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">
+                        <p className="text-base font-medium text-foreground mb-1">
                           {uploadedFile.name}
                         </p>
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          File loaded successfully
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">
-                          Click or drag to replace
+                        <p className="text-sm text-muted-foreground">
+                          File loaded
                         </p>
                       </>
                     ) : (
                       <>
                         <svg
-                          className="w-12 h-12 text-slate-400 mb-3"
+                          className="w-12 h-12 text-muted-foreground/50 mb-3"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -402,14 +377,11 @@ export default function AddCoursePage() {
                             d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                           />
                         </svg>
-                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                          Drop your JSON file here
+                        <p className="text-base font-medium text-foreground/70 mb-1">
+                          Drop JSON file here
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-muted-foreground">
                           or click to browse
-                        </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-3">
-                          Supports .json files
                         </p>
                       </>
                     )}
@@ -418,16 +390,16 @@ export default function AddCoursePage() {
               )}
             </div>
 
-            <div className="p-6 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+            <div className="p-8 border-t border-border flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
                 {importMethod === "paste"
-                  ? "Paste your course JSON data above"
+                  ? "Paste your JSON data"
                   : uploadedFile
-                    ? `${uploadedFile.name} ready to import`
-                    : "Upload a JSON file containing your course data"}
+                    ? uploadedFile.name
+                    : "Select a JSON file"}
               </p>
               <div className="flex gap-3">
-                <Button variant="outline" onClick={handleCloseModal}>
+                <Button variant="ghost" onClick={handleCloseModal}>
                   Cancel
                 </Button>
                 <Button onClick={handleJsonImport}>Import</Button>
