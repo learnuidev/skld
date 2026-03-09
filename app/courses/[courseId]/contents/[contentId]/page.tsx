@@ -107,7 +107,7 @@ export default function ContentPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-6 py-16 lg:py-24">
-        <div className="mb-16">
+        <div className="mb-16 flex items-center justify-between">
           <Link
             href={`/courses/${params.courseId}`}
             className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -115,88 +115,85 @@ export default function ContentPage() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Course
           </Link>
+
+          {isAuthor && !isEditing ? (
+            <button
+              onClick={handleEdit}
+              className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
+              title="Edit content"
+            >
+              <Edit2 className="w-5 h-5 text-muted-foreground" />
+            </button>
+          ) : (
+            <button
+              onClick={handleCancel}
+              disabled={updateContentMutation.isPending}
+              className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
+            >
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          )}
         </div>
 
         <div className="space-y-8">
           <header className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-1 space-y-4">
-                {isEditing ? (
-                  <>
-                    {chapters.length > 0 && (
-                      <select
-                        value={editChapterId}
-                        onChange={(e) => setEditChapterId(e.target.value)}
-                        className="h-12 px-3 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                      >
-                        <option value="">No chapter</option>
-                        {chapters.map((chapter) => (
-                          <option key={chapter.id} value={chapter.id}>
-                            {chapter.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                    <input
-                      type="text"
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      className="w-full text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15] bg-transparent outline-none placeholder:text-muted-foreground/50"
-                      placeholder="Content title"
-                    />
-                    <textarea
-                      value={editDescription}
-                      onChange={(e) => setEditDescription(e.target.value)}
-                      className="w-full text-lg text-muted-foreground leading-relaxed max-w-2xl bg-transparent outline-none resize-none placeholder:text-muted-foreground/50 h-auto"
-                      placeholder="Add a description..."
-                      // rows={2}
-                      ref={textareaRef}
-                    />
-                  </>
-                ) : (
-                  <>
-                    {content.chapterId &&
-                      chapters.length > 0 &&
-                      (() => {
-                        const chapter = chapters.find(
-                          (ch) => ch.id === content.chapterId
-                        );
-                        return chapter ? (
-                          <div className="text-xs font-medium text-primary">
-                            {chapter.name}
-                          </div>
-                        ) : null;
-                      })()}
-                    <h1 className="text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15]">
-                      {content.title}
-                    </h1>
-
-                    {content.description && (
-                      <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                        {content.description}
-                      </p>
-                    )}
-                  </>
+            {isEditing ? (
+              <>
+                {chapters.length > 0 && (
+                  <select
+                    value={editChapterId}
+                    onChange={(e) => setEditChapterId(e.target.value)}
+                    className="h-12 px-3 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">No chapter</option>
+                    {chapters.map((chapter) => (
+                      <option key={chapter.id} value={chapter.id}>
+                        {chapter.name}
+                      </option>
+                    ))}
+                  </select>
                 )}
-              </div>
-              {isAuthor && !isEditing ? (
-                <button
-                  onClick={handleEdit}
-                  className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
-                  title="Edit content"
-                >
-                  <Edit2 className="w-5 h-5 text-muted-foreground" />
-                </button>
-              ) : (
-                <button
-                  onClick={handleCancel}
-                  disabled={updateContentMutation.isPending}
-                  className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
-                >
-                  <X className="w-5 h-5 text-muted-foreground" />
-                </button>
-              )}
-            </div>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15] bg-transparent outline-none placeholder:text-muted-foreground/50"
+                  placeholder="Content title"
+                />
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full text-lg text-muted-foreground leading-relaxed max-w-2xl bg-transparent outline-none resize-none placeholder:text-muted-foreground/50 h-auto"
+                  placeholder="Add a description..."
+                  // rows={2}
+                  ref={textareaRef}
+                />
+              </>
+            ) : (
+              <>
+                {content.chapterId &&
+                  chapters.length > 0 &&
+                  (() => {
+                    const chapter = chapters.find(
+                      (ch) => ch.id === content.chapterId
+                    );
+                    return chapter ? (
+                      <div className="text-xs font-medium text-primary">
+                        {chapter.name}
+                      </div>
+                    ) : null;
+                  })()}
+                <h1 className="text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15]">
+                  {content.title}
+                </h1>
+
+                {content.description && (
+                  <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+                    {content.description}
+                  </p>
+                )}
+              </>
+            )}
           </header>
 
           <div>
