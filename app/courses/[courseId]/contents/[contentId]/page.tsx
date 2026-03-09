@@ -55,7 +55,7 @@ export default function ContentPage() {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setEditorContent("");
+    setEditorContent(content?.content || "");
   };
 
   useEffect(() => {
