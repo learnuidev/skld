@@ -1,6 +1,7 @@
 "use client";
 
 import { TiptapEditor } from "@/components/editor/tiptap-editor";
+import { useAutoSizeTextarea } from "@/hooks/ui/use-auto-size-textarea";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useUpdateCourseContentMutation } from "@/modules/course-content/use-update-course-content-mutation";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
@@ -27,6 +28,10 @@ export default function ContentPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editorContent, setEditorContent] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+
+  const textareaRef = useAutoSizeTextarea(editDescription);
 
   const isLoading = courseLoading || contentLoading;
 
@@ -46,12 +51,16 @@ export default function ContentPage() {
 
   const handleEdit = () => {
     setEditorContent(content?.content || "");
+    setEditTitle(content?.title || "");
+    setEditDescription(content?.description || "");
     setIsEditing(true);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     setEditorContent(content?.content || "");
+    setEditTitle(content?.title || "");
+    setEditDescription(content?.description || "");
   };
 
   useEffect(() => {
@@ -63,6 +72,8 @@ export default function ContentPage() {
   const handleSave = async () => {
     try {
       await updateContentMutation.mutateAsync({
+        title: editTitle,
+        description: editDescription,
         content: editorContent,
       });
       setIsEditing(false);
@@ -124,15 +135,37 @@ export default function ContentPage() {
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="flex-1">
-                <h1 className="text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15]">
-                  {content.title}
-                </h1>
+              <div className="flex-1 space-y-4">
+                {isEditing ? (
+                  <>
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15] bg-transparent outline-none placeholder:text-muted-foreground/50"
+                      placeholder="Content title"
+                    />
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="w-full text-lg text-muted-foreground leading-relaxed max-w-2xl bg-transparent outline-none resize-none placeholder:text-muted-foreground/50 h-auto"
+                      placeholder="Add a description..."
+                      // rows={2}
+                      ref={textareaRef}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <h1 className="text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15]">
+                      {content.title}
+                    </h1>
 
-                {content.description && (
-                  <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mt-4">
-                    {content.description}
-                  </p>
+                    {content.description && (
+                      <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+                        {content.description}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
               {isAuthor && !isEditing && (

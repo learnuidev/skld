@@ -12,6 +12,7 @@ import { Chapter, Domain } from "@/modules/course/course.types";
 import { CourseContent } from "@/modules/course-content/course-content.types";
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
+import { useAutoSizeTextarea } from "@/hooks/ui/use-auto-size-textarea";
 
 export default function ExamBankDetailPage() {
   const params = useParams<{ courseId: string; examBankId: string }>();
@@ -500,6 +501,9 @@ function QuestionEditorCard({
     return domain?.name || question.domainId;
   };
 
+  const questionTextAreaRef = useAutoSizeTextarea(question.question);
+  const feedbackTextAreaRef = useAutoSizeTextarea(question.feedback);
+
   return (
     <div className="bg-gray-50 dark:bg-[rgb(10,11,12)] border-b border-slate-100 dark:border-slate-900 px-2">
       <div className="py-6">
@@ -510,6 +514,7 @@ function QuestionEditorCard({
             </span>
             <div className="flex-1 min-w-0">
               <textarea
+                ref={questionTextAreaRef}
                 value={question.question}
                 onChange={(e) => onUpdate("question", e.target.value)}
                 placeholder="Enter your question here..."
@@ -725,6 +730,7 @@ function QuestionEditorCard({
                   Feedback / Explanation
                 </label>
                 <textarea
+                  ref={feedbackTextAreaRef}
                   value={question.feedback}
                   onChange={(e) => onUpdate("feedback", e.target.value)}
                   className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words h-auto"
