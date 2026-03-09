@@ -78,16 +78,30 @@ export const CustomImage = Node.create<CustomImageOptions>({
       img.setAttribute("data-custom-image", "true");
       img.setAttribute("loading", "lazy");
 
-      const attrs = node.attrs;
-      if (attrs.alt) img.setAttribute("alt", attrs.alt);
-      if (attrs.title) img.setAttribute("title", attrs.title);
-      if (attrs.width) img.setAttribute("width", attrs.width);
-      if (attrs.height) img.setAttribute("height", attrs.height);
+      const updateAttributes = () => {
+        const attrs = node.attrs;
 
-      img.setAttribute("data-asset-id", attrs.assetId);
+        if (attrs.src) {
+          img.setAttribute("src", attrs.src);
+        }
+        if (attrs.alt) img.setAttribute("alt", attrs.alt);
+        if (attrs.title) img.setAttribute("title", attrs.title);
+        if (attrs.width) img.setAttribute("width", attrs.width);
+        if (attrs.height) img.setAttribute("height", attrs.height);
+
+        img.setAttribute("data-asset-id", attrs.assetId);
+      };
+
+      updateAttributes();
 
       return {
         dom: img,
+        update: (updatedNode: any) => {
+          if (updatedNode.type !== node.type) return false;
+          node = updatedNode;
+          updateAttributes();
+          return true;
+        },
       };
     };
   },
