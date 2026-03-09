@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import { useGetEnrollmentQuery } from "@/modules/enrollment/use-get-enrollment-query";
+import { useCreateEnrollmentMutation } from "@/modules/enrollment/use-create-enrollment-mutation";
 import { useDeleteMockExamMutation } from "@/modules/user-mock-exams/use-delete-mock-exam-mutation";
 import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
 import { useQueryClient } from "@tanstack/react-query";
@@ -29,6 +31,7 @@ import {
   Clock,
   Play,
   Trash2,
+  UserPlus,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -123,11 +126,13 @@ function MyMockExamsTab({
 }) {
   const { data: mockExams, isLoading } = useGetMockExamsQuery(courseId);
   const { data: examBanks } = useGetExamBanksQuery(courseId);
+  const { data: enrollment } = useGetEnrollmentQuery(courseId);
+  const { mutateAsync: createEnrollment } = useCreateEnrollmentMutation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const deleteMockExamMutation = useDeleteMockExamMutation();
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">(
-    "all"
+    "all",
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
@@ -160,6 +165,17 @@ function MyMockExamsTab({
     await queryClient.invalidateQueries({
       queryKey: ["mockExams", courseId],
     });
+  };
+
+  const handleEnroll = async () => {
+    try {
+      await createEnrollment({ courseId });
+      await queryClient.invalidateQueries({
+        queryKey: ["enrollment", courseId],
+      });
+    } catch (error) {
+      console.error("Failed to enroll:", error);
+    }
   };
 
   const getExamTitle = (exam: any) => {
@@ -213,15 +229,27 @@ function MyMockExamsTab({
           No Mock Exams Yet
         </h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Start practicing by launching your first mock exam.
+          {enrollment
+            ? "Start practicing by launching your first mock exam."
+            : "Enroll in this course to start practicing."}
         </p>
-        <button
-          onClick={() => router.push(`/courses/${courseId}/exam-launcher`)}
-          className="px-6 py-2 bg-foreground text-background rounded-xl font-medium text-base hover:bg-foreground/90 transition-colors flex items-center gap-2"
-        >
-          <Play className="w-4 h-4" />
-          Launch Exam
-        </button>
+        {enrollment ? (
+          <button
+            onClick={() => router.push(`/courses/${courseId}/exam-launcher`)}
+            className="px-6 py-2 bg-foreground text-background rounded-xl font-medium text-base hover:bg-foreground/90 transition-colors flex items-center gap-2"
+          >
+            <Play className="w-4 h-4" />
+            Launch Exam
+          </button>
+        ) : (
+          <button
+            onClick={handleEnroll}
+            className="px-6 py-2 bg-foreground text-background rounded-xl font-medium text-base hover:bg-foreground/90 transition-colors flex items-center gap-2"
+          >
+            <UserPlus className="w-4 h-4" />
+            Enroll
+          </button>
+        )}
       </div>
     );
   }
@@ -232,10 +260,10 @@ function MyMockExamsTab({
       : mockExams.filter((exam) => exam.status === filter);
 
   const inProgressExams = filteredExams.filter(
-    (exam) => exam.status === "in_progress"
+    (exam) => exam.status === "in_progress",
   );
   const completedExams = filteredExams.filter(
-    (exam) => exam.status === "completed"
+    (exam) => exam.status === "completed",
   );
 
   return (
@@ -372,7 +400,7 @@ function MyMockExamsTab({
                     const allQuestions = getExamQuestions(
                       exam,
                       examBanks || [],
-                      course?.domains || []
+                      course?.domains || [],
                     );
                     const question = allQuestions[parseInt(questionIndex) - 1];
                     if (!question) return;
@@ -392,7 +420,7 @@ function MyMockExamsTab({
                       if (
                         userAnswers.length === correctAnswers.length &&
                         userAnswers.every((ans: number) =>
-                          correctAnswers.includes(ans)
+                          correctAnswers.includes(ans),
                         )
                       ) {
                         correct++;
@@ -402,7 +430,7 @@ function MyMockExamsTab({
                         correct++;
                       }
                     }
-                  }
+                  },
                 );
 
                 if (total === 0) return null;
@@ -531,7 +559,7 @@ function MyMockExamsTab({
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
           mockExamTitle={getExamTitle(
-            mockExams?.find((e) => e.id === examToDelete)
+            mockExams?.find((e) => e.id === examToDelete),
           )}
           onConfirm={() => {
             if (examToDelete) {
@@ -581,7 +609,7 @@ function InProgressExamBanner({
   const percentageRemaining =
     totalTimeInMilliSeconds !== null && timeRemainingInMilliseconds !== null
       ? Math.round(
-          (timeRemainingInMilliseconds / totalTimeInMilliSeconds) * 100
+          (timeRemainingInMilliseconds / totalTimeInMilliSeconds) * 100,
         )
       : null;
 
@@ -644,14 +672,27 @@ export default function CoursePage() {
   const queryClient = useQueryClient();
 
   const { data: course, isLoading, error } = useGetCourseQuery(params.courseId);
+  const { data: enrollment } = useGetEnrollmentQuery(params.courseId);
   const { data: mockExams } = useGetMockExamsQuery(params.courseId);
+  const createEnrollmentMutation = useCreateEnrollmentMutation();
 
   const handleLaunchExam = () => {
     router.push(`/courses/${params.courseId}/exam-launcher`);
   };
 
+  const handleEnroll = async () => {
+    try {
+      await createEnrollmentMutation.mutateAsync({ courseId: params.courseId });
+      await queryClient.invalidateQueries({
+        queryKey: ["enrollment", params.courseId],
+      });
+    } catch (error) {
+      console.error("Failed to enroll:", error);
+    }
+  };
+
   const inProgressExam = mockExams?.find(
-    (exam) => exam.status === "in_progress"
+    (exam) => exam.status === "in_progress",
   );
 
   const handleResumeExam = () => {
@@ -674,13 +715,26 @@ export default function CoursePage() {
 
       <CourseHeader course={course}>
         {course.exam && (
-          <button
-            onClick={handleLaunchExam}
-            className="w-full sm:w-auto px-8 py-2 bg-foreground text-background rounded-xl font-medium text-lg hover:bg-foreground/90 transition-colors flex items-center justify-center gap-3"
-          >
-            <Play className="w-5 h-5" />
-            Launch Exam
-          </button>
+          <>
+            {enrollment ? (
+              <button
+                onClick={handleLaunchExam}
+                className="w-full sm:w-auto px-8 py-2 bg-foreground text-background rounded-xl font-medium text-lg hover:bg-foreground/90 transition-colors flex items-center justify-center gap-3"
+              >
+                <Play className="w-5 h-5" />
+                Launch Exam
+              </button>
+            ) : (
+              <button
+                onClick={handleEnroll}
+                disabled={createEnrollmentMutation.isPending}
+                className="w-full sm:w-auto px-8 py-2 bg-foreground text-background rounded-xl font-medium text-lg hover:bg-foreground/90 transition-colors flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <UserPlus className="w-5 h-5" />
+                {createEnrollmentMutation.isPending ? "Enrolling..." : "Enroll"}
+              </button>
+            )}
+          </>
         )}
       </CourseHeader>
 
@@ -703,7 +757,7 @@ export default function CoursePage() {
               "relative px-4 py-3 text-sm font-medium transition-colors",
               activeTab === tab
                 ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {tab}
@@ -723,7 +777,7 @@ export default function CoursePage() {
             courseId={course.id}
             chapters={
               course.domains?.flatMap((d) =>
-                d.chapters.map((c) => ({ ...c }))
+                d.chapters.map((c) => ({ ...c })),
               ) || []
             }
           />
