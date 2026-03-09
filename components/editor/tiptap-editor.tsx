@@ -1,14 +1,20 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import Underline from "@tiptap/extension-underline";
+import { Markdown } from "@tiptap/markdown";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
+  Heading1,
+  Heading2,
+  Heading3,
   Italic,
+  Link as LinkIcon,
   List,
   ListOrdered,
-  Link as LinkIcon,
+  Underline as UnderlineIcon,
 } from "lucide-react";
 import { useEffect } from "react";
 
@@ -25,13 +31,44 @@ export function TiptapEditor({
 }: TiptapEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+          HTMLAttributes: {
+            class: "font-bold tracking-tight text-foreground scroll-mt-20",
+          },
+        },
+        bulletList: {
+          HTMLAttributes: {
+            class: "list-disc pl-6 space-y-1 my-4 mx-4",
+          },
+        },
+        orderedList: {
+          HTMLAttributes: {
+            class: "list-decimal pl-6 space-y-1 my-4",
+          },
+        },
+        listItem: {
+          HTMLAttributes: {
+            class: "text-muted-foreground leading-relaxed my-1 mx-4",
+          },
+        },
+        blockquote: {
+          HTMLAttributes: {
+            class:
+              "border-l-4 border-border pl-4 py-1 my-4 italic text-muted-foreground",
+          },
+        },
+      }),
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: "text-foreground/80 hover:text-foreground underline",
+          class:
+            "text-foreground/80 hover:text-foreground underline underline-offset-2 transition-colors",
         },
       }),
+      Underline,
+      Markdown,
     ],
     content,
     editable,
@@ -42,7 +79,7 @@ export function TiptapEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-slate max-w-none focus:outline-none min-h-[300px] text-[15px] lg:text-base leading-[1.8] text-muted-foreground",
+          "prose prose-slate dark:prose-invert max-w-none focus:outline-none min-h-[300px] text-[15px] lg:text-base leading-[1.8] text-muted-foreground prose-p:mb-4 prose-p:leading-relaxed prose-ul:my-4 prose-ol:my-4 prose-li:my-1 prose-blockquote:my-4 prose-a:text-foreground/80 hover:prose-a:text-foreground prose-strong:font-semibold prose-strong:text-foreground prose-em:italic prose-em:text-foreground prose-code:text-foreground prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto prose-headings:text-foreground prose-headings:font-bold",
       },
     },
   });
@@ -63,12 +100,70 @@ export function TiptapEditor({
     return null;
   }
 
-  // return <EditorContent editor={editor} />;
-
   return (
     <div className="">
+      <style>{`
+        .ProseMirror h1 {
+          font-size: 2.25rem;
+          line-height: 1.2;
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+          font-weight: 700;
+        }
+        .ProseMirror h2 {
+          font-size: 1.75rem;
+          line-height: 1.3;
+          margin-top: 1.75rem;
+          margin-bottom: 0.75rem;
+          font-weight: 600;
+        }
+        .ProseMirror h3 {
+          font-size: 1.375rem;
+          line-height: 1.4;
+          margin-top: 1.5rem;
+          margin-bottom: 0.5rem;
+          font-weight: 600;
+        }
+        .ProseMirror ul {
+          list-style-type: disc;
+        }
+        .ProseMirror ul > li::marker {
+          color: hsl(var(--muted-foreground));
+          padding-left: 0.25rem;
+        }
+        .ProseMirror ol {
+          list-style-type: decimal;
+        }
+        .ProseMirror ol > li::marker {
+          color: hsl(var(--muted-foreground));
+          font-weight: 500;
+        }
+        .ProseMirror ol > li {
+          padding-left: 0.25rem;
+        }
+        .ProseMirror pre {
+          background-color: hsl(var(--muted));
+          border-radius: 0.5rem;
+          padding: 1rem;
+          margin: 1rem 0;
+          overflow-x: auto;
+        }
+        .ProseMirror code {
+          font-size: 0.875rem;
+        }
+        .ProseMirror pre code {
+          background-color: transparent;
+          padding: 0;
+          font-size: inherit;
+        }
+        .ProseMirror :not(pre) > code {
+          background-color: hsl(var(--muted));
+          padding: 0.125rem 0.375rem;
+          border-radius: 0.25rem;
+        }
+      `}</style>
       {editable && (
-        <div className="flex items-center gap-1 px-2 py-2 mb-12 sticky top-0 z-50 bg-white dark:bg-black">
+        <div className="flex items-center gap-1 px-2 py-2 mb-12 sticky top-0 z-50 bg-white dark:bg-black flex-wrap">
           <button
             onClick={() => editor.chain().focus().toggleBold().run()}
             className={`p-2 rounded hover:bg-accent transition-colors ${
@@ -86,6 +181,49 @@ export function TiptapEditor({
             title="Italic"
           >
             <Italic className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            className={`p-2 rounded hover:bg-accent transition-colors ${
+              editor.isActive("underline") ? "bg-accent" : ""
+            }`}
+            title="Underline"
+          >
+            <UnderlineIcon className="w-4 h-4" />
+          </button>
+          <div className="w-px h-6 bg-border mx-1" />
+          <button
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+            className={`p-2 rounded hover:bg-accent transition-colors ${
+              editor.isActive("heading", { level: 1 }) ? "bg-accent" : ""
+            }`}
+            title="Heading 1"
+          >
+            <Heading1 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+            className={`p-2 rounded hover:bg-accent transition-colors ${
+              editor.isActive("heading", { level: 2 }) ? "bg-accent" : ""
+            }`}
+            title="Heading 2"
+          >
+            <Heading2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() =>
+              editor.chain().focus().toggleHeading({ level: 3 }).run()
+            }
+            className={`p-2 rounded hover:bg-accent transition-colors ${
+              editor.isActive("heading", { level: 3 }) ? "bg-accent" : ""
+            }`}
+            title="Heading 3"
+          >
+            <Heading3 className="w-4 h-4" />
           </button>
           <div className="w-px h-6 bg-border mx-1" />
           <button

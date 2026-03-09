@@ -1,16 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
-import { useCreateCourseContentMutation } from "@/modules/course-content/use-create-course-content-mutation";
-import { useBulkCreateCourseContentsMutation } from "@/modules/course-content/use-bulk-create-course-contents-mutation";
-import {
-  CourseContent,
-  CreateCourseContentParams,
-} from "@/modules/course-content/course-content.types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -19,16 +9,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
-  AlertTriangle,
-  Upload,
-  Download,
-  Plus,
-  FileText,
+  CourseContent,
+  CreateCourseContentParams,
+} from "@/modules/course-content/course-content.types";
+import { useBulkCreateCourseContentsMutation } from "@/modules/course-content/use-bulk-create-course-contents-mutation";
+import { useCreateCourseContentMutation } from "@/modules/course-content/use-create-course-content-mutation";
+import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
+import { useQueryClient } from "@tanstack/react-query";
+import {
   AlertCircle,
   CheckCircle2,
+  Download,
+  FileText,
+  Plus,
+  Upload,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { useState } from "react";
 
 interface ContentTabProps {
   courseId: string;
@@ -434,18 +433,31 @@ function ContentList({ contents }: { contents: CourseContent[] }) {
   return (
     <div className="space-y-4">
       {contents.map((content) => (
-        <ContentCard key={content.id} content={content} />
+        <ContentCard
+          key={content.id}
+          content={content}
+          courseId={content.courseId}
+        />
       ))}
     </div>
   );
 }
 
-function ContentCard({ content }: { content: CourseContent }) {
+function ContentCard({
+  content,
+  courseId,
+}: {
+  content: CourseContent;
+  courseId: string;
+}) {
   return (
     <div className="p-6 bg-card border border-border rounded-2xl hover:border-border/80 transition-all">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 space-y-2">
-          <h3 className="text-base font-semibold text-foreground">
+        <Link
+          href={`/courses/${courseId}/contents/${content.id}`}
+          className="flex-1 space-y-2"
+        >
+          <h3 className="text-base font-semibold text-foreground hover:text-primary/80 transition-colors">
             {content.title}
           </h3>
           {content.description && (
@@ -466,7 +478,7 @@ function ContentCard({ content }: { content: CourseContent }) {
               Order: {content.order}
             </span>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   );
