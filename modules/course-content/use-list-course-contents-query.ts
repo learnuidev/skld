@@ -32,7 +32,7 @@ export function useListCourseContentsQuery(courseId: string) {
 
       const courseContents = (await response.json()) as CourseContent[];
 
-      return courseContents.sort((a, b) => a.order - b.order);
+      return courseContents.sort((a, b) => a.createdAt - b.createdAt);
     },
     enabled: !!courseId,
   });
