@@ -1,24 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
-import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
-import { useDeleteMockExamMutation } from "@/modules/user-mock-exams/use-delete-mock-exam-mutation";
-import { useParams, useRouter } from "next/navigation";
-import {
-  Play,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  CheckCircle,
-  Trash2,
-  AlertTriangle,
-  ChevronRight,
-} from "lucide-react";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { ContentTab } from "@/app/studio/[courseId]/components/content-tab";
+import { CourseBackLink } from "@/components/course/course-back-link";
+import { CourseContainer } from "@/components/course/course-container";
+import { CourseHeader } from "@/components/course/course-header";
+import { LoadingCourse } from "@/components/course/loading-course";
+import { LoadingCourseFailed } from "@/components/course/loading-course-failed";
 import {
   Dialog,
   DialogContent,
@@ -28,68 +15,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ContentTab } from "@/app/studio/[courseId]/components/content-tab";
-
-function CourseHeader({
-  course,
-  onLaunchExam,
-}: {
-  course: any;
-  onLaunchExam: () => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const DESCRIPTION_LIMIT = 160;
-
-  const truncated =
-    course.description && course.description.length > DESCRIPTION_LIMIT
-      ? course.description.slice(0, DESCRIPTION_LIMIT) + "..."
-      : course.description;
-
-  return (
-    <header className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground">
-            Certification Course
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground text-balance lg:text-4xl">
-            {course.title}
-          </h1>
-        </div>
-        {course.exam && (
-          <button
-            onClick={onLaunchExam}
-            className="w-full sm:w-auto px-8 py-2 bg-foreground text-background rounded-xl font-medium text-lg hover:bg-foreground/90 transition-colors flex items-center justify-center gap-3"
-          >
-            <Play className="w-5 h-5" />
-            Launch Exam
-          </button>
-        )}
-      </div>
-
-      {course.description && (
-        <div className="max-w-2xl my-4">
-          <p className="text-[15px] leading-relaxed text-muted-foreground">
-            {expanded ? course.description : truncated}
-          </p>
-          {course.description.length > DESCRIPTION_LIMIT && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground"
-            >
-              {expanded ? "Show less" : "Read more"}
-              {expanded ? (
-                <ChevronUp className="size-3.5" />
-              ) : (
-                <ChevronDown className="size-3.5" />
-              )}
-            </button>
-          )}
-        </div>
-      )}
-    </header>
-  );
-}
+import { cn } from "@/lib/utils";
+import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import { useDeleteMockExamMutation } from "@/modules/user-mock-exams/use-delete-mock-exam-mutation";
+import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Play,
+  Trash2,
+} from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 function CourseDetails({ course }: { course: any }) {
   const details = [
@@ -913,119 +856,91 @@ export default function CoursePage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-3xl py-12 lg:py-20">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-muted-foreground">Loading...</div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingCourse />;
   }
 
   if (error || !course) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-3xl py-12 lg:py-20">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-destructive">Course not found</div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingCourseFailed />;
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="pb-40 lg:pb-40">
-        <div className="mb-20">
-          <Link
-            href="/courses"
-            className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+    <CourseContainer>
+      <CourseBackLink href="/courses" title={"Back to Courses"} />
+
+      <CourseHeader course={course}>
+        {course.exam && (
+          <button
+            onClick={handleLaunchExam}
+            className="w-full sm:w-auto px-8 py-2 bg-foreground text-background rounded-xl font-medium text-lg hover:bg-foreground/90 transition-colors flex items-center justify-center gap-3"
           >
-            <svg
-              className="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            Back to Courses
-          </Link>
+            <Play className="w-5 h-5" />
+            Launch Exam
+          </button>
+        )}
+      </CourseHeader>
+
+      {/* In Progress Exam Banner */}
+      {inProgressExam && (
+        <InProgressExamBanner
+          exam={inProgressExam}
+          onClick={handleResumeExam}
+          course={course}
+        />
+      )}
+
+      {/* Tabs */}
+      <nav className="mt-10 flex gap-1 border-b border-border">
+        {["General Info", "Content", "My Mock Exams"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={cn(
+              "relative px-4 py-3 text-sm font-medium transition-colors",
+              activeTab === tab
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {tab}
+            {activeTab === tab && (
+              <span className="absolute inset-x-0 -bottom-px h-px bg-foreground" />
+            )}
+          </button>
+        ))}
+      </nav>
+
+      {/* Content */}
+      {activeTab === "General Info" && (
+        <div className="mt-12 flex flex-col gap-16">
+          <div className="grid gap-16 lg:grid-cols-2">
+            <CourseDetails course={course} />
+            <ExamInfo course={course} />
+          </div>
+
+          <div className="h-px bg-border" />
+
+          <DomainsList course={course} />
         </div>
+      )}
 
-        <CourseHeader course={course} onLaunchExam={handleLaunchExam} />
-
-        {/* In Progress Exam Banner */}
-        {inProgressExam && (
-          <InProgressExamBanner
-            exam={inProgressExam}
-            onClick={handleResumeExam}
-            course={course}
+      {activeTab === "Content" && (
+        <div className="mt-12">
+          <ContentTab
+            courseId={course.id}
+            chapters={
+              course.domains?.flatMap((d) =>
+                d.chapters.map((c) => ({ ...c }))
+              ) || []
+            }
           />
-        )}
+        </div>
+      )}
 
-        {/* Tabs */}
-        <nav className="mt-10 flex gap-1 border-b border-border">
-          {["General Info", "Content", "My Mock Exams"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                "relative px-4 py-3 text-sm font-medium transition-colors",
-                activeTab === tab
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {tab}
-              {activeTab === tab && (
-                <span className="absolute inset-x-0 -bottom-px h-px bg-foreground" />
-              )}
-            </button>
-          ))}
-        </nav>
-
-        {/* Content */}
-        {activeTab === "General Info" && (
-          <div className="mt-12 flex flex-col gap-16">
-            <div className="grid gap-16 lg:grid-cols-2">
-              <CourseDetails course={course} />
-              <ExamInfo course={course} />
-            </div>
-
-            <div className="h-px bg-border" />
-
-            <DomainsList course={course} />
-          </div>
-        )}
-
-        {activeTab === "Content" && (
-          <div className="mt-12">
-            <ContentTab
-              courseId={course.id}
-              chapters={
-                course.domains?.flatMap((d) =>
-                  d.chapters.map((c) => ({ ...c }))
-                ) || []
-              }
-            />
-          </div>
-        )}
-
-        {activeTab === "My Mock Exams" && (
-          <div className="mt-12">
-            <MyMockExamsTab courseId={course.id} course={course} />
-          </div>
-        )}
-      </div>
-    </div>
+      {activeTab === "My Mock Exams" && (
+        <div className="mt-12">
+          <MyMockExamsTab courseId={course.id} course={course} />
+        </div>
+      )}
+    </CourseContainer>
   );
 }

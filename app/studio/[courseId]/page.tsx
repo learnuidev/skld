@@ -19,82 +19,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { AlertTriangle, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CourseHeader } from "@/components/course/course-header";
+import { CourseContainer } from "@/components/course/course-container";
+import { CourseBackLink } from "@/components/course/course-back-link";
+import { LoadingCourse } from "@/components/course/loading-course";
+import { LoadingCourseFailed } from "@/components/course/loading-course-failed";
 
 const tabs = ["General Info", "Content", "Exam Bank"] as const;
-
-function CourseHeader({
-  course,
-  onEdit,
-  onDelete,
-}: {
-  course: any;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const DESCRIPTION_LIMIT = 160;
-
-  const truncated =
-    course.description && course.description.length > DESCRIPTION_LIMIT
-      ? course.description.slice(0, DESCRIPTION_LIMIT) + "..."
-      : course.description;
-
-  return (
-    <header className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex flex-col gap-1">
-          <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground">
-            Certification Course
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground text-balance lg:text-4xl">
-            {course.title}
-          </h1>
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/studio/${course.id}/edit`}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0 gap-2 rounded-full border-border text-foreground hover:bg-accent"
-            >
-              <Pencil className="size-3.5" />
-              Edit
-            </Button>
-          </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onDelete}
-            className="shrink-0 rounded-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
-          >
-            Delete
-          </Button>
-        </div>
-      </div>
-
-      {course.description && (
-        <div className="max-w-2xl my-4">
-          <p className="text-[15px] leading-relaxed text-muted-foreground">
-            {expanded ? course.description : truncated}
-          </p>
-          {course.description.length > DESCRIPTION_LIMIT && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-foreground transition-colors hover:text-muted-foreground"
-            >
-              {expanded ? "Show less" : "Read more"}
-              {expanded ? (
-                <ChevronUp className="size-3.5" />
-              ) : (
-                <ChevronDown className="size-3.5" />
-              )}
-            </button>
-          )}
-        </div>
-      )}
-    </header>
-  );
-}
 
 function CourseDetails({ course }: { course: any }) {
   const details = [
@@ -391,122 +322,123 @@ export default function CourseDetailPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-3xl py-12 lg:py-20">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-muted-foreground">Loading course...</div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingCourse />;
   }
 
   if (error || !course) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-3xl py-12 lg:py-20">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-destructive">Failed to load course</div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingCourseFailed />;
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="pb-40 lg:pb-40">
-        <div className="mb-20">
-          <Link
-            href="/studio"
-            className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+    <CourseContainer>
+      <CourseBackLink href="/studio" title={"Back to Studio"} />
+
+      <div className="mb-20">
+        <Link
+          href="/studio"
+          className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <svg
-              className="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-            Back to Studio
-          </Link>
-        </div>
-
-        <CourseHeader
-          course={course}
-          onEdit={() => router.push(`/studio/${course.id}/edit`)}
-          onDelete={() => setIsDeleteDialogOpen(true)}
-        />
-
-        {/* Tabs */}
-        <nav className="mt-10 flex gap-1 border-b border-border">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                "relative px-4 py-3 text-sm font-medium transition-colors",
-                activeTab === tab
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {tab}
-              {activeTab === tab && (
-                <span className="absolute inset-x-0 -bottom-px h-px bg-foreground" />
-              )}
-            </button>
-          ))}
-        </nav>
-
-        {/* Content */}
-        {activeTab === "General Info" && (
-          <div className="mt-12 flex flex-col gap-16">
-            <div className="grid gap-16 lg:grid-cols-2">
-              <CourseDetails course={course} />
-              <ExamInfo course={course} />
-            </div>
-
-            <div className="h-px bg-border" />
-
-            <DomainsList course={course} />
-          </div>
-        )}
-
-        {activeTab === "Content" && (
-          <div className="mt-12">
-            <ContentTab
-              courseId={course.id}
-              chapters={
-                course.domains?.flatMap((d) =>
-                  d.chapters.map((c) => ({ ...c }))
-                ) || []
-              }
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
-          </div>
-        )}
-
-        {activeTab === "Exam Bank" && (
-          <div className="mt-12">
-            <ExamBankTab courseId={course.id} />
-          </div>
-        )}
-
-        <DeleteDialog
-          open={isDeleteDialogOpen}
-          onOpenChange={setIsDeleteDialogOpen}
-          courseTitle={course.title}
-          onConfirm={handleDeleteCourse}
-          isPending={deleteCourseMutation.isPending}
-        />
+          </svg>
+          Back to Studio
+        </Link>
       </div>
-    </div>
+
+      <CourseHeader course={course}>
+        <div className="flex gap-2">
+          <Link href={`/studio/${course.id}/edit`}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-2 rounded-full border-border text-foreground hover:bg-accent"
+            >
+              <Pencil className="size-3.5" />
+              Edit
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="shrink-0 rounded-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+          >
+            Delete
+          </Button>
+        </div>
+      </CourseHeader>
+
+      {/* Tabs */}
+      <nav className="mt-10 flex gap-1 border-b border-border">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={cn(
+              "relative px-4 py-3 text-sm font-medium transition-colors",
+              activeTab === tab
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {tab}
+            {activeTab === tab && (
+              <span className="absolute inset-x-0 -bottom-px h-px bg-foreground" />
+            )}
+          </button>
+        ))}
+      </nav>
+
+      {/* Content */}
+      {activeTab === "General Info" && (
+        <div className="mt-12 flex flex-col gap-16">
+          <div className="grid gap-16 lg:grid-cols-2">
+            <CourseDetails course={course} />
+            <ExamInfo course={course} />
+          </div>
+
+          <div className="h-px bg-border" />
+
+          <DomainsList course={course} />
+        </div>
+      )}
+
+      {activeTab === "Content" && (
+        <div className="mt-12">
+          <ContentTab
+            courseId={course.id}
+            chapters={
+              course.domains?.flatMap((d) =>
+                d.chapters.map((c) => ({ ...c }))
+              ) || []
+            }
+          />
+        </div>
+      )}
+
+      {activeTab === "Exam Bank" && (
+        <div className="mt-12">
+          <ExamBankTab courseId={course.id} />
+        </div>
+      )}
+
+      <DeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        courseTitle={course.title}
+        onConfirm={handleDeleteCourse}
+        isPending={deleteCourseMutation.isPending}
+      />
+    </CourseContainer>
   );
 }
