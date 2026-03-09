@@ -15,15 +15,15 @@ import { useEffect, useState } from "react";
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId,
+    params.courseId
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
 
   const [isEditing, setIsEditing] = useState(false);
@@ -117,7 +117,7 @@ export default function ContentPage() {
           </Link>
         </div>
 
-        <div className="space-y-16">
+        <div className="space-y-8">
           <header className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -180,7 +180,7 @@ export default function ContentPage() {
                       chapters.length > 0 &&
                       (() => {
                         const chapter = chapters.find(
-                          (ch) => ch.id === content.chapterId,
+                          (ch) => ch.id === content.chapterId
                         );
                         return chapter ? (
                           <div className="text-xs font-medium text-primary">
