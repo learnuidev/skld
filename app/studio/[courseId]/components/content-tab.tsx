@@ -344,7 +344,7 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
         />
       ) : (
         <>
-          <ContentList contents={contents} />
+          <ContentList contents={contents} chapters={chapters} />
           {isAuthor && (
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-8">
               <Button
@@ -432,7 +432,13 @@ function EmptyState({
   );
 }
 
-function ContentList({ contents }: { contents: CourseContent[] }) {
+function ContentList({
+  contents,
+  chapters,
+}: {
+  contents: CourseContent[];
+  chapters: Array<{ id: string; name: string; number?: number }>;
+}) {
   return (
     <div className="space-y-4">
       {contents.map((content) => (
@@ -440,6 +446,7 @@ function ContentList({ contents }: { contents: CourseContent[] }) {
           key={content.id}
           content={content}
           courseId={content.courseId}
+          chapters={chapters}
         />
       ))}
     </div>
@@ -449,10 +456,14 @@ function ContentList({ contents }: { contents: CourseContent[] }) {
 function ContentCard({
   content,
   courseId,
+  chapters,
 }: {
   content: CourseContent;
   courseId: string;
+  chapters: Array<{ id: string; name: string; number?: number }>;
 }) {
+  const chapter = chapters.find((ch) => ch.id === content.chapterId);
+
   return (
     <div className="p-6 bg-card border border-border rounded-2xl hover:border-border/80 transition-all">
       <div className="flex items-start justify-between gap-4">
@@ -460,6 +471,13 @@ function ContentCard({
           href={`/courses/${courseId}/contents/${content.id}`}
           className="flex-1 space-y-2"
         >
+          {chapter && (
+            <div className="text-xs font-medium text-primary">
+              {chapter.number
+                ? `Chapter ${chapter.number}: ${chapter.name}`
+                : chapter.name}
+            </div>
+          )}
           <h3 className="text-base font-semibold text-foreground hover:text-primary/80 transition-colors">
             {content.title}
           </h3>
