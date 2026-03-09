@@ -733,7 +733,7 @@ function QuestionEditorCard({
                   ref={feedbackTextAreaRef}
                   value={question.feedback}
                   onChange={(e) => onUpdate("feedback", e.target.value)}
-                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words h-auto"
+                  className="w-full px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal"
                   placeholder="Explain why this answer is correct..."
                 />
               </div>
