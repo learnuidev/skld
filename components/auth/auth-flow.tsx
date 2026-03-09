@@ -21,7 +21,7 @@ export function AuthFlow() {
   };
 
   const handleLoginSuccess = () => {
-    window.location.href = "/dashboard";
+    window.location.href = "/courses";
   };
 
   switch (view) {

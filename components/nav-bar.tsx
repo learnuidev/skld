@@ -26,14 +26,14 @@ export function NavBar() {
   };
 
   return (
-    <nav className="my-4 flex justify-between items-center mb-12">
+    <nav className="my-0 sm:my-4 flex justify-between items-center sm:mb-12 mb-0">
       <Link href="/" className="font-bold">
-        <SkldLogo className="size-14" />
+        <SkldLogo className="size-10" />
       </Link>
 
       <div className="hidden md:flex gap-8 items-center">
-        <Link className="font-light" href="/dashboard">
-          dashboard
+        <Link className="font-light" href="/courses">
+          courses
         </Link>
 
         <Link className="font-light" href="/studio">
@@ -63,19 +63,19 @@ export function NavBar() {
       </div>
 
       <div className="flex items-center gap-4 md:hidden">
-        <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
+        <button onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <X /> : <Menu />}
-        </Button>
+        </button>
       </div>
 
       {isOpen && (
         <div className="absolute top-16 left-0 right-0 bg-background border-b md:hidden flex flex-col gap-4 p-4">
           <Link
             className="font-light"
-            href="/dashboard"
+            href="/courses"
             onClick={() => setIsOpen(false)}
           >
-            dashboard
+            courses
           </Link>
 
           <Link

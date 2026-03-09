@@ -3,13 +3,12 @@ export function SkldLogo({ className = "" }) {
     <div className={` ${className}`}>
       <div className="hidden dark:block">
         <svg
-          width="1024"
-          height="1024"
-          viewBox="0 0 1200 1024"
+          width="900"
+          height="900"
+          viewBox="0 0 900 900"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full"
         >
-          <rect width="100%" height="100%" fill="#000000" />
           <text
             x="50%"
             y="55%"
@@ -26,13 +25,12 @@ export function SkldLogo({ className = "" }) {
 
       <div className="dark:hidden block">
         <svg
-          width="1024"
-          height="1024"
-          viewBox="0 0 1200 1024"
+          width="900"
+          height="900"
+          viewBox="0 0 900 900"
           xmlns="http://www.w3.org/2000/svg"
           className="w-full h-full"
         >
-          <rect width="100%" height="100%" fill="white" />
           <text
             x="50%"
             y="55%"

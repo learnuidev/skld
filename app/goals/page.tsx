@@ -80,7 +80,7 @@ export default function GoalsPage() {
 
   const handleAnswer = (
     questionId: string,
-    value: string | boolean | string[] | number | Date | null,
+    value: string | boolean | string[] | number | Date | null
   ) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
     setCurrentStep((prev) => prev + 1);
@@ -162,7 +162,7 @@ export default function GoalsPage() {
                     "w-full justify-start text-left px-0 py-6 h-auto hover:bg-transparent",
                     answers.isFirstTime === true
                       ? "text-gray-900"
-                      : "text-gray-600 hover:text-gray-900",
+                      : "text-gray-600 hover:text-gray-900"
                   )}
                 >
                   <span className="text-lg">Yes, it&apos;s my first time</span>
@@ -174,7 +174,7 @@ export default function GoalsPage() {
                     "w-full justify-start text-left px-0 py-6 h-auto hover:bg-transparent",
                     answers.isFirstTime === false
                       ? "text-gray-900"
-                      : "text-gray-600 hover:text-gray-900",
+                      : "text-gray-600 hover:text-gray-900"
                   )}
                 >
                   <span className="text-lg">No, I&apos;ve taken it before</span>
@@ -193,7 +193,7 @@ export default function GoalsPage() {
                       "w-full justify-between text-left px-6 py-4 h-auto border rounded-lg hover:bg-gray-50",
                       answers.previousAttempts === num
                         ? "border-gray-900 bg-gray-50"
-                        : "border-gray-200 hover:border-gray-900",
+                        : "border-gray-200 hover:border-gray-900"
                     )}
                   >
                     <span>{num}</span>
@@ -216,7 +216,7 @@ export default function GoalsPage() {
                     if (e.key === "Enter" && answers.customPreviousAttempts) {
                       handleAnswer(
                         "previousAttempts",
-                        parseInt(answers.customPreviousAttempts),
+                        parseInt(answers.customPreviousAttempts)
                       );
                     }
                   }}
@@ -228,7 +228,7 @@ export default function GoalsPage() {
                     answers.customPreviousAttempts &&
                     handleAnswer(
                       "previousAttempts",
-                      parseInt(answers.customPreviousAttempts),
+                      parseInt(answers.customPreviousAttempts)
                     )
                   }
                   disabled={!answers.customPreviousAttempts}
@@ -259,14 +259,14 @@ export default function GoalsPage() {
                           domain.id,
                           currentQuestion.id === "excelledDomains"
                             ? "excelled"
-                            : "struggled",
+                            : "struggled"
                         )
                       }
                       className={cn(
                         "w-full justify-between text-left px-6 py-4 h-auto border rounded-lg hover:bg-gray-50",
                         isSelected
                           ? "border-gray-900 bg-gray-50"
-                          : "border-gray-200 hover:border-gray-900",
+                          : "border-gray-200 hover:border-gray-900"
                       )}
                     >
                       <span className="text-base truncate pr-2">
@@ -316,7 +316,7 @@ export default function GoalsPage() {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left px-6 py-4 h-auto border rounded-lg hover:bg-gray-50",
-                        !answers.examDate && "text-muted-foreground",
+                        !answers.examDate && "text-muted-foreground"
                       )}
                     >
                       {answers.examDate ? (
@@ -372,11 +372,11 @@ export default function GoalsPage() {
               {JSON.stringify({ courseId, answers }, null, 2)}
             </pre>
             <Button
-              onClick={() => (window.location.href = "/dashboard")}
+              onClick={() => (window.location.href = "/courses")}
               className="w-full bg-gray-900 text-white hover:bg-gray-800"
               size="lg"
             >
-              Continue to Dashboard
+              Continue to Courses
             </Button>
           </motion.div>
         )}

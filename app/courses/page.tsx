@@ -9,7 +9,7 @@ import { useGetEnrollmentsQuery } from "@/modules/enrollment/use-get-enrollment-
 import { BookOpen, Check, Clock, GraduationCap, Search } from "lucide-react";
 import { useState } from "react";
 
-export default function Dashboard() {
+export default function Courses() {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: enrollments, isLoading, error } = useGetEnrollmentsQuery();
   const { data: allCourses } = useListPublicCoursesQuery();
@@ -56,14 +56,12 @@ export default function Dashboard() {
     );
   }
 
-  console.log("ENROLLMENT", enrollments);
-
   return (
     <div className="min-h-screen bg-background">
-      <div className="pb-16 lg:pb-24 pt-8">
+      <div className="pb-16 lg:pb-24 sm:pt-8 pt-2">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-2xl font-light tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-light tracking-tight">Courses</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {enrollments && enrollments.length > 0
               ? `You have ${enrollments.length} enrollment${enrollments.length === 1 ? "" : "s"}`
@@ -97,7 +95,7 @@ export default function Dashboard() {
               return (
                 <CourseCard
                   course={course}
-                  href={`/studio/${course.id}`}
+                  href={`/courses/${course.id}`}
                   key={course.id}
                   index={index}
                 />
