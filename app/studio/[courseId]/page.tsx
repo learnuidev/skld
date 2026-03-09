@@ -130,7 +130,7 @@ function CourseDetails({ course }: { course: any }) {
         {details.map((item) => (
           <div key={item.label} className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">{item.label}</span>
-            <span className="text-sm font-medium text-foreground">
+            <span className="text-sm font-medium text-foreground capitalize">
               {item.value}
             </span>
           </div>
@@ -187,7 +187,7 @@ function ExamInfo({ course }: { course: any }) {
               {Object.entries(course.exam.domainWeights).map(
                 ([domainId, weight]) => {
                   const domain = course.domains?.find(
-                    (d: any) => d.id === domainId,
+                    (d: any) => d.id === domainId
                   );
                   return (
                     <div key={domainId} className="flex flex-col gap-2">
@@ -207,7 +207,7 @@ function ExamInfo({ course }: { course: any }) {
                       </div>
                     </div>
                   );
-                },
+                }
               )}
             </div>
           </>
@@ -242,7 +242,7 @@ function DomainsList({ course }: { course: any }) {
               key={domain.id}
               className={cn(
                 "border-b border-border",
-                index === 0 && "border-t",
+                index === 0 && "border-t"
               )}
             >
               <button
@@ -255,7 +255,7 @@ function DomainsList({ course }: { course: any }) {
                 <ChevronDown
                   className={cn(
                     "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                    isOpen && "rotate-180",
+                    isOpen && "rotate-180"
                   )}
                 />
               </button>
@@ -265,7 +265,7 @@ function DomainsList({ course }: { course: any }) {
                   "grid transition-all duration-200 ease-in-out",
                   isOpen
                     ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-0",
+                    : "grid-rows-[0fr] opacity-0"
                 )}
               >
                 <div className="overflow-hidden">
@@ -455,7 +455,7 @@ export default function CourseDetailPage() {
                 "relative px-4 py-3 text-sm font-medium transition-colors",
                 activeTab === tab
                   ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {tab}
@@ -486,7 +486,7 @@ export default function CourseDetailPage() {
               courseId={course.id}
               chapters={
                 course.domains?.flatMap((d) =>
-                  d.chapters.map((c) => ({ ...c })),
+                  d.chapters.map((c) => ({ ...c }))
                 ) || []
               }
             />
