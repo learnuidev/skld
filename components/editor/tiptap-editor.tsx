@@ -10,6 +10,7 @@ import {
   ListOrdered,
   Link as LinkIcon,
 } from "lucide-react";
+import { useEffect } from "react";
 
 interface TiptapEditorProps {
   content: string;
@@ -45,6 +46,18 @@ export function TiptapEditor({
       },
     },
   });
+
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(editable);
+    }
+  }, [editable, editor]);
+
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
 
   if (!editor) {
     return null;
