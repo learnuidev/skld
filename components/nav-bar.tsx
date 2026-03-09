@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SkldLogo } from "./skld-logo";
 
 export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,8 +27,8 @@ export function NavBar() {
 
   return (
     <nav className="my-4 flex justify-between items-center mb-12">
-      <Link href="/" className="font-bold uppercase">
-        <img src="/images/logo.png" className="h-6" />
+      <Link href="/" className="font-bold">
+        <SkldLogo className="size-14" />
       </Link>
 
       <div className="hidden md:flex gap-8 items-center">
