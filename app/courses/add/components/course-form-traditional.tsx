@@ -119,7 +119,7 @@ export function CourseFormTraditional({
               >
                 {type}
               </button>
-            ),
+            )
           )}
         </div>
       </div>
@@ -131,7 +131,7 @@ export function CourseFormTraditional({
         <div className="grid grid-cols-2 gap-3">
           {SUPPORTED_LANGUAGES.map((language) => {
             const isSelected = formData.supportedLanguages.some(
-              (lang) => lang.id === language.id,
+              (lang) => lang.id === language.id
             );
             return (
               <button
@@ -140,7 +140,7 @@ export function CourseFormTraditional({
                 onClick={() => {
                   const newLanguages = isSelected
                     ? formData.supportedLanguages.filter(
-                        (lang) => lang.id !== language.id,
+                        (lang) => lang.id !== language.id
                       )
                     : [...formData.supportedLanguages, language];
                   setFormData({
@@ -148,7 +148,7 @@ export function CourseFormTraditional({
                     supportedLanguages: newLanguages,
                   });
                 }}
-                className={`px-4 py-3 text-sm font-medium rounded-xl border-2 transition-all text-left ${
+                className={`px-5 py-4 text-sm font-medium rounded-xl border-2 transition-all text-left ${
                   isSelected
                     ? "border-slate-900 dark:border-white bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
                     : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
@@ -157,7 +157,7 @@ export function CourseFormTraditional({
                 <div className="flex items-center justify-between">
                   <span>{language.title}</span>
                   {language.languageDirection === "rtl" && (
-                    <span className="text-xs bg-slate-200 dark:bg-slate-600 px-2 py-0.5 rounded">
+                    <span className="text-xs bg-slate-200 dark:bg-slate-200 px-2 py-0.5 rounded">
                       RTL
                     </span>
                   )}
@@ -232,7 +232,7 @@ export function CourseFormTraditional({
       setFormData({
         ...formData,
         domains: formData.domains.map((d) =>
-          d.id === domainId ? { ...d, name } : d,
+          d.id === domainId ? { ...d, name } : d
         ),
       });
     };
@@ -320,7 +320,7 @@ export function CourseFormTraditional({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: [...d.chapters, newChapter] }
-            : d,
+            : d
         ),
       });
     };
@@ -331,7 +331,7 @@ export function CourseFormTraditional({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: d.chapters.filter((c) => c.id !== chapterId) }
-            : d,
+            : d
         ),
       });
     };
@@ -339,7 +339,7 @@ export function CourseFormTraditional({
     const updateChapterName = (
       domainId: string,
       chapterId: string,
-      name: string,
+      name: string
     ) => {
       setFormData({
         ...formData,
@@ -348,10 +348,10 @@ export function CourseFormTraditional({
             ? {
                 ...d,
                 chapters: d.chapters.map((c) =>
-                  c.id === chapterId ? { ...c, name } : c,
+                  c.id === chapterId ? { ...c, name } : c
                 ),
               }
-            : d,
+            : d
         ),
       });
     };
@@ -476,7 +476,7 @@ export function CourseFormTraditional({
 
     const updateQuestionType = (
       questionType: QuestionType,
-      checked: boolean,
+      checked: boolean
     ) => {
       setFormData({
         ...formData,
@@ -491,7 +491,7 @@ export function CourseFormTraditional({
 
     const totalWeight = Object.values(formData.exam.domainWeights).reduce(
       (a, b) => a + b,
-      0,
+      0
     );
 
     return (
@@ -632,7 +632,7 @@ export function CourseFormTraditional({
                 onClick={() =>
                   updateQuestionType(
                     qt.type,
-                    !formData.exam.questionTypes.includes(qt.type),
+                    !formData.exam.questionTypes.includes(qt.type)
                   )
                 }
                 className={`px-4 py-3 text-sm font-medium rounded-xl border-2 transition-all text-left ${
@@ -658,7 +658,7 @@ export function CourseFormTraditional({
   const renderSummary = () => {
     const totalChapters = formData.domains.reduce(
       (sum, d) => sum + d.chapters.length,
-      0,
+      0
     );
 
     return (
@@ -880,7 +880,7 @@ export function CourseFormTraditional({
                 <div className="flex flex-wrap gap-2">
                   {formData.exam.questionTypes.map((qt) => {
                     const questionType = QUESTION_TYPES.find(
-                      (q) => q.type === qt,
+                      (q) => q.type === qt
                     );
                     return questionType ? (
                       <span
