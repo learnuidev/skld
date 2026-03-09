@@ -27,7 +27,7 @@ export function NavBar() {
   return (
     <nav className="my-4 flex justify-between items-center mb-12">
       <Link href="/" className="font-bold uppercase">
-        skld
+        <img src="/public/logo.png" />
       </Link>
 
       <div className="hidden md:flex gap-8 items-center">

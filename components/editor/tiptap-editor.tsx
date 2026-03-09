@@ -15,8 +15,16 @@ import {
   List,
   ListOrdered,
   Underline as UnderlineIcon,
+  Image as ImageIcon,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useGenerateUploadUrlMutation } from "@/modules/assets/use-generate-upload-url-mutation";
+import { useCreateAssetMutation } from "@/modules/assets/use-create-asset-mutation";
+import { CustomImage } from "./extensions/custom-image";
+import {
+  getAssetUrlApi,
+  useGetAssetQuery,
+} from "@/modules/assets/use-get-asset-query";
 
 interface TiptapEditorProps {
   content: string;
@@ -29,6 +37,32 @@ export function TiptapEditor({
   editable,
   onUpdate,
 }: TiptapEditorProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [assetUrls, setAssetUrls] = useState<Record<string, string>>({});
+
+  const generateUploadUrlMutation = useGenerateUploadUrlMutation();
+  const createAssetMutation = useCreateAssetMutation();
+
+  const loadAssetUrl = async (assetId: string) => {
+    if (assetUrls[assetId]) {
+      return assetUrls[assetId];
+    }
+
+    try {
+      const asset = await getAssetUrlApi(assetId);
+
+      if (asset?.downloadUrl) {
+        setAssetUrls((prev) => ({ ...prev, [assetId]: asset.downloadUrl }));
+        return asset.downloadUrl;
+      }
+    } catch (error) {
+      console.error("Failed to fetch asset:", error);
+    }
+
+    return "";
+  };
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -69,6 +103,7 @@ export function TiptapEditor({
       }),
       Underline,
       Markdown,
+      CustomImage,
     ],
     content,
     editable,
@@ -83,6 +118,85 @@ export function TiptapEditor({
       },
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleUpdate = () => {
+      const images = editor.$nodes("customImage");
+      images?.forEach(({ node }) => {
+        const assetId = node.attrs.assetId;
+        if (assetId && !assetUrls[assetId] && !node.attrs.src) {
+          loadAssetUrl(assetId).then((url) => {
+            if (url) {
+              editor
+                .chain()
+                .updateAttributes("customImage", { src: url })
+                .run();
+            }
+          });
+        }
+      });
+    };
+
+    editor.on("update", handleUpdate);
+    editor.on("selectionUpdate", handleUpdate);
+
+    return () => {
+      editor.off("update", handleUpdate);
+      editor.off("selectionUpdate", handleUpdate);
+    };
+  }, [editor, assetUrls]);
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      setUploading(true);
+
+      const { uploadUrl, s3Key, id } =
+        await generateUploadUrlMutation.mutateAsync({
+          fileName: file.name,
+          contentType: file.type,
+        });
+
+      await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      const asset = await createAssetMutation.mutateAsync({
+        fileName: file.name,
+        contentType: file.type,
+        s3Key,
+      });
+
+      editor
+        ?.chain()
+        .focus()
+        .setCustomImage({
+          assetId: asset.id,
+          src: "",
+        })
+        .run();
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(file);
+    }
+  };
 
   useEffect(() => {
     if (editor) {
@@ -259,6 +373,24 @@ export function TiptapEditor({
           >
             <LinkIcon className="w-4 h-4" />
           </button>
+          <div className="w-px h-6 bg-border mx-1" />
+          <button
+            onClick={handleImageClick}
+            disabled={uploading}
+            className={`p-2 rounded hover:bg-accent transition-colors ${
+              uploading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            title={uploading ? "Uploading..." : "Add Image"}
+          >
+            <ImageIcon className="w-4 h-4" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
         </div>
       )}
       <EditorContent editor={editor} />
