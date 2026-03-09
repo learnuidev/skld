@@ -38,15 +38,20 @@ export default function AddExamBankPage() {
       let parsedQuestions: Question[] = [];
 
       if (fileExtension === "json") {
-        parsedQuestions = JSON.parse(text);
-        if (!Array.isArray(parsedQuestions)) {
+        const jsonData = JSON.parse(text);
+        if (!Array.isArray(jsonData)) {
           throw new Error("JSON must be an array of questions");
         }
+        parsedQuestions = jsonData.map((q: any) => {
+          const domainId =
+            q.domainId || parseDomainId(q.domain || q.domainNumber);
+          return { ...q, domainId };
+        });
       } else if (fileExtension === "csv") {
         parsedQuestions = parseCSV(text);
       } else {
         throw new Error(
-          "Unsupported file type. Please upload a JSON or CSV file."
+          "Unsupported file type. Please upload a JSON or CSV file.",
         );
       }
 
@@ -60,12 +65,33 @@ export default function AddExamBankPage() {
       alert(
         error instanceof Error
           ? error.message
-          : "Failed to parse file. Please check format."
+          : "Failed to parse file. Please check format.",
       );
       console.error("File upload error:", error);
     }
 
     e.target.value = "";
+  };
+
+  const parseDomainId = (
+    domainInput: string | number | undefined,
+  ): string | undefined => {
+    if (!domainInput) return undefined;
+
+    const inputStr = String(domainInput).trim().toLowerCase();
+
+    for (const domain of domains) {
+      if (domain.id === inputStr) {
+        return domain.id;
+      }
+    }
+
+    const selectedDomain = domains?.[parseInt(inputStr) - 1];
+
+    if (selectedDomain) {
+      return selectedDomain?.id;
+    }
+    return undefined;
   };
 
   const parseCSV = (csvText: string): Question[] => {
@@ -92,8 +118,12 @@ export default function AddExamBankPage() {
         }
       });
 
-      if (question.question && question.domainId && question.type) {
-        questions.push(question as Question);
+      const domainId =
+        question.domainId ||
+        parseDomainId(question.domain || question.domainNumber);
+
+      if (question.question && domainId && question.type) {
+        questions.push({ ...question, domainId } as Question);
       }
     }
 
@@ -123,12 +153,17 @@ export default function AddExamBankPage() {
   };
 
   const handleManualJSONUpload = (
-    e: React.ChangeEvent<HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
     try {
       const parsed = JSON.parse(e.target.value);
       if (Array.isArray(parsed)) {
-        setQuestions(parsed);
+        const questionsWithDomainId = parsed.map((q: any) => {
+          const domainId =
+            q.domainId || parseDomainId(q.domain || q.domainNumber);
+          return { ...q, domainId };
+        });
+        setQuestions(questionsWithDomainId);
         setShowPreview(true);
       }
     } catch {
@@ -159,17 +194,17 @@ export default function AddExamBankPage() {
   const handleQuestionUpdate = (
     index: number,
     field: keyof Question,
-    value: any
+    value: any,
   ) => {
     setQuestions((prev) =>
-      prev.map((q, i) => (i === index ? { ...q, [field]: value } : q))
+      prev.map((q, i) => (i === index ? { ...q, [field]: value } : q)),
     );
   };
 
   const handleOptionUpdate = (
     questionIndex: number,
     optionIndex: number,
-    value: string
+    value: string,
   ) => {
     setQuestions((prev) =>
       prev.map((q, i) =>
@@ -177,19 +212,19 @@ export default function AddExamBankPage() {
           ? {
               ...q,
               options: q.options.map((opt, oi) =>
-                oi === optionIndex ? value : opt
+                oi === optionIndex ? value : opt,
               ),
             }
-          : q
-      )
+          : q,
+      ),
     );
   };
 
   const addOption = (questionIndex: number) => {
     setQuestions((prev) =>
       prev.map((q, i) =>
-        i === questionIndex ? { ...q, options: [...q.options, ""] } : q
-      )
+        i === questionIndex ? { ...q, options: [...q.options, ""] } : q,
+      ),
     );
   };
 
@@ -198,8 +233,8 @@ export default function AddExamBankPage() {
       prev.map((q, i) =>
         i === questionIndex && q.options.length > 1
           ? { ...q, options: q.options.filter((_, oi) => oi !== optionIndex) }
-          : q
-      )
+          : q,
+      ),
     );
   };
 
@@ -308,7 +343,7 @@ export default function AddExamBankPage() {
                   isExpanded={expandedQuestionIndex === index}
                   onToggle={() =>
                     setExpandedQuestionIndex(
-                      expandedQuestionIndex === index ? null : index
+                      expandedQuestionIndex === index ? null : index,
                     )
                   }
                   domains={domains}
@@ -483,10 +518,11 @@ export default function AddExamBankPage() {
                   JSON Format:
                 </p>
                 <p className="text-sm">
-                  Array of question objects with fields: domainId, question,
-                  options, type, feedback, difficulty, questionType,
-                  correctOptionIndex (for single select/true-false) or
-                  correctOptionIndexes (for multiple select)
+                  Array of question objects with fields: domainId (or
+                  domain/domainNumber), question, options, type, feedback,
+                  difficulty, questionType, correctOptionIndex (for single
+                  select/true-false) or correctOptionIndexes (for multiple
+                  select)
                 </p>
               </div>
               <div>
@@ -494,9 +530,10 @@ export default function AddExamBankPage() {
                   CSV Format:
                 </p>
                 <p className="text-sm">
-                  Comma-separated with columns: domainId, question, options (|
-                  separated), type, feedback, difficulty, questionType,
-                  correctOptionIndex, correctOptionIndexes
+                  Comma-separated with columns: domainId (or
+                  domain/domainNumber), question, options (| separated), type,
+                  feedback, difficulty, questionType, correctOptionIndex,
+                  correctOptionIndexes
                 </p>
               </div>
             </div>
@@ -510,7 +547,7 @@ export default function AddExamBankPage() {
           <textarea
             placeholder={`[
   {
-    "domainId": "domain-1",
+    "domain": "Domain 1",
     "question": "What is 2 + 2?",
     "options": ["3", "4", "5", "6"],
     "type": "SINGLE_SELECT_MULTIPLE_CHOICE",
@@ -565,7 +602,7 @@ function QuestionEditorCard({
         : [...current, optionIndex];
       onUpdate(
         "correctOptionIndexes",
-        newIndexes.length > 0 ? newIndexes : undefined
+        newIndexes.length > 0 ? newIndexes : undefined,
       );
       onUpdate("correctOptionIndex", undefined);
     } else if (question.type === "TRUE_FALSE") {
