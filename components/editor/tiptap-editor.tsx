@@ -163,7 +163,7 @@ export function TiptapEditor({
         }
       `}</style>
       {editable && (
-        <div className="flex items-center gap-1 px-2 py-2 mb-12 sticky top-0 z-50 bg-white dark:bg-black flex-wrap">
+        <div className="flex items-center gap-1 px-2 py-2 sticky top-0 z-50 bg-white dark:bg-black flex-wrap">
           <button
             onClick={() => editor.chain().focus().toggleBold().run()}
             className={`p-2 rounded hover:bg-accent transition-colors ${

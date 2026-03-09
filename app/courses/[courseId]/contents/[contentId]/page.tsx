@@ -119,27 +119,6 @@ export default function ContentPage() {
 
         <div className="space-y-8">
           <header className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-foreground/5 flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-foreground/60" />
-                </div>
-                <p className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
-                  Course Content
-                </p>
-              </div>
-              {isEditing && (
-                <button
-                  onClick={handleCancel}
-                  disabled={updateContentMutation.isPending}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <X className="w-4 h-4" />
-                  Cancel
-                </button>
-              )}
-            </div>
-
             <div className="flex items-start gap-4">
               <div className="flex-1 space-y-4">
                 {isEditing ? (
@@ -148,7 +127,7 @@ export default function ContentPage() {
                       <select
                         value={editChapterId}
                         onChange={(e) => setEditChapterId(e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="h-12 px-3 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                       >
                         <option value="">No chapter</option>
                         {chapters.map((chapter) => (
@@ -200,7 +179,7 @@ export default function ContentPage() {
                   </>
                 )}
               </div>
-              {isAuthor && !isEditing && (
+              {isAuthor && !isEditing ? (
                 <button
                   onClick={handleEdit}
                   className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
@@ -208,12 +187,19 @@ export default function ContentPage() {
                 >
                   <Edit2 className="w-5 h-5 text-muted-foreground" />
                 </button>
+              ) : (
+                <button
+                  onClick={handleCancel}
+                  disabled={updateContentMutation.isPending}
+                  className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
               )}
             </div>
           </header>
 
-          <div className="space-y-12">
-            <div className="h-px bg-border/60" />
+          <div>
             <TiptapEditor
               content={editorContent}
               editable={isAuthor && isEditing}
