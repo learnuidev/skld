@@ -36,6 +36,7 @@ export function useCreateCourseContentMutation() {
             content: params.content,
             contentVariants: params.contentVaraints,
             order: params.order,
+            chapterId: params.chapterId,
           }),
         }
       );
