@@ -54,7 +54,7 @@ export function MockExamCompleted({
               correct++;
             }
           }
-        },
+        }
       );
 
       if (total === 0) return null;
@@ -126,7 +126,7 @@ export function MockExamCompleted({
           parts.push(
             <span key={`quoted-${parts.length}`} className="font-semibold">
               "{quoted}"
-            </span>,
+            </span>
           );
           i++;
         } else {
@@ -144,13 +144,13 @@ export function MockExamCompleted({
 
     const sortedAnswers = React.useMemo(() => {
       return Object.entries(mockExam.answers || {})?.sort(
-        (a, b) => a?.[1]?.answeredAt - b?.[1]?.answeredAt,
+        (a, b) => a?.[1]?.answeredAt - b?.[1]?.answeredAt
       );
     }, [mockExam.answers]);
 
     return (
       <div className="min-h-screen flex justify-center bg-background py-12">
-        <div className="w-full max-w-5xl mx-auto px-4">
+        <div className="w-full">
           <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-border shadow-lg p-8">
             <div className="mb-8">
               <Link
@@ -209,7 +209,7 @@ export function MockExamCompleted({
                 {sortedAnswers.map(
                   ([questionId, answer]: [string, any], index) => {
                     const question = examBank.questions.find(
-                      (question) => question.id === questionId,
+                      (question) => question.id === questionId
                     );
 
                     if (!question) return null;
@@ -285,7 +285,7 @@ export function MockExamCompleted({
                                         question.type === "TRUE_FALSE"
                                           ? idx === question.correctOptionIndex
                                           : question.correctOptionIndexes?.includes(
-                                              idx,
+                                              idx
                                             );
 
                                       const isSelected =
@@ -322,7 +322,7 @@ export function MockExamCompleted({
                                           </p>
                                         </div>
                                       );
-                                    },
+                                    }
                                   )}
                                 </div>
                               </div>
@@ -347,7 +347,7 @@ export function MockExamCompleted({
                         )}
                       </div>
                     );
-                  },
+                  }
                 )}
               </div>
             </div>

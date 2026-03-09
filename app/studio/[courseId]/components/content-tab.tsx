@@ -94,9 +94,6 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
 
     const inputStr = String(chapterInput).trim().toLowerCase();
 
-    console.log("INPUT STR", inputStr);
-    console.log("CHAPTERS", chapters);
-
     for (const chapter of chapters) {
       if (chapter.id === inputStr) {
         return chapter.id;

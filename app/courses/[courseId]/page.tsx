@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ContentTab } from "@/app/studio/[courseId]/components/content-tab";
 
 function CourseHeader({
   course,
@@ -177,7 +178,7 @@ function ExamInfo({ course }: { course: any }) {
               {Object.entries(course.exam.domainWeights).map(
                 ([domainId, weight]) => {
                   const domain = course.domains?.find(
-                    (d: any) => d.id === domainId
+                    (d: any) => d.id === domainId,
                   );
                   return (
                     <div key={domainId} className="flex flex-col gap-2">
@@ -197,7 +198,7 @@ function ExamInfo({ course }: { course: any }) {
                       </div>
                     </div>
                   );
-                }
+                },
               )}
             </div>
           </>
@@ -232,7 +233,7 @@ function DomainsList({ course }: { course: any }) {
               key={domain.id}
               className={cn(
                 "border-b border-border",
-                index === 0 && "border-t"
+                index === 0 && "border-t",
               )}
             >
               <button
@@ -245,7 +246,7 @@ function DomainsList({ course }: { course: any }) {
                 <ChevronDown
                   className={cn(
                     "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                    isOpen && "rotate-180"
+                    isOpen && "rotate-180",
                   )}
                 />
               </button>
@@ -255,7 +256,7 @@ function DomainsList({ course }: { course: any }) {
                   "grid transition-all duration-200 ease-in-out",
                   isOpen
                     ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-0"
+                    : "grid-rows-[0fr] opacity-0",
                 )}
               >
                 <div className="overflow-hidden">
@@ -378,7 +379,7 @@ function MyMockExamsTab({
   const queryClient = useQueryClient();
   const deleteMockExamMutation = useDeleteMockExamMutation();
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">(
-    "all"
+    "all",
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
@@ -483,10 +484,10 @@ function MyMockExamsTab({
       : mockExams.filter((exam) => exam.status === filter);
 
   const inProgressExams = filteredExams.filter(
-    (exam) => exam.status === "in_progress"
+    (exam) => exam.status === "in_progress",
   );
   const completedExams = filteredExams.filter(
-    (exam) => exam.status === "completed"
+    (exam) => exam.status === "completed",
   );
 
   return (
@@ -623,7 +624,7 @@ function MyMockExamsTab({
                     const allQuestions = getExamQuestions(
                       exam,
                       examBanks || [],
-                      course?.domains || []
+                      course?.domains || [],
                     );
                     const question = allQuestions[parseInt(questionIndex) - 1];
                     if (!question) return;
@@ -643,7 +644,7 @@ function MyMockExamsTab({
                       if (
                         userAnswers.length === correctAnswers.length &&
                         userAnswers.every((ans: number) =>
-                          correctAnswers.includes(ans)
+                          correctAnswers.includes(ans),
                         )
                       ) {
                         correct++;
@@ -653,7 +654,7 @@ function MyMockExamsTab({
                         correct++;
                       }
                     }
-                  }
+                  },
                 );
 
                 if (total === 0) return null;
@@ -782,7 +783,7 @@ function MyMockExamsTab({
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
           mockExamTitle={getExamTitle(
-            mockExams?.find((e) => e.id === examToDelete)
+            mockExams?.find((e) => e.id === examToDelete),
           )}
           onConfirm={() => {
             if (examToDelete) {
@@ -832,7 +833,7 @@ function InProgressExamBanner({
   const percentageRemaining =
     totalTimeInMilliSeconds !== null && timeRemainingInMilliseconds !== null
       ? Math.round(
-          (timeRemainingInMilliseconds / totalTimeInMilliSeconds) * 100
+          (timeRemainingInMilliseconds / totalTimeInMilliSeconds) * 100,
         )
       : null;
 
@@ -902,7 +903,7 @@ export default function CoursePage() {
   };
 
   const inProgressExam = mockExams?.find(
-    (exam) => exam.status === "in_progress"
+    (exam) => exam.status === "in_progress",
   );
 
   const handleResumeExam = () => {
@@ -973,7 +974,7 @@ export default function CoursePage() {
 
         {/* Tabs */}
         <nav className="mt-10 flex gap-1 border-b border-border">
-          {["General Info", "My Mock Exams"].map((tab) => (
+          {["General Info", "Content", "My Mock Exams"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -981,7 +982,7 @@ export default function CoursePage() {
                 "relative px-4 py-3 text-sm font-medium transition-colors",
                 activeTab === tab
                   ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {tab}
@@ -1003,6 +1004,19 @@ export default function CoursePage() {
             <div className="h-px bg-border" />
 
             <DomainsList course={course} />
+          </div>
+        )}
+
+        {activeTab === "Content" && (
+          <div className="mt-12">
+            <ContentTab
+              courseId={course.id}
+              chapters={
+                course.domains?.flatMap((d) =>
+                  d.chapters.map((c) => ({ ...c })),
+                ) || []
+              }
+            />
           </div>
         )}
 
