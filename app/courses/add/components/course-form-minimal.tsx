@@ -14,6 +14,10 @@ import {
   Clock,
   Award,
 } from "lucide-react";
+import {
+  QUESTION_TYPES,
+  QuestionType,
+} from "@/modules/exam-bank/exam-bank.types";
 
 interface CourseFormProps {
   formData: CourseFormData;
@@ -150,7 +154,7 @@ export function CourseFormMinimal({
               >
                 {type}
               </button>
-            )
+            ),
           )}
         </div>
       </motion.div>
@@ -210,7 +214,7 @@ export function CourseFormMinimal({
       setFormData({
         ...formData,
         domains: formData.domains.map((d) =>
-          d.id === domainId ? { ...d, name } : d
+          d.id === domainId ? { ...d, name } : d,
         ),
       });
     };
@@ -292,7 +296,7 @@ export function CourseFormMinimal({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: [...d.chapters, newChapter] }
-            : d
+            : d,
         ),
       });
     };
@@ -303,7 +307,7 @@ export function CourseFormMinimal({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: d.chapters.filter((c) => c.id !== chapterId) }
-            : d
+            : d,
         ),
       });
     };
@@ -311,7 +315,7 @@ export function CourseFormMinimal({
     const updateChapterName = (
       domainId: string,
       chapterId: string,
-      name: string
+      name: string,
     ) => {
       setFormData({
         ...formData,
@@ -320,10 +324,10 @@ export function CourseFormMinimal({
             ? {
                 ...d,
                 chapters: d.chapters.map((c) =>
-                  c.id === chapterId ? { ...c, name } : c
+                  c.id === chapterId ? { ...c, name } : c,
                 ),
               }
-            : d
+            : d,
         ),
       });
     };
@@ -447,9 +451,24 @@ export function CourseFormMinimal({
       });
     };
 
+    const updateQuestionType = (
+      questionType: QuestionType,
+      checked: boolean,
+    ) => {
+      setFormData({
+        ...formData,
+        exam: {
+          ...formData.exam,
+          questionTypes: checked
+            ? [...formData.exam.questionTypes, questionType]
+            : formData.exam.questionTypes.filter((t) => t !== questionType),
+        },
+      });
+    };
+
     const totalWeight = Object.values(formData.exam.domainWeights).reduce(
       (a, b) => a + b,
-      0
+      0,
     );
 
     return (
@@ -606,6 +625,45 @@ export function CourseFormMinimal({
               </span>
             </button>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <h3 className="text-xl font-light text-center text-foreground mb-8">
+              Question types
+            </h3>
+            <p className="text-center text-muted-foreground mb-8">
+              Select which question types will appear in the exam
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              {QUESTION_TYPES.map((qt) => (
+                <button
+                  key={qt.type}
+                  type="button"
+                  onClick={() =>
+                    updateQuestionType(
+                      qt.type,
+                      !formData.exam.questionTypes.includes(qt.type),
+                    )
+                  }
+                  className={`p-5 rounded-xl border-2 transition-all text-left text-sm font-light ${
+                    formData.exam.questionTypes.includes(qt.type)
+                      ? "border-foreground bg-foreground/5 text-foreground"
+                      : "border-border hover:border-foreground/30 text-foreground/60"
+                  }`}
+                >
+                  {qt.title}
+                </button>
+              ))}
+            </div>
+            {formData.exam.questionTypes.length === 0 && (
+              <p className="text-center text-amber-600 dark:text-amber-400 text-sm mt-4">
+                Please select at least one question type
+              </p>
+            )}
+          </motion.div>
         </div>
       </motion.div>
     );
@@ -614,7 +672,7 @@ export function CourseFormMinimal({
   const renderSummary = () => {
     const totalChapters = formData.domains.reduce(
       (sum, d) => sum + d.chapters.length,
-      0
+      0,
     );
 
     return (
@@ -769,6 +827,29 @@ export function CourseFormMinimal({
                   {formData.exam.allowSkipQuestions ? "Yes" : "No"}
                 </span>
               </div>
+
+              {formData.exam.questionTypes.length > 0 && (
+                <div className="py-3">
+                  <span className="text-foreground/70 block mb-3">
+                    Question types
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.exam.questionTypes.map((qt) => {
+                      const questionType = QUESTION_TYPES.find(
+                        (q) => q.type === qt,
+                      );
+                      return questionType ? (
+                        <span
+                          key={qt}
+                          className="px-3 py-1.5 bg-foreground/5 text-sm text-foreground rounded-lg"
+                        >
+                          {questionType.title}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         </div>

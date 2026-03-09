@@ -17,7 +17,7 @@ export default function EditCoursePage() {
   const router = useRouter();
   const updateCourseMutation = useUpdateCourseMutation(params.courseId);
   const { data: existingCourse, isLoading } = useGetCourseQuery(
-    params.courseId
+    params.courseId,
   );
 
   const [formData, setFormData] = useState<CourseFormData>({
@@ -31,6 +31,7 @@ export default function EditCoursePage() {
       totalTimeMinutes: 0,
       domainWeights: {},
       allowSkipQuestions: false,
+      questionTypes: [],
     },
   });
 
@@ -40,7 +41,7 @@ export default function EditCoursePage() {
   const [importMethod, setImportMethod] = useState<"paste" | "upload">("paste");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [viewMode, setViewMode] = useState<"minimal" | "traditional">(
-    "traditional"
+    "traditional",
   );
 
   const totalSteps = 5;
@@ -60,12 +61,14 @@ export default function EditCoursePage() {
               domainWeights: existingCourse.exam.domainWeights || {},
               allowSkipQuestions:
                 existingCourse.exam.allowSkipQuestions || false,
+              questionTypes: existingCourse.exam.questionTypes || [],
             }
           : {
               totalQuestions: 0,
               totalTimeMinutes: 0,
               domainWeights: {},
               allowSkipQuestions: false,
+              questionTypes: [],
             },
       });
     }
@@ -188,13 +191,14 @@ export default function EditCoursePage() {
         return (
           formData.exam.totalQuestions > 0 &&
           formData.domains.every(
-            (domain) => formData.exam.domainWeights[domain.id] > 0
-          )
+            (domain) => formData.exam.domainWeights[domain.id] > 0,
+          ) &&
+          formData.exam.questionTypes.length > 0
         );
       case 5:
         const totalWeight = Object.values(formData.exam.domainWeights).reduce(
           (a, b) => a + b,
-          0
+          0,
         );
         return (
           formData.title.trim().length > 0 &&
@@ -205,7 +209,7 @@ export default function EditCoursePage() {
           formData.exam.totalTimeMinutes > 0 &&
           totalWeight === 100 &&
           formData.domains.every(
-            (domain) => formData.exam.domainWeights[domain.id] > 0
+            (domain) => formData.exam.domainWeights[domain.id] > 0,
           )
         );
       default:
@@ -273,7 +277,7 @@ export default function EditCoursePage() {
                 size="sm"
                 onClick={() =>
                   setViewMode(
-                    viewMode === "minimal" ? "traditional" : "minimal"
+                    viewMode === "minimal" ? "traditional" : "minimal",
                   )
                 }
                 className="text-muted-foreground hover:text-foreground"

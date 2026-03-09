@@ -3,6 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { CourseFormData, CourseType } from "@/modules/course/course.types";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  QUESTION_TYPES,
+  QuestionType,
+} from "@/modules/exam-bank/exam-bank.types";
 
 interface CourseFormTraditionalProps {
   formData: CourseFormData;
@@ -114,7 +118,7 @@ export function CourseFormTraditional({
               >
                 {type}
               </button>
-            )
+            ),
           )}
         </div>
       </div>
@@ -178,7 +182,7 @@ export function CourseFormTraditional({
       setFormData({
         ...formData,
         domains: formData.domains.map((d) =>
-          d.id === domainId ? { ...d, name } : d
+          d.id === domainId ? { ...d, name } : d,
         ),
       });
     };
@@ -266,7 +270,7 @@ export function CourseFormTraditional({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: [...d.chapters, newChapter] }
-            : d
+            : d,
         ),
       });
     };
@@ -277,7 +281,7 @@ export function CourseFormTraditional({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: d.chapters.filter((c) => c.id !== chapterId) }
-            : d
+            : d,
         ),
       });
     };
@@ -285,7 +289,7 @@ export function CourseFormTraditional({
     const updateChapterName = (
       domainId: string,
       chapterId: string,
-      name: string
+      name: string,
     ) => {
       setFormData({
         ...formData,
@@ -294,10 +298,10 @@ export function CourseFormTraditional({
             ? {
                 ...d,
                 chapters: d.chapters.map((c) =>
-                  c.id === chapterId ? { ...c, name } : c
+                  c.id === chapterId ? { ...c, name } : c,
                 ),
               }
-            : d
+            : d,
         ),
       });
     };
@@ -420,9 +424,24 @@ export function CourseFormTraditional({
       });
     };
 
+    const updateQuestionType = (
+      questionType: QuestionType,
+      checked: boolean,
+    ) => {
+      setFormData({
+        ...formData,
+        exam: {
+          ...formData.exam,
+          questionTypes: checked
+            ? [...formData.exam.questionTypes, questionType]
+            : formData.exam.questionTypes.filter((t) => t !== questionType),
+        },
+      });
+    };
+
     const totalWeight = Object.values(formData.exam.domainWeights).reduce(
       (a, b) => a + b,
-      0
+      0,
     );
 
     return (
@@ -547,6 +566,41 @@ export function CourseFormTraditional({
             </button>
           </div>
         </div>
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+            Question Types
+          </h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Select which question types will appear in the exam
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {QUESTION_TYPES.map((qt) => (
+              <button
+                key={qt.type}
+                type="button"
+                onClick={() =>
+                  updateQuestionType(
+                    qt.type,
+                    !formData.exam.questionTypes.includes(qt.type),
+                  )
+                }
+                className={`px-4 py-3 text-sm font-medium rounded-xl border-2 transition-all text-left ${
+                  formData.exam.questionTypes.includes(qt.type)
+                    ? "border-slate-900 dark:border-white bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
+                    : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
+                }`}
+              >
+                {qt.title}
+              </button>
+            ))}
+          </div>
+          {formData.exam.questionTypes.length === 0 && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+              Please select at least one question type
+            </p>
+          )}
+        </div>
       </motion.div>
     );
   };
@@ -554,7 +608,7 @@ export function CourseFormTraditional({
   const renderSummary = () => {
     const totalChapters = formData.domains.reduce(
       (sum, d) => sum + d.chapters.length,
-      0
+      0,
     );
 
     return (
@@ -742,6 +796,29 @@ export function CourseFormTraditional({
                 {formData.exam.allowSkipQuestions ? "Enabled" : "Disabled"}
               </span>
             </div>
+
+            {formData.exam.questionTypes.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">
+                  Question Types
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {formData.exam.questionTypes.map((qt) => {
+                    const questionType = QUESTION_TYPES.find(
+                      (q) => q.type === qt,
+                    );
+                    return questionType ? (
+                      <span
+                        key={qt}
+                        className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 rounded-lg"
+                      >
+                        {questionType.title}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

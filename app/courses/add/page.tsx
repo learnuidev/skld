@@ -22,6 +22,7 @@ const initialFormData: CourseFormData = {
     totalTimeMinutes: 0,
     domainWeights: {},
     allowSkipQuestions: false,
+    questionTypes: [],
   },
 };
 
@@ -35,7 +36,7 @@ export default function AddCoursePage() {
   const [importMethod, setImportMethod] = useState<"paste" | "upload">("paste");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [viewMode, setViewMode] = useState<"minimal" | "traditional">(
-    "minimal"
+    "minimal",
   );
 
   const totalSteps = 5;
@@ -59,7 +60,7 @@ export default function AddCoursePage() {
   const handleCancel = () => {
     if (
       window.confirm(
-        "Are you sure you want to cancel? All progress will be lost."
+        "Are you sure you want to cancel? All progress will be lost.",
       )
     ) {
       router.push("/studio");
@@ -169,13 +170,14 @@ export default function AddCoursePage() {
         return (
           formData.exam.totalQuestions > 0 &&
           formData.domains.every(
-            (domain) => formData.exam.domainWeights[domain.id] > 0
-          )
+            (domain) => formData.exam.domainWeights[domain.id] > 0,
+          ) &&
+          formData.exam.questionTypes.length > 0
         );
       case 5:
         const totalWeight = Object.values(formData.exam.domainWeights).reduce(
           (a, b) => a + b,
-          0
+          0,
         );
         return (
           formData.title.trim().length > 0 &&
@@ -186,7 +188,7 @@ export default function AddCoursePage() {
           formData.exam.totalTimeMinutes > 0 &&
           totalWeight === 100 &&
           formData.domains.every(
-            (domain) => formData.exam.domainWeights[domain.id] > 0
+            (domain) => formData.exam.domainWeights[domain.id] > 0,
           )
         );
       default:
@@ -242,7 +244,7 @@ export default function AddCoursePage() {
                 size="sm"
                 onClick={() =>
                   setViewMode(
-                    viewMode === "minimal" ? "traditional" : "minimal"
+                    viewMode === "minimal" ? "traditional" : "minimal",
                   )
                 }
                 className="text-muted-foreground hover:text-foreground"

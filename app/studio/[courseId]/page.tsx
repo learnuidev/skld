@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { useDeleteCourseMutation } from "@/modules/course/use-delete-course-mutation";
+import { CourseBackLink } from "@/components/course/course-back-link";
+import { CourseContainer } from "@/components/course/course-container";
+import { CourseGeneralInfo } from "@/components/course/course-general-info";
+import { CourseHeader } from "@/components/course/course-header";
+import { LoadingCourse } from "@/components/course/loading-course";
+import { LoadingCourseFailed } from "@/components/course/loading-course-failed";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { ExamBankTab } from "./components/exam-bank-tab";
-import { ContentTab } from "./components/content-tab";
 import {
   Dialog,
   DialogContent,
@@ -17,214 +16,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { AlertTriangle, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CourseHeader } from "@/components/course/course-header";
-import { CourseContainer } from "@/components/course/course-container";
-import { CourseBackLink } from "@/components/course/course-back-link";
-import { LoadingCourse } from "@/components/course/loading-course";
-import { LoadingCourseFailed } from "@/components/course/loading-course-failed";
+import { useDeleteCourseMutation } from "@/modules/course/use-delete-course-mutation";
+import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { AlertTriangle, Pencil } from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { ContentTab } from "./components/content-tab";
+import { ExamBankTab } from "./components/exam-bank-tab";
 
 const tabs = ["General Info", "Content", "Exam Bank"] as const;
-
-function CourseDetails({ course }: { course: any }) {
-  const details = [
-    { label: "Course Type", value: course.courseType || "Not Specified" },
-    {
-      label: "Certification",
-      value: course.hasCertification ? "Available" : "Not Available",
-    },
-    {
-      label: "Created",
-      value: new Date(course.createdAt).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-    },
-    {
-      label: "Last Updated",
-      value: new Date(course.updatedAt).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-    },
-  ];
-
-  return (
-    <section className="flex flex-col gap-6">
-      <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
-        Course Details
-      </h2>
-      <div className="grid grid-cols-2 gap-x-12 gap-y-6">
-        {details.map((item) => (
-          <div key={item.label} className="flex flex-col gap-1">
-            <span className="text-xs text-muted-foreground">{item.label}</span>
-            <span className="text-sm font-medium text-foreground capitalize">
-              {item.value}
-            </span>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ExamInfo({ course }: { course: any }) {
-  return (
-    <section className="flex flex-col gap-6">
-      <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
-        Exam Info
-      </h2>
-
-      <div className="flex flex-col gap-6">
-        <div className="flex items-baseline justify-between">
-          <span className="text-xs text-muted-foreground">Total Questions</span>
-          <span className="text-2xl font-semibold tabular-nums text-foreground">
-            {course.exam?.totalQuestions || 0}
-          </span>
-        </div>
-
-        {course.exam?.totalTimeMinutes && (
-          <div className="flex items-baseline justify-between">
-            <span className="text-xs text-muted-foreground">Time Limit</span>
-            <span className="text-2xl font-semibold tabular-nums text-foreground">
-              {course.exam.totalTimeMinutes}m
-            </span>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">Skip Questions</span>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="h-6 rounded-full text-xs font-normal text-muted-foreground pointer-events-none"
-          >
-            {course.exam?.allowSkipQuestions ? "Enabled" : "Disabled"}
-          </Button>
-        </div>
-      </div>
-
-      {course.exam?.domainWeights &&
-        Object.keys(course.exam.domainWeights).length > 0 && (
-          <>
-            <div className="h-px bg-border" />
-            <div className="flex flex-col gap-5">
-              <span className="text-xs text-muted-foreground">
-                Domain Weights
-              </span>
-              {Object.entries(course.exam.domainWeights).map(
-                ([domainId, weight]) => {
-                  const domain = course.domains?.find(
-                    (d: any) => d.id === domainId
-                  );
-                  return (
-                    <div key={domainId} className="flex flex-col gap-2">
-                      <div className="flex items-baseline justify-between gap-4">
-                        <span className="text-sm text-foreground leading-snug">
-                          {domain?.name || domainId}
-                        </span>
-                        <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-                          {Number(weight)}%
-                        </span>
-                      </div>
-                      <div className="h-1 w-full overflow-hidden rounded-full bg-secondary">
-                        <div
-                          className="h-full rounded-full bg-foreground transition-all duration-500"
-                          style={{ width: `${Number(weight)}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                }
-              )}
-            </div>
-          </>
-        )}
-    </section>
-  );
-}
-
-function DomainsList({ course }: { course: any }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  if (!course.domains || course.domains.length === 0) {
-    return null;
-  }
-
-  return (
-    <section className="flex flex-col gap-6">
-      <div className="flex items-baseline gap-3">
-        <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
-          Domains
-        </h2>
-        <span className="text-xs tabular-nums text-muted-foreground">
-          {course.domains.length}
-        </span>
-      </div>
-
-      <div className="flex flex-col">
-        {course.domains.map((domain: any, index: number) => {
-          const isOpen = openIndex === index;
-          return (
-            <div
-              key={domain.id}
-              className={cn(
-                "border-b border-border",
-                index === 0 && "border-t"
-              )}
-            >
-              <button
-                onClick={() => setOpenIndex(isOpen ? null : index)}
-                className="flex w-full items-center justify-between gap-4 py-5 text-left transition-colors hover:text-muted-foreground"
-              >
-                <span className="text-[15px] font-medium text-foreground leading-snug">
-                  {domain.name}
-                </span>
-                <ChevronDown
-                  className={cn(
-                    "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                    isOpen && "rotate-180"
-                  )}
-                />
-              </button>
-
-              <div
-                className={cn(
-                  "grid transition-all duration-200 ease-in-out",
-                  isOpen
-                    ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-0"
-                )}
-              >
-                <div className="overflow-hidden">
-                  <div className="flex flex-wrap gap-2 pb-5">
-                    {domain.chapters && domain.chapters.length > 0 ? (
-                      domain.chapters.map((chapter: any) => (
-                        <span
-                          key={chapter.id}
-                          className="inline-flex rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground"
-                        >
-                          {chapter.name}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-sm text-muted-foreground">
-                        No chapters yet
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
 function DeleteDialog({
   open,
@@ -333,28 +135,6 @@ export default function CourseDetailPage() {
     <CourseContainer>
       <CourseBackLink href="/studio" title={"Back to Studio"} />
 
-      <div className="mb-20">
-        <Link
-          href="/studio"
-          className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <svg
-            className="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
-          Back to Studio
-        </Link>
-      </div>
-
       <CourseHeader course={course}>
         <div className="flex gap-2">
           <Link href={`/studio/${course.id}/edit`}>
@@ -400,18 +180,7 @@ export default function CourseDetailPage() {
       </nav>
 
       {/* Content */}
-      {activeTab === "General Info" && (
-        <div className="mt-12 flex flex-col gap-16">
-          <div className="grid gap-16 lg:grid-cols-2">
-            <CourseDetails course={course} />
-            <ExamInfo course={course} />
-          </div>
-
-          <div className="h-px bg-border" />
-
-          <DomainsList course={course} />
-        </div>
-      )}
+      {activeTab === "General Info" && <CourseGeneralInfo course={course} />}
 
       {activeTab === "Content" && (
         <div className="mt-12">

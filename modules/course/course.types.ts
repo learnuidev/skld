@@ -1,3 +1,5 @@
+import { QuestionType } from "@/modules/exam-bank/exam-bank.types";
+
 export type CourseType =
   | "beginner"
   | "intermediate"
@@ -51,6 +53,7 @@ export interface ExamInfo {
   totalTimeMinutes?: number;
   domainWeights: Record<string, number>;
   allowSkipQuestions: boolean;
+  questionTypes?: QuestionType[];
 }
 
 export interface CourseFormData {
@@ -71,5 +74,6 @@ export interface CourseFormData {
     totalTimeMinutes: number;
     domainWeights: Record<string, number>;
     allowSkipQuestions: boolean;
+    questionTypes: QuestionType[];
   };
 }
