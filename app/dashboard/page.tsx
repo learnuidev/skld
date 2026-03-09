@@ -2,6 +2,7 @@
 
 import { CourseCard, CourseCardContainer } from "@/components/course-card";
 import { useGetCoursesQuery } from "@/modules/course/use-get-courses-query";
+import { useListPublicCoursesQuery } from "@/modules/course/use-list-public-courses-query";
 import { useCreateEnrollmentMutation } from "@/modules/enrollment/use-create-enrollment-mutation";
 import { useDeleteEnrollmentMutation } from "@/modules/enrollment/use-delete-enrollment-mutation";
 import { useGetEnrollmentsQuery } from "@/modules/enrollment/use-get-enrollment-query";
@@ -11,7 +12,7 @@ import { useState } from "react";
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: enrollments, isLoading, error } = useGetEnrollmentsQuery();
-  const { data: allCourses } = useGetCoursesQuery();
+  const { data: allCourses } = useListPublicCoursesQuery();
   const createEnrollmentMutation = useCreateEnrollmentMutation();
   const deleteEnrollmentMutation = useDeleteEnrollmentMutation();
 
