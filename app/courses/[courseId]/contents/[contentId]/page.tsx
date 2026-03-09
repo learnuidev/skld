@@ -58,6 +58,12 @@ export default function ContentPage() {
     setEditorContent("");
   };
 
+  useEffect(() => {
+    if (content?.content) {
+      setEditorContent(content?.content);
+    }
+  }, [content?.content]);
+
   const handleSave = async () => {
     try {
       await updateContentMutation.mutateAsync({
@@ -148,7 +154,7 @@ export default function ContentPage() {
           <div className="space-y-12">
             <div className="h-px bg-border/60" />
             <TiptapEditor
-              content={editorContent || content.content || ""}
+              content={editorContent}
               editable={isAuthor && isEditing}
               onUpdate={setEditorContent}
             />
