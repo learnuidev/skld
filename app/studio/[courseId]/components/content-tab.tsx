@@ -439,7 +439,6 @@ function ContentList({
   contents: CourseContent[];
   chapters: Array<{ id: string; name: string; number?: number }>;
 }) {
-  console.log("CONTENTS", contents);
   return (
     <div className="space-y-4">
       {contents.map((content) => (
