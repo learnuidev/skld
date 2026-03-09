@@ -16,6 +16,7 @@ const initialFormData: CourseFormData = {
   description: "",
   courseType: "beginner",
   hasCertification: false,
+  supportedLanguages: [],
   domains: [],
   exam: {
     totalQuestions: 0,
@@ -143,6 +144,7 @@ export default function AddCoursePage() {
         description: formData.description,
         courseType: formData.courseType,
         hasCertification: formData.hasCertification,
+        supportedLanguages: formData.supportedLanguages,
         domains: formData.domains,
         exam: formData.exam,
       });
@@ -157,7 +159,8 @@ export default function AddCoursePage() {
       case 1:
         return (
           formData.title.trim().length > 0 &&
-          formData.description.trim().length > 0
+          formData.description.trim().length > 0 &&
+          formData.supportedLanguages.length > 0
         );
       case 2:
         return formData.domains.length > 0;
@@ -182,6 +185,7 @@ export default function AddCoursePage() {
         return (
           formData.title.trim().length > 0 &&
           formData.description.trim().length > 0 &&
+          formData.supportedLanguages.length > 0 &&
           formData.domains.length > 0 &&
           formData.domains.every((domain) => domain.chapters?.length > 0) &&
           formData.exam.totalQuestions > 0 &&

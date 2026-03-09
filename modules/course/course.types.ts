@@ -1,4 +1,5 @@
 import { QuestionType } from "@/modules/exam-bank/exam-bank.types";
+import { SupportedLanguage } from "@/constants/languages";
 
 export type CourseType =
   | "beginner"
@@ -13,6 +14,7 @@ export interface Course {
   description?: string;
   courseType?: CourseType;
   hasCertification?: boolean;
+  supportedLanguages?: SupportedLanguage[];
   createdAt: number;
   updatedAt: number;
   domains?: Domain[];
@@ -24,6 +26,7 @@ export interface CreateCourseParams {
   description?: string;
   courseType?: CourseType;
   hasCertification?: boolean;
+  supportedLanguages?: SupportedLanguage[];
   domains?: Domain[];
   exam?: ExamInfo;
 }
@@ -33,6 +36,7 @@ export interface UpdateCourseParams {
   description?: string;
   courseType?: CourseType;
   hasCertification?: boolean;
+  supportedLanguages?: SupportedLanguage[];
   domains?: Domain[];
   exam?: ExamInfo;
 }
@@ -61,6 +65,7 @@ export interface CourseFormData {
   description: string;
   courseType: CourseType;
   hasCertification: boolean;
+  supportedLanguages: SupportedLanguage[];
   domains: Array<{
     id: string;
     name: string;

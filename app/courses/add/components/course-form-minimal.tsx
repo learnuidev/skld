@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CourseFormData, CourseType } from "@/modules/course/course.types";
+import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/constants/languages";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen,
@@ -67,7 +68,7 @@ export function CourseFormMinimal({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -40 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="max-w-2xl mx-auto py-12"
+      className="max-w-2xl mx-auto py-12 space-y-12"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -154,7 +155,7 @@ export function CourseFormMinimal({
               >
                 {type}
               </button>
-            ),
+            )
           )}
         </div>
       </motion.div>
@@ -163,6 +164,62 @@ export function CourseFormMinimal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
+      >
+        <h3 className="text-xl font-light text-center text-foreground mb-6 mt-12">
+          Select supported languages
+        </h3>
+        <p className="text-center text-muted-foreground mb-6">
+          Choose the languages for this course
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {SUPPORTED_LANGUAGES.map((language) => {
+            const isSelected = formData.supportedLanguages.some(
+              (lang) => lang.id === language.id
+            );
+            return (
+              <button
+                key={language.id}
+                type="button"
+                onClick={() => {
+                  const newLanguages = isSelected
+                    ? formData.supportedLanguages.filter(
+                        (lang) => lang.id !== language.id
+                      )
+                    : [...formData.supportedLanguages, language];
+                  setFormData({
+                    ...formData,
+                    supportedLanguages: newLanguages,
+                  });
+                }}
+                className={`p-5 text-sm font-medium rounded-2xl border-2 transition-all text-left hover:border-foreground/40 ${
+                  isSelected
+                    ? "border-foreground bg-foreground/5 text-foreground"
+                    : "border-border text-foreground/60"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{language.title}</span>
+                  {language.languageDirection === "rtl" && (
+                    <span className="text-xs bg-foreground/10 px-2 py-0.5 rounded">
+                      RTL
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {formData.supportedLanguages.length === 0 && (
+          <p className="text-center text-amber-600 dark:text-amber-400 text-sm mt-4">
+            Please select at least one language
+          </p>
+        )}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
         className="mt-12"
       >
         <button
@@ -214,7 +271,7 @@ export function CourseFormMinimal({
       setFormData({
         ...formData,
         domains: formData.domains.map((d) =>
-          d.id === domainId ? { ...d, name } : d,
+          d.id === domainId ? { ...d, name } : d
         ),
       });
     };
@@ -279,7 +336,11 @@ export function CourseFormMinimal({
           className="w-full p-6 rounded-2xl border-2 border-dashed border-border hover:border-foreground/40 transition-all flex items-center justify-center gap-3 text-foreground/70 hover:text-foreground"
         >
           <Plus className="w-6 h-6" />
-          <span className="text-base">Add another domain</span>
+          <span className="text-base">
+            {formData.domains?.length > 0
+              ? "Add another domain"
+              : "Add a domain"}
+          </span>
         </motion.button>
       </motion.div>
     );
@@ -296,7 +357,7 @@ export function CourseFormMinimal({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: [...d.chapters, newChapter] }
-            : d,
+            : d
         ),
       });
     };
@@ -307,7 +368,7 @@ export function CourseFormMinimal({
         domains: formData.domains.map((d) =>
           d.id === domainId
             ? { ...d, chapters: d.chapters.filter((c) => c.id !== chapterId) }
-            : d,
+            : d
         ),
       });
     };
@@ -315,7 +376,7 @@ export function CourseFormMinimal({
     const updateChapterName = (
       domainId: string,
       chapterId: string,
-      name: string,
+      name: string
     ) => {
       setFormData({
         ...formData,
@@ -324,10 +385,10 @@ export function CourseFormMinimal({
             ? {
                 ...d,
                 chapters: d.chapters.map((c) =>
-                  c.id === chapterId ? { ...c, name } : c,
+                  c.id === chapterId ? { ...c, name } : c
                 ),
               }
-            : d,
+            : d
         ),
       });
     };
@@ -453,7 +514,7 @@ export function CourseFormMinimal({
 
     const updateQuestionType = (
       questionType: QuestionType,
-      checked: boolean,
+      checked: boolean
     ) => {
       setFormData({
         ...formData,
@@ -468,7 +529,7 @@ export function CourseFormMinimal({
 
     const totalWeight = Object.values(formData.exam.domainWeights).reduce(
       (a, b) => a + b,
-      0,
+      0
     );
 
     return (
@@ -645,7 +706,7 @@ export function CourseFormMinimal({
                   onClick={() =>
                     updateQuestionType(
                       qt.type,
-                      !formData.exam.questionTypes.includes(qt.type),
+                      !formData.exam.questionTypes.includes(qt.type)
                     )
                   }
                   className={`p-5 rounded-xl border-2 transition-all text-left text-sm font-light ${
@@ -672,7 +733,7 @@ export function CourseFormMinimal({
   const renderSummary = () => {
     const totalChapters = formData.domains.reduce(
       (sum, d) => sum + d.chapters.length,
-      0,
+      0
     );
 
     return (
@@ -750,6 +811,31 @@ export function CourseFormMinimal({
                   >
                     {formData.hasCertification ? "Yes" : "No"}
                   </p>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground uppercase tracking-wide">
+                  Supported Languages
+                </label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {formData.supportedLanguages.map((lang) => (
+                    <span
+                      key={lang.id}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-foreground/5 text-xs rounded-md text-foreground"
+                    >
+                      {lang.title}
+                      {lang.languageDirection === "rtl" && (
+                        <span className="text-[10px] bg-foreground/10 px-1 rounded">
+                          RTL
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                  {formData.supportedLanguages.length === 0 && (
+                    <span className="text-sm text-foreground/60">
+                      None selected
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -836,7 +922,7 @@ export function CourseFormMinimal({
                   <div className="flex flex-wrap gap-2">
                     {formData.exam.questionTypes.map((qt) => {
                       const questionType = QUESTION_TYPES.find(
-                        (q) => q.type === qt,
+                        (q) => q.type === qt
                       );
                       return questionType ? (
                         <span

@@ -9,6 +9,7 @@ import { useCreateEnrollmentMutation } from "@/modules/enrollment/use-create-enr
 import { useDeleteEnrollmentMutation } from "@/modules/enrollment/use-delete-enrollment-mutation";
 import { useGetEnrollmentsQuery } from "@/modules/enrollment/use-get-enrollment-query";
 import { BookOpen, Check, Clock, GraduationCap, Search } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function Courses() {
@@ -105,17 +106,17 @@ export default function Courses() {
 
       {/* Available Courses */}
       {filteredCourses.length > 0 && (
-        <div>
-          <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground mb-6">
+        <div className="mt-12 sm:mt-24">
+          <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground mb-6 sm:mb-12">
             Enroll in the following courses
           </h2>
-          <div className="space-y-4">
+          <CourseCardContainer>
             {filteredCourses.map((course) => (
               <div
                 key={course.id}
                 className="group flex items-start gap-6 p-6 rounded-xl border border-border hover:border-foreground/20 transition-colors"
               >
-                <div className="flex-1 min-w-0">
+                <Link href={`/courses/${course.id}`} className="flex-1 min-w-0">
                   <h3 className="text-lg font-medium text-foreground mb-1">
                     {course.title}
                   </h3>
@@ -144,7 +145,7 @@ export default function Courses() {
                       </span>
                     )}
                   </div>
-                </div>
+                </Link>
                 <button
                   onClick={() => handleEnroll(course.id)}
                   disabled={createEnrollmentMutation.isPending}
@@ -161,7 +162,7 @@ export default function Courses() {
                 </button>
               </div>
             ))}
-          </div>
+          </CourseCardContainer>
         </div>
       )}
 

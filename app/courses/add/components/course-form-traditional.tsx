@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CourseFormData, CourseType } from "@/modules/course/course.types";
+import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/constants/languages";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   QUESTION_TYPES,
@@ -121,6 +122,55 @@ export function CourseFormTraditional({
             ),
           )}
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-3">
+          Supported Languages
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          {SUPPORTED_LANGUAGES.map((language) => {
+            const isSelected = formData.supportedLanguages.some(
+              (lang) => lang.id === language.id,
+            );
+            return (
+              <button
+                key={language.id}
+                type="button"
+                onClick={() => {
+                  const newLanguages = isSelected
+                    ? formData.supportedLanguages.filter(
+                        (lang) => lang.id !== language.id,
+                      )
+                    : [...formData.supportedLanguages, language];
+                  setFormData({
+                    ...formData,
+                    supportedLanguages: newLanguages,
+                  });
+                }}
+                className={`px-4 py-3 text-sm font-medium rounded-xl border-2 transition-all text-left ${
+                  isSelected
+                    ? "border-slate-900 dark:border-white bg-[rgb(10,11,12)] dark:bg-white text-white dark:text-slate-900"
+                    : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{language.title}</span>
+                  {language.languageDirection === "rtl" && (
+                    <span className="text-xs bg-slate-200 dark:bg-slate-600 px-2 py-0.5 rounded">
+                      RTL
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {formData.supportedLanguages.length === 0 && (
+          <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+            Please select at least one language
+          </p>
+        )}
       </div>
 
       <div className="bg-white dark:bg-[rgb(10,11,12)] p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
@@ -663,6 +713,31 @@ export function CourseFormTraditional({
               >
                 {formData.hasCertification ? "Enabled" : "Disabled"}
               </span>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                Supported Languages
+              </label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {formData.supportedLanguages.map((lang) => (
+                  <span
+                    key={lang.id}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-800 text-xs rounded-md"
+                  >
+                    {lang.title}
+                    {lang.languageDirection === "rtl" && (
+                      <span className="text-[10px] bg-slate-200 dark:bg-slate-600 px-1 rounded">
+                        RTL
+                      </span>
+                    )}
+                  </span>
+                ))}
+                {formData.supportedLanguages.length === 0 && (
+                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                    None selected
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
