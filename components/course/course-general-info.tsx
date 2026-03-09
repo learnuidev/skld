@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Course } from "@/modules/course/course.types";
+import { QUESTION_TYPES } from "@/modules/exam-bank/exam-bank.types";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
@@ -86,6 +87,32 @@ function ExamInfo({ course }: { course: any }) {
         </div>
       </div>
 
+      {course.exam?.questionTypes && course.exam.questionTypes.length > 0 && (
+        <>
+          <div className="h-px bg-border" />
+          <div className="flex flex-col gap-3">
+            <span className="text-xs text-muted-foreground">
+              Question Types
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {course.exam.questionTypes.map((questionType: any) => {
+                const questionTypeConfig = QUESTION_TYPES.find(
+                  (qt) => qt.type === questionType,
+                );
+                return questionTypeConfig ? (
+                  <span
+                    key={questionType}
+                    className="inline-flex rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground"
+                  >
+                    {questionTypeConfig.title}
+                  </span>
+                ) : null;
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
       {course.exam?.domainWeights &&
         Object.keys(course.exam.domainWeights).length > 0 && (
           <>
@@ -97,7 +124,7 @@ function ExamInfo({ course }: { course: any }) {
               {Object.entries(course.exam.domainWeights).map(
                 ([domainId, weight]) => {
                   const domain = course.domains?.find(
-                    (d: any) => d.id === domainId
+                    (d: any) => d.id === domainId,
                   );
                   return (
                     <div key={domainId} className="flex flex-col gap-2">
@@ -117,7 +144,7 @@ function ExamInfo({ course }: { course: any }) {
                       </div>
                     </div>
                   );
-                }
+                },
               )}
             </div>
           </>
@@ -152,7 +179,7 @@ function DomainsList({ course }: { course: any }) {
               key={domain.id}
               className={cn(
                 "border-b border-border",
-                index === 0 && "border-t"
+                index === 0 && "border-t",
               )}
             >
               <button
@@ -165,7 +192,7 @@ function DomainsList({ course }: { course: any }) {
                 <ChevronDown
                   className={cn(
                     "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                    isOpen && "rotate-180"
+                    isOpen && "rotate-180",
                   )}
                 />
               </button>
@@ -175,7 +202,7 @@ function DomainsList({ course }: { course: any }) {
                   "grid transition-all duration-200 ease-in-out",
                   isOpen
                     ? "grid-rows-[1fr] opacity-100"
-                    : "grid-rows-[0fr] opacity-0"
+                    : "grid-rows-[0fr] opacity-0",
                 )}
               >
                 <div className="overflow-hidden">
