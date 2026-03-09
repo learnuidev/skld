@@ -1,6 +1,8 @@
 "use client";
 
 import { CourseCard, CourseCardContainer } from "@/components/course-card";
+import { PageContainer } from "@/components/page-container";
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { useGetCoursesQuery } from "@/modules/course/use-get-courses-query";
 import Link from "next/link";
@@ -66,14 +68,11 @@ export function CreatorStudio() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <p className="text-sm text-muted-foreground mt-1">
-            {courses.length} {courses.length === 1 ? "course" : "courses"}{" "}
-            created
-          </p>
-        </div>
+    <PageContainer>
+      <PageHeader
+        title="Studio"
+        description={`${courses.length} ${courses.length === 1 ? "course" : "courses"} created`}
+      >
         <Link href="/courses/add">
           <Button size="lg" className="rounded-xl">
             <svg
@@ -92,7 +91,7 @@ export function CreatorStudio() {
             New Course
           </Button>
         </Link>
-      </div>
+      </PageHeader>
 
       <CourseCardContainer>
         {courses.map((course, index) => (
@@ -104,6 +103,6 @@ export function CreatorStudio() {
           />
         ))}
       </CourseCardContainer>
-    </div>
+    </PageContainer>
   );
 }

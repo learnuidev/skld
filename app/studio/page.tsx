@@ -13,10 +13,5 @@ export default function StudioPage() {
 
   const isCreator = profile?.roles?.includes("creator");
 
-  return (
-    <div className="py-8">
-      <h1 className="text-2xl font-light tracking-tight">Studio</h1>
-      {!isCreator ? <BecomeCreatorBanner /> : <CreatorStudio />}
-    </div>
-  );
+  return <div>{!isCreator ? <BecomeCreatorBanner /> : <CreatorStudio />}</div>;
 }
