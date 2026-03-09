@@ -1,7 +1,23 @@
 export type QuestionType =
   | "SINGLE_SELECT_MULTIPLE_CHOICE"
   | "MULTIPLE_SELECT_MULTIPLE_CHOICE"
-  | "TRUE_FALSE";
+  | "TRUE_FALSE"
+  | "ORDERING"
+  | "MATCHING";
+
+export const QUESTION_TYPES: { type: QuestionType; title: string }[] = [
+  {
+    type: "SINGLE_SELECT_MULTIPLE_CHOICE",
+    title: "Single Select Multiple Choice",
+  },
+  {
+    type: "MULTIPLE_SELECT_MULTIPLE_CHOICE",
+    title: "Multiple Select Multiple Choice",
+  },
+  { type: "TRUE_FALSE", title: "True/False" },
+  { type: "ORDERING", title: "Ordering" },
+  { type: "MATCHING", title: "Matching" },
+];
 
 export type QuestionDifficulty = "easy" | "medium" | "hard";
 
