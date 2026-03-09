@@ -17,6 +17,7 @@ import {
 import { useBulkCreateCourseContentsMutation } from "@/modules/course-content/use-bulk-create-course-contents-mutation";
 import { useCreateCourseContentMutation } from "@/modules/course-content/use-create-course-content-mutation";
 import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
+import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -42,6 +43,9 @@ interface ParsedContent extends CreateCourseContentParams {
 
 export function ContentTab({ courseId, chapters }: ContentTabProps) {
   const queryClient = useQueryClient();
+
+  const isAuthor = useIsUserCourseAuthor(courseId);
+
   const { data: contents, isLoading } = useListCourseContentsQuery(courseId);
   const createContentMutation = useCreateCourseContentMutation();
   const bulkCreateContentMutation = useBulkCreateCourseContentsMutation();
@@ -341,23 +345,25 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
       ) : (
         <>
           <ContentList contents={contents} />
-          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-8">
-            <Button
-              onClick={() => setAddDialogOpen(true)}
-              className="rounded-full gap-2"
-            >
-              <Plus className="size-4" />
-              Add more content
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setBulkDialogOpen(true)}
-              className="rounded-full gap-2"
-            >
-              <Upload className="size-4" />
-              Bulk add more content
-            </Button>
-          </div>
+          {isAuthor && (
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-8">
+              <Button
+                onClick={() => setAddDialogOpen(true)}
+                className="rounded-full gap-2"
+              >
+                <Plus className="size-4" />
+                Add more content
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setBulkDialogOpen(true)}
+                className="rounded-full gap-2"
+              >
+                <Upload className="size-4" />
+                Bulk add more content
+              </Button>
+            </div>
+          )}
         </>
       )}
 

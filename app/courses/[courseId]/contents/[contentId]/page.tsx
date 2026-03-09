@@ -1,15 +1,15 @@
 "use client";
 
-import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { TiptapEditor } from "@/components/editor/tiptap-editor";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useUpdateCourseContentMutation } from "@/modules/course-content/use-update-course-content-mutation";
-import { useParams } from "next/navigation";
+import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
+import { fetchAuthSession } from "@aws-amplify/auth";
 import { ArrowLeft, BookOpen, Edit2, Save, X } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { fetchAuthSession } from "@aws-amplify/auth";
-import { TiptapEditor } from "@/components/editor/tiptap-editor";
-import { useGetProfileQuery } from "@/modules/user/use-get-profile-query";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
@@ -28,10 +28,6 @@ export default function ContentPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editorContent, setEditorContent] = useState("");
 
-  const { data: user } = useGetProfileQuery();
-
-  const currentUserId = user?.id;
-
   const isLoading = courseLoading || contentLoading;
 
   useEffect(() => {
@@ -46,7 +42,7 @@ export default function ContentPage() {
     getCurrentUser();
   }, []);
 
-  const isAuthor = currentUserId === content?.userId;
+  const isAuthor = useIsUserCourseAuthor(params.courseId);
 
   const handleEdit = () => {
     setEditorContent(content?.content || "");
