@@ -15,21 +15,22 @@ import { useEffect, useState } from "react";
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId
+    params.courseId,
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const [isEditing, setIsEditing] = useState(false);
   const [editorContent, setEditorContent] = useState("");
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editChapterId, setEditChapterId] = useState<string>("");
 
   const textareaRef = useAutoSizeTextarea(editDescription);
 
@@ -49,10 +50,13 @@ export default function ContentPage() {
 
   const isAuthor = useIsUserCourseAuthor(params.courseId);
 
+  const chapters = course?.domains?.flatMap((d) => d.chapters) || [];
+
   const handleEdit = () => {
     setEditorContent(content?.content || "");
     setEditTitle(content?.title || "");
     setEditDescription(content?.description || "");
+    setEditChapterId(content?.chapterId || "");
     setIsEditing(true);
   };
 
@@ -61,6 +65,7 @@ export default function ContentPage() {
     setEditorContent(content?.content || "");
     setEditTitle(content?.title || "");
     setEditDescription(content?.description || "");
+    setEditChapterId(content?.chapterId || "");
   };
 
   useEffect(() => {
@@ -75,6 +80,7 @@ export default function ContentPage() {
         title: editTitle,
         description: editDescription,
         content: editorContent,
+        chapterId: editChapterId || undefined,
       });
       setIsEditing(false);
     } catch (error) {
@@ -138,6 +144,20 @@ export default function ContentPage() {
               <div className="flex-1 space-y-4">
                 {isEditing ? (
                   <>
+                    {chapters.length > 0 && (
+                      <select
+                        value={editChapterId}
+                        onChange={(e) => setEditChapterId(e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="">No chapter</option>
+                        {chapters.map((chapter) => (
+                          <option key={chapter.id} value={chapter.id}>
+                            {chapter.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                     <input
                       type="text"
                       value={editTitle}
@@ -156,6 +176,18 @@ export default function ContentPage() {
                   </>
                 ) : (
                   <>
+                    {content.chapterId &&
+                      chapters.length > 0 &&
+                      (() => {
+                        const chapter = chapters.find(
+                          (ch) => ch.id === content.chapterId,
+                        );
+                        return chapter ? (
+                          <div className="text-xs font-medium text-primary">
+                            {chapter.name}
+                          </div>
+                        ) : null;
+                      })()}
                     <h1 className="text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15]">
                       {content.title}
                     </h1>

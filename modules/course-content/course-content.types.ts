@@ -35,4 +35,5 @@ export interface UpdateCourseContentParams {
   content?: string;
   order?: number;
   contentVaraints?: CourseContentVariants[];
+  chapterId?: string;
 }
