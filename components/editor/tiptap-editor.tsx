@@ -275,6 +275,47 @@ export function TiptapEditor({
           padding: 0.125rem 0.375rem;
           border-radius: 0.25rem;
         }
+        @media (max-width: 640px) {
+          .ProseMirror h1 {
+            font-size: 1.75rem;
+            line-height: 1.25;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+          }
+          .ProseMirror h2 {
+            font-size: 1.375rem;
+            line-height: 1.35;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+          }
+          .ProseMirror h3 {
+            font-size: 1.125rem;
+            line-height: 1.45;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+          }
+          .ProseMirror ul,
+          .ProseMirror ol {
+            padding-left: 1rem;
+            margin-left: 0.5rem;
+          }
+          .ProseMirror ul > li,
+          .ProseMirror ol > li {
+            font-size: 0.9375rem;
+          }
+          .ProseMirror pre {
+            padding: 0.75rem;
+            margin: 0.75rem 0;
+            font-size: 0.8125rem;
+          }
+          .ProseMirror pre code {
+            font-size: 0.8125rem;
+          }
+          .ProseMirror :not(pre) > code {
+            padding: 0.0625rem 0.25rem;
+            font-size: 0.8125rem;
+          }
+        }
       `}</style>
       {editable && (
         <div className="flex items-center gap-1 px-2 py-2 sticky top-0 z-50 bg-white dark:bg-black flex-wrap">

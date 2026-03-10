@@ -106,7 +106,7 @@ export default function ContentPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-6 py-16 lg:py-24">
+      <div className="max-w-4xl mx-auto sm:px-6 px-0 py-16 lg:py-24">
         <div className="mb-16 flex items-center justify-between">
           <Link
             href={`/courses/${params.courseId}`}
