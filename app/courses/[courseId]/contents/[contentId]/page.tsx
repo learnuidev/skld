@@ -136,7 +136,7 @@ export default function ContentPage() {
         </div>
 
         <div className="space-y-8">
-          <header className="space-y-6">
+          <header className="space-y-6 sm:mb-16 mb-12">
             {isEditing ? (
               <>
                 {chapters.length > 0 && (
@@ -183,7 +183,7 @@ export default function ContentPage() {
                       </div>
                     ) : null;
                   })()}
-                <h1 className="text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15]">
+                <h1 className="text-3xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15]">
                   {content.title}
                 </h1>
 
