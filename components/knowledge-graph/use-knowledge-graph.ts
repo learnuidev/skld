@@ -10,11 +10,20 @@ import {
   useTransition,
 } from "react";
 
-import { NODE_RADIUS, STROKE_WIDTHS } from "./knowledge-graph.constants";
+import { STROKE_WIDTHS } from "./knowledge-graph.constants";
 import { GraphData, Link, Node } from "./knowledge-graph.types";
+import { TooltipData } from "./tooltip";
+import { getRelationships } from "./knowledge-graph.utils";
 
 type D3Node = Node & d3.SimulationNodeDatum;
 type D3Link = Link & { source: string | D3Node; target: string | D3Node };
+
+const getNodeRadius = (nodeId: string, graphData: GraphData): number => {
+  const relationships = getRelationships(graphData, nodeId);
+  const relationshipCount = relationships?.length;
+
+  return 6 * Math.pow(relationshipCount, 0.95);
+};
 
 export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -22,11 +31,11 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
   const [activeNode, setActiveNode] = useState<Node | null>(null);
   const [selectedLink, setSelectedLink] = useState<Link | null>(null);
   const [tooltip, setTooltip] = useState<{
-    content: string;
+    data: TooltipData | null;
     position: { x: number; y: number };
     visible: boolean;
   }>({
-    content: "",
+    data: null,
     position: { x: 0, y: 0 },
     visible: false,
   });
@@ -115,9 +124,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force(
         "collision",
-        d3
-          .forceCollide<D3Node>()
-          .radius((d) => (NODE_RADIUS[d.type || ""] || 32) + 5)
+        d3.forceCollide<D3Node>().radius((d) => getNodeRadius(d.id, graphData))
       )
       .force("x", d3.forceX(width / 2).strength(0.05))
       .force("y", d3.forceY(height / 2).strength(0.05));
@@ -147,7 +154,11 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
               ? d.target.label
               : graphData.nodes.find((n) => n.id === d.target)?.label;
           setTooltip({
-            content: `<strong>${sourceLabel}</strong> ↔ <strong>${targetLabel}</strong><br><span class="text-emerald-400">${d.description}</span><br><span class="text-amber-400 text-xs">Click for real-world example</span>`,
+            data: {
+              title: `${sourceLabel} ↔ ${targetLabel}`,
+              description: d.description,
+              hint: "Click for real-world example",
+            },
             position: { x: event.clientX, y: event.clientY },
             visible: true,
           });
@@ -165,7 +176,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
       .selectAll<SVGCircleElement, D3Node>("circle")
       .data(graphData.nodes as D3Node[])
       .join("circle")
-      .attr("r", (d) => NODE_RADIUS[d.type || ""] || 32)
+      .attr("r", (d) => getNodeRadius(d.id, graphData))
       .attr("fill", (d) => d.color)
       .attr("stroke", isDarkRef.current ? "#fff" : "#1e293b")
       .attr("stroke-width", 3)
@@ -193,7 +204,11 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
         handleNodeClick(d);
 
         setTooltip({
-          content: `<strong class="text-base">${d.label}</strong><br><span class="text-emerald-400">${d.description}</span><br><span class="text-amber-400 text-xs">Click to filter connections</span>`,
+          data: {
+            title: d.label,
+            description: d.description,
+            hint: "Click to filter connections",
+          },
           position: { x: event.clientX, y: event.clientY },
           visible: true,
         });
@@ -221,7 +236,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
       .attr("font-weight", "bold")
       .attr("fill", isDarkRef.current ? "#fff" : "#1e293b")
       .attr("text-anchor", "middle")
-      .attr("dy", (d) => -(NODE_RADIUS[d.type || ""] || 32) - 10)
+      .attr("dy", (d) => -getNodeRadius(d.id, graphData))
       .attr("stroke", isDarkRef.current ? "#000" : "#fff")
       .attr("stroke-width", "0.5")
       .attr("pointer-events", "none")

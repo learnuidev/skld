@@ -3,10 +3,19 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
-import { Info, Network, Target, Minimize2, Maximize2, X, ArrowRight } from "lucide-react";
+import {
+  Info,
+  Network,
+  Target,
+  Minimize2,
+  Maximize2,
+  X,
+  ArrowRight,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Node, Link, GraphData } from "./knowledge-graph.types";
+import { getRelationships } from "./knowledge-graph.utils";
 
 const LegendItem = ({
   color,
@@ -58,37 +67,9 @@ export const SidePanel = ({
   const isDark = theme === "dark" || resolvedTheme === "dark";
   const [isMinimized, setIsMinimized] = React.useState(false);
 
-  const getNodeById = (id: string | Node): Node | undefined => {
-    if (typeof id === "object") return id;
-    return graphData.nodes.find((n) => n.id === id);
-  };
-
-  const getRelationships = (node: Node): Array<{ link: Link; targetNode: Node; isOutgoing: boolean }> => {
-    const relationships: Array<{ link: Link; targetNode: Node; isOutgoing: boolean }> = [];
-
-    graphData.links.forEach((link) => {
-      const sourceId = typeof link.source === "object" ? link.source.id : link.source;
-      const targetId = typeof link.target === "object" ? link.target.id : link.target;
-
-      if (sourceId === node.id) {
-        const targetNode = getNodeById(targetId);
-        if (targetNode) {
-          relationships.push({ link, targetNode, isOutgoing: true });
-        }
-      }
-
-      if (targetId === node.id) {
-        const sourceNode = getNodeById(sourceId);
-        if (sourceNode) {
-          relationships.push({ link, targetNode: sourceNode, isOutgoing: false });
-        }
-      }
-    });
-
-    return relationships;
-  };
-
-  const relationships = activeNode ? getRelationships(activeNode) : [];
+  const relationships = activeNode
+    ? getRelationships(graphData, activeNode.id)
+    : [];
 
   return (
     <motion.div
@@ -121,7 +102,9 @@ export const SidePanel = ({
                   onClick={onReset}
                   className={`hover:${isDark ? "bg-slate-700/50" : "bg-slate-200/50"} rounded p-1 transition-colors`}
                 >
-                  <X className={`w-3 h-3 ${isDark ? "text-slate-400" : "text-slate-500"}`} />
+                  <X
+                    className={`w-3 h-3 ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                  />
                 </button>
               )}
               <button
@@ -158,11 +141,15 @@ export const SidePanel = ({
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: activeNode.color }}
                         />
-                        <h4 className={`font-medium ${isDark ? "text-white" : "text-slate-900"}`}>
+                        <h4
+                          className={`font-medium ${isDark ? "text-white" : "text-slate-900"}`}
+                        >
                           {activeNode.label}
                         </h4>
                       </div>
-                      <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"} leading-relaxed`}>
+                      <p
+                        className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"} leading-relaxed`}
+                      >
                         {activeNode.description}
                       </p>
                     </div>
@@ -170,40 +157,55 @@ export const SidePanel = ({
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-600/30 to-transparent" />
 
                     <div>
-                      <div className={`text-[10px] uppercase tracking-wider mb-3 ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+                      <div
+                        className={`text-[10px] uppercase tracking-wider mb-3 ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                      >
                         Relationships ({relationships.length})
                       </div>
                       <div className="space-y-2">
-                        {relationships.map(({ link, targetNode, isOutgoing }, index) => (
-                          <motion.div
-                            key={`${link.source}-${link.target}-${index}`}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className={`p-3 rounded-lg cursor-pointer hover:${isDark ? "bg-slate-700/40" : "bg-slate-200/40"} transition-colors ${isDark ? "bg-slate-800/30" : "bg-slate-100/30"}`}
-                            onClick={() => onLinkClick(link)}
-                          >
-                            <div className="flex items-start gap-2">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <ArrowRight className="w-3 h-3 text-emerald-400 flex-shrink-0" style={{ transform: isOutgoing ? 'rotate(0deg)' : 'rotate(180deg)' }} />
-                                  <span className={`text-xs font-medium ${isDark ? "text-slate-200" : "text-slate-700"}`}>
-                                    {targetNode.label}
-                                  </span>
+                        {relationships.map(
+                          ({ link, targetNode, isOutgoing }, index) => (
+                            <motion.div
+                              key={`${link.source}-${link.target}-${index}`}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              className={`p-3 rounded-lg cursor-pointer hover:${isDark ? "bg-slate-700/40" : "bg-slate-200/40"} transition-colors ${isDark ? "bg-slate-800/30" : "bg-slate-100/30"}`}
+                              onClick={() => onLinkClick(link)}
+                            >
+                              <div className="flex items-start gap-2">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <ArrowRight
+                                      className="w-3 h-3 text-emerald-400 flex-shrink-0"
+                                      style={{
+                                        transform: isOutgoing
+                                          ? "rotate(0deg)"
+                                          : "rotate(180deg)",
+                                      }}
+                                    />
+                                    <span
+                                      className={`text-xs font-medium ${isDark ? "text-slate-200" : "text-slate-700"}`}
+                                    >
+                                      {targetNode.label}
+                                    </span>
+                                  </div>
+                                  <p
+                                    className={`text-[10px] ${isDark ? "text-slate-400" : "text-slate-500"} leading-relaxed`}
+                                  >
+                                    {link.description}
+                                  </p>
                                 </div>
-                                <p className={`text-[10px] ${isDark ? "text-slate-400" : "text-slate-500"} leading-relaxed`}>
-                                  {link.description}
-                                </p>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full text-[9px] font-medium text-white uppercase`}
+                                  style={{ backgroundColor: link.color }}
+                                >
+                                  {link.strength}
+                                </span>
                               </div>
-                              <span
-                                className={`px-2 py-0.5 rounded-full text-[9px] font-medium text-white uppercase`}
-                                style={{ backgroundColor: link.color }}
-                              >
-                                {link.strength}
-                              </span>
-                            </div>
-                          </motion.div>
-                        ))}
+                            </motion.div>
+                          )
+                        )}
                       </div>
                     </div>
                   </div>

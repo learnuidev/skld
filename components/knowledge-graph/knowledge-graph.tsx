@@ -50,8 +50,12 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
       <SidePanel
         totalNodes={graphData.nodes.length}
         actorCount={graphData.nodes.filter((n) => n.type === "actor").length}
-        attributeCount={graphData.nodes.filter((n) => n.type === "attribute").length}
-        motivationCount={graphData.nodes.filter((n) => n.type === "motivation").length}
+        attributeCount={
+          graphData.nodes.filter((n) => n.type === "attribute").length
+        }
+        motivationCount={
+          graphData.nodes.filter((n) => n.type === "motivation").length
+        }
         linkCount={graphData.links.length}
         activeNode={deferredActiveNode}
         graphData={graphData}
@@ -71,7 +75,7 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
         onClose={() => {
           closeTooltip();
         }}
-        content={tooltip.content}
+        data={tooltip.data}
         position={tooltip.position}
         visible={tooltip.visible}
       />
