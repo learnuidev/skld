@@ -32,12 +32,17 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
   });
   const [, startTransition] = useTransition();
   const deferredActiveNodeRef = useRef<Node | null>(null);
+  const isDarkRef = useRef(isDark);
 
   const deferredActiveNode = useDeferredValue(activeNode);
   
   useEffect(() => {
     deferredActiveNodeRef.current = deferredActiveNode;
   }, [deferredActiveNode]);
+
+  useEffect(() => {
+    isDarkRef.current = isDark;
+  }, [isDark]);
 
   useEffect(() => {
     setIsClient(true);
@@ -134,7 +139,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
         handleLinkClick(d);
       })
       .on("mouseover", function (event, d) {
-        if (!deferredActiveNode) {
+        if (!deferredActiveNodeRef.current) {
           d3.select(this).attr("stroke-opacity", 1);
           const sourceLabel =
             typeof d.source === "object"
@@ -152,7 +157,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
         }
       })
       .on("mouseout", function () {
-        if (!deferredActiveNode) {
+        if (!deferredActiveNodeRef.current) {
           d3.select(this).attr("stroke-opacity", 0.5);
           setTooltip((t) => ({ ...t, visible: false }));
         }
@@ -165,7 +170,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
       .join("circle")
       .attr("r", (d) => NODE_RADIUS[d.type || ""] || 32)
       .attr("fill", (d) => d.color)
-      .attr("stroke", isDark ? "#fff" : "#1e293b")
+      .attr("stroke", isDarkRef.current ? "#fff" : "#1e293b")
       .attr("stroke-width", 3)
       .attr("cursor", "pointer")
       .call(
@@ -191,7 +196,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
         handleNodeClick(d);
       })
       .on("mouseover", (event, d) => {
-        if (!deferredActiveNode) {
+        if (!deferredActiveNodeRef.current) {
           setTooltip({
             content: `<strong class="text-base">${d.label}</strong><br><span class="text-emerald-400">${d.description}</span><br><span class="text-amber-400 text-xs">Click to filter connections</span>`,
             position: { x: event.clientX, y: event.clientY },
@@ -200,7 +205,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
         }
       })
       .on("mouseout", () => {
-        if (!deferredActiveNode) {
+        if (!deferredActiveNodeRef.current) {
           setTooltip((t) => ({ ...t, visible: false }));
         }
       });
@@ -213,10 +218,10 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
       .text((d) => d.label)
       .attr("font-size", (d) => (d.type === "actor" ? "13px" : "12px"))
       .attr("font-weight", "bold")
-      .attr("fill", isDark ? "#fff" : "#1e293b")
+      .attr("fill", isDarkRef.current ? "#fff" : "#1e293b")
       .attr("text-anchor", "middle")
       .attr("dy", (d) => -(NODE_RADIUS[d.type || ""] || 32) - 10)
-      .attr("stroke", isDark ? "#000" : "#fff")
+      .attr("stroke", isDarkRef.current ? "#000" : "#fff")
       .attr("stroke-width", "0.5")
       .attr("pointer-events", "none")
       .attr("paint-order", "stroke");

@@ -28,7 +28,9 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
   if (!isClient) return null;
 
   return (
-    <div className={`relative w-full h-screen overflow-hidden ${isDark ? "bg-slate-950" : "bg-slate-50"}`}>
+    <div
+      className={`relative w-full h-screen mb-12 overflow-hidden ${isDark ? "bg-[rgb(11,12,13)]" : "bg-slate-50"}`}
+    >
       <svg
         ref={svgRef}
         className="w-full h-full"
