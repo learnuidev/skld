@@ -31,8 +31,13 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
     visible: false,
   });
   const [, startTransition] = useTransition();
+  const deferredActiveNodeRef = useRef<Node | null>(null);
 
   const deferredActiveNode = useDeferredValue(activeNode);
+  
+  useEffect(() => {
+    deferredActiveNodeRef.current = deferredActiveNode;
+  }, [deferredActiveNode]);
 
   useEffect(() => {
     setIsClient(true);
