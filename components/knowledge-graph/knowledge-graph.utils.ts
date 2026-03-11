@@ -11,6 +11,12 @@ const getNodeById = (
   return graphData.nodes.find((n) => n.id === nodeId);
 };
 
+export const getLinkId = (link: Link): string => {
+  const sourceId = typeof link.source === "object" ? link.source.id : link.source;
+  const targetId = typeof link.target === "object" ? link.target.id : link.target;
+  return `${sourceId}-${targetId}`;
+};
+
 export const getRelationships = (
   graphData: GraphData,
   nodeId: string

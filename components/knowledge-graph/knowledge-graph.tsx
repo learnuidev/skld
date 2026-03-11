@@ -59,6 +59,7 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
         graphData={graphData}
         onReset={handleReset}
         onLinkClick={setSelectedLink}
+        selectedLink={selectedLink}
       />
       <RelationshipPanel
         link={selectedLink}

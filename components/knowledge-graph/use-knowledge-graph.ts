@@ -264,6 +264,8 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
           : selectedLink.target;
 
       g.selectAll<SVGLineElement, D3Link>("line")
+        .transition()
+        .duration(300)
         .attr("stroke-width", (d) => {
           const dSourceId =
             typeof d.source === "object" ? d.source.id : d.source;
@@ -281,11 +283,21 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
           return dSourceId === sourceId && dTargetId === targetId
             ? "url(#glow)"
             : "none";
+        })
+        .attr("stroke-opacity", (d) => {
+          const dSourceId =
+            typeof d.source === "object" ? d.source.id : d.source;
+          const dTargetId =
+            typeof d.target === "object" ? d.target.id : d.target;
+          return dSourceId === sourceId && dTargetId === targetId ? 1 : 0.15;
         });
     } else {
       g.selectAll<SVGLineElement, D3Link>("line")
+        .transition()
+        .duration(300)
         .attr("stroke-width", (d) => STROKE_WIDTHS[d.strength || ""] || 2)
-        .attr("filter", "none");
+        .attr("filter", "none")
+        .attr("stroke-opacity", 0.5);
     }
   }, [selectedLink]);
 

@@ -15,7 +15,7 @@ import {
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Node, Link, GraphData } from "./knowledge-graph.types";
-import { getRelationships } from "./knowledge-graph.utils";
+import { getRelationships, getLinkId } from "./knowledge-graph.utils";
 
 const LegendItem = ({
   color,
@@ -52,6 +52,7 @@ export const SidePanel = ({
   graphData,
   onReset,
   onLinkClick,
+  selectedLink,
 }: {
   totalNodes: number;
   actorCount: number;
@@ -62,6 +63,7 @@ export const SidePanel = ({
   graphData: GraphData;
   onReset: () => void;
   onLinkClick: (link: Link) => void;
+  selectedLink: Link | null;
 }) => {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -164,15 +166,19 @@ export const SidePanel = ({
                       </div>
                       <div className="space-y-2">
                         {relationships.map(
-                          ({ link, targetNode, isOutgoing }, index) => (
-                            <motion.div
-                              key={`${link.source}-${link.target}-${index}`}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: index * 0.05 }}
-                              className={`p-3 rounded-lg cursor-pointer hover:${isDark ? "bg-slate-700/40" : "bg-slate-200/40"} transition-colors ${isDark ? "bg-slate-800/30" : "bg-slate-100/30"}`}
-                              onClick={() => onLinkClick(link)}
-                            >
+                          ({ link, targetNode, isOutgoing }, index) => {
+                            const isSelected =
+                              selectedLink && getLinkId(selectedLink) === getLinkId(link);
+
+                            return (
+                              <motion.div
+                                key={`${link.source}-${link.target}-${index}`}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className={`p-3 rounded-lg cursor-pointer hover:${isDark ? "bg-slate-700/40" : "bg-slate-200/40"} transition-colors ${isDark ? "bg-slate-800/30" : "bg-slate-100/30"} ${selectedLink && !isSelected ? "opacity-30" : ""}`}
+                                onClick={() => onLinkClick(link)}
+                              >
                               <div className="flex items-start gap-2">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
@@ -202,9 +208,10 @@ export const SidePanel = ({
                                 >
                                   {link.strength}
                                 </span>
-                              </div>
-                            </motion.div>
-                          )
+                               </div>
+                             </motion.div>
+                             );
+                           }
                         )}
                       </div>
                     </div>
