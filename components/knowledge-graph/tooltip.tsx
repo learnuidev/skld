@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "next-themes";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { PANEL_DARK_BACKGROUND } from "./knowledge-graph.constants";
 
 export const Tooltip = ({
   content,
@@ -30,7 +31,7 @@ export const Tooltip = ({
           style={{ left: position.x + 20, top: position.y - 20 }}
         >
           <Card
-            className={`${isDark ? "bg-slate-900/95 border-slate-700/50" : "bg-white/95 border-slate-200/50"} backdrop-blur-xl shadow-2xl max-w-sm relative`}
+            className={`${isDark ? `${PANEL_DARK_BACKGROUND} border-slate-700/50` : "bg-white/95 border-slate-200/50"} backdrop-blur-xl shadow-2xl max-w-sm relative`}
           >
             <button
               onClick={onClose}

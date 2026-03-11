@@ -18,12 +18,12 @@ export const ControlButtons = ({
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.4 }}
-    className="absolute bottom-4 right-4 z-20 flex flex-col gap-2"
+    className="absolute bottom-4 right-4 z-20 flex flex-row gap-2"
   >
     {hasFilter && (
       <Button
         onClick={onResetFilter}
-        variant="destructive"
+        variant="ghost"
         size="sm"
         className="shadow-lg"
       >
@@ -34,7 +34,8 @@ export const ControlButtons = ({
     <Button
       onClick={onCenter}
       size="sm"
-      className="shadow-lg bg-emerald-600 hover:bg-emerald-700"
+      variant={"ghost"}
+      className="shadow-lg "
     >
       <ZoomIn className="w-4 h-4 mr-2" />
       Center View
