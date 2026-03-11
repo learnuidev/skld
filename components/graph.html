@@ -1,0 +1,1649 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Threat Actors - Complete Concept Map with Real-World Examples</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Arial", sans-serif;
+        background-color: #0a0f1e;
+        overflow: hidden;
+        color: #e0e0e0;
+      }
+      #graph-container {
+        width: 100vw;
+        height: 100vh;
+        border: none;
+      }
+      .title-panel {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(18, 25, 45, 0.98);
+        padding: 20px 30px;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+        z-index: 10;
+        border-left: 6px solid #4caf50;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        max-width: 400px;
+      }
+      .title-panel h1 {
+        margin: 0;
+        font-size: 26px;
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+      .title-panel h2 {
+        margin: 8px 0 0;
+        font-size: 16px;
+        color: #a0b0d0;
+        font-weight: 400;
+      }
+      .title-panel .real-world-badge {
+        margin-top: 12px;
+        background: rgba(76, 175, 80, 0.2);
+        padding: 8px 12px;
+        border-radius: 30px;
+        font-size: 13px;
+        border: 1px solid #4caf50;
+        color: #4caf50;
+        display: inline-block;
+      }
+      .legend-panel {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(18, 25, 45, 0.98);
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+        z-index: 10;
+        max-width: 300px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      .legend-panel h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #fff;
+        font-size: 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding-bottom: 8px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        margin: 12px 0;
+      }
+      .legend-color {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        margin-right: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      }
+      .legend-text {
+        font-size: 14px;
+        color: #e0e0e0;
+      }
+      .legend-text strong {
+        color: #fff;
+      }
+      .stats-panel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(18, 25, 45, 0.98);
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+        z-index: 10;
+        min-width: 240px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        text-align: center;
+      }
+      .stats-number {
+        font-size: 48px;
+        font-weight: bold;
+        color: #4caf50;
+        line-height: 1;
+        margin: 10px 0 5px;
+        text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+      }
+      .stats-label {
+        font-size: 14px;
+        color: #a0b0d0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .stats-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.2);
+        margin: 15px 0;
+      }
+      .filter-badge {
+        position: absolute;
+        top: 100px;
+        right: 20px;
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 40px;
+        font-size: 15px;
+        font-weight: bold;
+        z-index: 15;
+        display: none;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 20px rgba(76, 175, 80, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+      }
+      .filter-badge button {
+        background: rgba(255, 255, 255, 0.25);
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 2px 12px;
+        border-radius: 30px;
+        line-height: 1;
+        transition: all 0.2s;
+      }
+      .filter-badge button:hover {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.1);
+      }
+      .relationship-panel {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(18, 25, 45, 0.98);
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+        z-index: 20;
+        max-width: 420px;
+        display: none;
+        border-left: 8px solid;
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #e0e0e0;
+        animation: slideIn 0.3s ease;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .relationship-panel h3 {
+        margin-top: 0;
+        color: #fff;
+        font-size: 22px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding-bottom: 12px;
+        padding-right: 30px;
+      }
+      .relationship-panel .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        font-size: 22px;
+        cursor: pointer;
+        color: #fff;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+      .relationship-panel .close-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(90deg);
+      }
+      .relationship-detail {
+        margin: 15px 0;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .real-world-example {
+        background: rgba(76, 175, 80, 0.15);
+        border-left: 4px solid #4caf50;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 8px;
+      }
+      .real-world-example h4 {
+        margin: 0 0 8px 0;
+        color: #4caf50;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .real-world-example p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #d0d0e0;
+      }
+      .strength-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 30px;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .tooltip {
+        position: absolute;
+        background: rgba(10, 15, 30, 0.98);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 12px;
+        font-size: 14px;
+        pointer-events: none;
+        z-index: 100;
+        max-width: 380px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        line-height: 1.6;
+        backdrop-filter: blur(10px);
+      }
+      .control-btn {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #4caf50, #45a049);
+        color: white;
+        border: none;
+        border-radius: 40px;
+        padding: 12px 25px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 15;
+        box-shadow: 0 4px 20px rgba(76, 175, 80, 0.5);
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+      .control-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.7);
+      }
+      .control-btn.reset-btn {
+        bottom: 90px;
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+        box-shadow: 0 4px 20px rgba(244, 67, 54, 0.5);
+        display: none;
+      }
+      .control-btn.reset-btn.visible {
+        display: flex;
+      }
+      .instruction {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 20px 40px;
+        border-radius: 60px;
+        font-size: 18px;
+        z-index: 15;
+        pointer-events: none;
+        animation: pulse 2s infinite;
+        border: 1px solid #4caf50;
+        box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+        backdrop-filter: blur(5px);
+        white-space: nowrap;
+      }
+      @keyframes pulse {
+        0% {
+          opacity: 0.8;
+          transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.05);
+        }
+        100% {
+          opacity: 0.8;
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+      .node-count-badge {
+        position: absolute;
+        top: 150px;
+        left: 20px;
+        background: rgba(76, 175, 80, 0.2);
+        padding: 8px 15px;
+        border-radius: 30px;
+        font-size: 13px;
+        border: 1px solid #4caf50;
+        color: #4caf50;
+        z-index: 10;
+      }
+      .link-highlight {
+        filter: drop-shadow(0 0 12px gold);
+        stroke-width: 5 !important;
+      }
+      .active-node-indicator {
+        filter: drop-shadow(0 0 20px #4caf50);
+        stroke: #fff;
+        stroke-width: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="title-panel">
+      <h1>🎯 Threat Actors, Attributes & Motivations</h1>
+      <h2>CompTIA Security+ | Domain 2.1 | Real-World Examples Edition</h2>
+      <div class="real-world-badge">
+        🌍 Click any connection for real-world examples
+      </div>
+    </div>
+
+    <div class="legend-panel">
+      <h3>📊 Legend</h3>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #ff6b6b"></div>
+        <div class="legend-text"><strong>Threat Actors</strong> (7 types)</div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #4ecdc4"></div>
+        <div class="legend-text">
+          <strong>Attributes</strong> (3 categories)
+        </div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #ffd93d"></div>
+        <div class="legend-text"><strong>Motivations</strong> (11 types)</div>
+      </div>
+      <div
+        style="
+          margin-top: 20px;
+          font-size: 13px;
+          color: #a0b0d0;
+          border-top: 1px solid rgba(255, 255, 255, 0.2);
+          padding-top: 15px;
+        "
+      >
+        <div>
+          💡 <strong style="color: #4caf50">Click on any node</strong> to filter
+          connections
+        </div>
+        <div>
+          🔗 <strong style="color: #4caf50">Click on any line</strong> for
+          real-world examples
+        </div>
+        <div>
+          ✕ <strong style="color: #f44336">Click X</strong> to reset view
+        </div>
+        <div
+          style="
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 6px;
+          "
+        >
+          <span style="color: #ffd93d"
+            >🔍 37 connections with real examples</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-panel">
+      <div class="stats-number">21</div>
+      <div class="stats-label">TOTAL CONCEPTS</div>
+      <div class="stats-divider"></div>
+      <div
+        style="display: flex; justify-content: space-between; margin: 10px 0"
+      >
+        <div><span style="color: #ff6b6b">●</span> 7 Actors</div>
+        <div><span style="color: #4ecdc4">●</span> 3 Attributes</div>
+        <div><span style="color: #ffd93d">●</span> 11 Motives</div>
+      </div>
+      <div class="stats-divider"></div>
+      <div style="font-size: 13px; color: #a0b0d0">
+        <span style="color: #4caf50">✨ 37 relationships mapped</span>
+      </div>
+    </div>
+
+    <div class="filter-badge" id="filterBadge">
+      <span id="badgeText">🔍 Filtering by: </span>
+      <button onclick="resetFilter()">✕</button>
+    </div>
+
+    <button
+      class="control-btn reset-btn"
+      id="resetFilterBtn"
+      onclick="resetFilter()"
+    >
+      <span>✕</span> Reset Filter
+    </button>
+
+    <button class="control-btn" id="centerBtn" onclick="centerGraph()">
+      <span>🎯</span> Center View
+    </button>
+
+    <div id="relationship-panel" class="relationship-panel">
+      <button class="close-btn" onclick="closePanel()">✕</button>
+      <h3 id="panel-title">Relationship Details</h3>
+      <div id="panel-content"></div>
+    </div>
+
+    <div id="graph-container"></div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+      // Complete graph data with real-world examples for each connection
+      const graph = {
+        nodes: [
+          // THREAT ACTORS (7) - Red themed
+          {
+            id: "nation_state",
+            group: "actor",
+            type: "actor",
+            label: "🏛️ Nation State",
+            description:
+              "Government-backed cyber operatives with substantial resources",
+            examples: [
+              "China's APT41",
+              "Russia's GRU (Fancy Bear)",
+              "North Korea's Lazarus Group",
+              "Iran's APT33",
+            ],
+            color: "#FF6B6B",
+            weight: 2,
+          },
+          {
+            id: "apt",
+            group: "actor",
+            type: "actor",
+            label: "🎯 APT",
+            description:
+              "Advanced Persistent Threat - Sophisticated, focused cyberattacks by well-funded opponents",
+            examples: [
+              "APT29 (Cozy Bear)",
+              "APT38 (Lazarus)",
+              "APT10 (Cloud Hopper)",
+              "APT1 (Comment Crew)",
+            ],
+            color: "#FF6B6B",
+            weight: 2,
+          },
+          {
+            id: "unskilled_attacker",
+            group: "actor",
+            type: "actor",
+            label: "🔰 Unskilled Attacker",
+            description:
+              "Novice with limited hacking skills, uses off-the-shelf tools",
+            examples: [
+              "Script kiddies using LOIC for DDoS",
+              "Teens using purchased RATs",
+              "Dark web tool purchasers",
+            ],
+            color: "#FF6B6B",
+            weight: 1,
+          },
+          {
+            id: "hacktivist",
+            group: "actor",
+            type: "actor",
+            label: "✊ Hacktivist",
+            description: "Activist hacker with political or social agenda",
+            examples: [
+              "Anonymous",
+              "LulzSec",
+              "OurMine",
+              "Syrian Electronic Army",
+            ],
+            color: "#FF6B6B",
+            weight: 1.5,
+          },
+          {
+            id: "insider_threat",
+            group: "actor",
+            type: "actor",
+            label: "👤 Insider Threat",
+            description:
+              "Trusted insider posing cybersecurity risks (intentional or accidental)",
+            examples: [
+              "Edward Snowden (NSA)",
+              "Chelsea Manning",
+              "Tesla sabotage incident",
+              "Wayfair contractor data theft",
+            ],
+            color: "#FF6B6B",
+            weight: 2,
+          },
+          {
+            id: "organized_crime",
+            group: "actor",
+            type: "actor",
+            label: "💀 Organized Crime",
+            description: "Criminal group seeking financial gain via cybercrime",
+            examples: [
+              "REvil ransomware gang",
+              "DarkSide (Colonial Pipeline)",
+              "Conti group",
+              "Carbanak gang",
+            ],
+            color: "#FF6B6B",
+            weight: 2,
+          },
+          {
+            id: "shadow_it",
+            group: "actor",
+            type: "actor",
+            label: "🌫️ Shadow IT",
+            description:
+              "Unauthorized, unregulated tech use within an organization",
+            examples: [
+              "Employees using Dropbox for work files",
+              "Unofficial Slack channels",
+              "Personal Gmail for business",
+              "Unauthorized AWS instances",
+            ],
+            color: "#FF6B6B",
+            weight: 1,
+          },
+
+          // ATTRIBUTES (3) - Teal themed
+          {
+            id: "internal_external",
+            group: "attribute",
+            type: "attribute",
+            label: "🏢 Internal/External",
+            description: "Originating from within or outside an entity",
+            examples: [
+              "Internal: Disgruntled sysadmin",
+              "External: Foreign nation-state",
+              "Hybrid: Insider working with outsiders",
+            ],
+            color: "#4ECDC4",
+            weight: 1.5,
+          },
+          {
+            id: "resources_funding",
+            group: "attribute",
+            type: "attribute",
+            label: "💰 Resources/Funding",
+            description: "Availability of financial and technological support",
+            examples: [
+              "High: Nation-state budgets ($1B+)",
+              "Medium: Organized crime ($10M+)",
+              "Low: Script kiddies ($100-1000)",
+            ],
+            color: "#4ECDC4",
+            weight: 1.5,
+          },
+          {
+            id: "sophistication",
+            group: "attribute",
+            type: "attribute",
+            label: "🎓 Sophistication",
+            description: "Level of expertise and technological proficiency",
+            examples: [
+              "High: Zero-day exploits",
+              "Medium: Custom malware",
+              "Low: Pre-made tools",
+            ],
+            color: "#4ECDC4",
+            weight: 1.5,
+          },
+
+          // MOTIVATIONS (11) - Yellow themed
+          {
+            id: "data_exfiltration",
+            group: "motivation",
+            type: "motivation",
+            label: "📤 Data Exfiltration",
+            description: "Stealing sensitive data for illicit purposes",
+            examples: [
+              "Equifax breach (143M records)",
+              "Marriott breach (500M guests)",
+              "Yahoo breach (3B accounts)",
+            ],
+            color: "#FFD93D",
+            weight: 1.5,
+          },
+          {
+            id: "espionage",
+            group: "motivation",
+            type: "motivation",
+            label: "🕵️ Espionage",
+            description:
+              "Gathering information for intelligence or competitive advantage",
+            examples: [
+              "Operation Aurora (Google)",
+              "OPM breach (21.5M records)",
+              "NotPetya (Ukraine attacks)",
+            ],
+            color: "#FFD93D",
+            weight: 1.5,
+          },
+          {
+            id: "service_disruption",
+            group: "motivation",
+            type: "motivation",
+            label: "⛔ Service Disruption",
+            description: "Disrupting systems or services intentionally",
+            examples: [
+              "Dyn DDoS attack (2016)",
+              "WannaCry ransomware",
+              "Log4j exploitation",
+            ],
+            color: "#FFD93D",
+            weight: 1.5,
+          },
+          {
+            id: "blackmail",
+            group: "motivation",
+            type: "motivation",
+            label: "📨 Blackmail",
+            description: "Extortion using compromising information",
+            examples: [
+              "Hollywood Presbyterian ransomware",
+              "Colonial Pipeline attack",
+              "JBS Foods ransomware",
+            ],
+            color: "#FFD93D",
+            weight: 1.5,
+          },
+          {
+            id: "financial_gain",
+            group: "motivation",
+            type: "motivation",
+            label: "💰 Financial Gain",
+            description: "Profiting from cybercriminal activities",
+            examples: [
+              "Carbanak gang ($1B stolen)",
+              "Bangladesh Bank heist ($81M)",
+              "Cryptojacking campaigns",
+            ],
+            color: "#FFD93D",
+            weight: 2,
+          },
+          {
+            id: "philosophical_beliefs",
+            group: "motivation",
+            type: "motivation",
+            label: "📜 Philosophical",
+            description: "Pursuing digital activism or ideology",
+            examples: [
+              "Anonymous attacking Westboro Baptist",
+              "Anti-police brutality hacktivism",
+              "Environmental activist hacks",
+            ],
+            color: "#FFD93D",
+            weight: 1.5,
+          },
+          {
+            id: "ethical",
+            group: "motivation",
+            type: "motivation",
+            label: "⚖️ Ethical",
+            description: "Cyber actions aligned with moral principles",
+            examples: [
+              "Bug bounty researchers",
+              "Vulnerability disclosure programs",
+              "Marcus Hutchins (WannaCry kill switch)",
+            ],
+            color: "#FFD93D",
+            weight: 1,
+          },
+          {
+            id: "revenge",
+            group: "motivation",
+            type: "motivation",
+            label: "⚡ Revenge",
+            description: "Retaliatory actions driven by personal vendettas",
+            examples: [
+              "Uber data breach (2016) - fired employee",
+              "Morgan Stanley ex-employee data theft",
+              "UK school admin password change revenge",
+            ],
+            color: "#FFD93D",
+            weight: 1.5,
+          },
+          {
+            id: "disruption_chaos",
+            group: "motivation",
+            type: "motivation",
+            label: "🌪️ Disruption",
+            description: "Creating chaos and confusion for various reasons",
+            examples: [
+              "Anonymous attacking Scientology",
+              "LulzSec's 50-day rampage",
+              "4chan's Project Chanology",
+            ],
+            color: "#FFD93D",
+            weight: 1,
+          },
+          {
+            id: "war",
+            group: "motivation",
+            type: "motivation",
+            label: "⚔️ War",
+            description: "Engaging in cyber warfare or military conflict",
+            examples: [
+              "Russia-Georgia cyber war (2008)",
+              "Stuxnet (Iran nuclear)",
+              "Ukraine power grid attacks",
+            ],
+            color: "#FFD93D",
+            weight: 2,
+          },
+          {
+            id: "ideology",
+            group: "motivation",
+            type: "motivation",
+            label: "🏛️ Ideological",
+            description: "Driven by strong beliefs or principles",
+            examples: [
+              "ISIS propaganda operations",
+              "Chinese social credit system protests",
+              "Hong Kong democracy activists",
+            ],
+            color: "#FFD93D",
+            weight: 1.5,
+          },
+        ],
+
+        links: [
+          // NATION STATE CONNECTIONS - With real-world examples
+          {
+            source: "nation_state",
+            target: "apt",
+            value: 3,
+            description:
+              "Nation states deploy APTs as sophisticated cyber weapons for long-term operations",
+            realExample:
+              "Russia's GRU deployed APT28 (Fancy Bear) to target the DNC during 2016 US elections. China's PLA deployed APT1 to steal intellectual property from US defense contractors.",
+            strength: "high",
+            color: "#FF6B6B",
+          },
+          {
+            source: "nation_state",
+            target: "resources_funding",
+            value: 3,
+            description:
+              "Nation states have virtually unlimited government funding and resources",
+            realExample:
+              "The US Cyber Command has a budget of over $4 billion annually. China's cyber operations employ an estimated 50,000+ personnel across military and civilian units.",
+            strength: "high",
+            color: "#4ECDC4",
+          },
+          {
+            source: "nation_state",
+            target: "sophistication",
+            value: 3,
+            description:
+              "State actors develop zero-day exploits and custom hardware implants",
+            realExample:
+              "Stuxnet used four zero-day exploits and sophisticated code to physically destroy Iranian centrifuges. Equation Group's disk firmware malware was undetectable for years.",
+            strength: "high",
+            color: "#4ECDC4",
+          },
+          {
+            source: "nation_state",
+            target: "espionage",
+            value: 3,
+            description:
+              "Intelligence gathering is the primary mission of state-sponsored hackers",
+            realExample:
+              "Chinese APT10 compromised 14 global IT management firms to steal data from their clients (Cloud Hopper operation). Russian hackers accessed State Department email systems for diplomatic intelligence.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "nation_state",
+            target: "war",
+            value: 3,
+            description:
+              "Cyber operations now integral to modern warfare doctrine",
+            realExample:
+              "Russia's NotPetya attack on Ukraine (2017) caused $10B in damages globally. Israel and US Stuxnet operation against Iran's nuclear program (physical destruction through cyber means).",
+            strength: "high",
+            color: "#FFD93D",
+          },
+
+          // APT CONNECTIONS
+          {
+            source: "apt",
+            target: "resources_funding",
+            value: 3,
+            description:
+              "APTs are well-funded by nation-states or criminal enterprises",
+            realExample:
+              "Lazarus Group (North Korea) stole over $2 billion through bank heists and cryptocurrency theft. DarkHotel APT operates from luxury hotels with government backing.",
+            strength: "high",
+            color: "#4ECDC4",
+          },
+          {
+            source: "apt",
+            target: "sophistication",
+            value: 3,
+            description:
+              "APTs use advanced techniques to maintain persistent access",
+            realExample:
+              "APT29 (Cozy Bear) remained undetected in DNC networks for over a year using custom malware. Equation Group's malware could reprogram hard drive firmware.",
+            strength: "high",
+            color: "#4ECDC4",
+          },
+          {
+            source: "apt",
+            target: "espionage",
+            value: 3,
+            description: "APTs specialize in long-term intelligence gathering",
+            realExample:
+              "APT1 (Comment Crew) operated from Shanghai for 7+ years, stealing 6.5TB of data from 141 organizations. APT41 conducted both espionage and financially motivated attacks simultaneously.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "apt",
+            target: "data_exfiltration",
+            value: 3,
+            description:
+              "APTs steal data gradually over extended periods to avoid detection",
+            realExample:
+              "Deep Panda APT exfiltrated 4TB of data from US Joint Chiefs of Staff over 8 months. APT10 stole intellectual property from 350+ companies worldwide.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+
+          // UNSKILLED ATTACKER CONNECTIONS
+          {
+            source: "unskilled_attacker",
+            target: "resources_funding",
+            value: 1,
+            description:
+              "Limited personal resources, may purchase tools from dark web for $50-500",
+            realExample:
+              "Teenager purchased DDoS-for-hire service for $19.99 to take down school websites. Script kiddies buy RATs (Remote Access Trojans) for $30-100 on dark web forums.",
+            strength: "low",
+            color: "#4ECDC4",
+          },
+          {
+            source: "unskilled_attacker",
+            target: "sophistication",
+            value: 1,
+            description:
+              "Low sophistication, relies on YouTube tutorials and pre-made tools",
+            realExample:
+              "14-year-old used LOIC (Low Orbit Ion Cannon) to participate in Anonymous DDoS attacks without understanding how it worked. Teenagers using purchased RATs to spy on webcam girls.",
+            strength: "low",
+            color: "#4ECDC4",
+          },
+          {
+            source: "unskilled_attacker",
+            target: "financial_gain",
+            value: 2,
+            description:
+              "Often motivated by quick money through ransomware-as-a-service",
+            realExample:
+              "College student used ransomware kit to infect 100+ computers, demanding $300 each. Teenager made $50,000 through SIM swapping attacks on crypto investors.",
+            strength: "medium",
+            color: "#FFD93D",
+          },
+          {
+            source: "unskilled_attacker",
+            target: "disruption_chaos",
+            value: 2,
+            description:
+              "May cause chaos for notoriety, bragging rights, or 'lulz'",
+            realExample:
+              "LulzSec (average age 19) hacked PBS, Sony, and CIA websites for attention. 16-year-old hacked Apple's internal systems just to prove it could be done.",
+            strength: "medium",
+            color: "#FFD93D",
+          },
+
+          // HACKTIVIST CONNECTIONS
+          {
+            source: "hacktivist",
+            target: "philosophical_beliefs",
+            value: 3,
+            description:
+              "Core motivation is advancing political or social causes",
+            realExample:
+              "Anonymous attacked the Church of Scientology (Project Chanology) for religious freedom. Syrian Electronic Army defaced news sites supporting opposition forces.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "hacktivist",
+            target: "ideology",
+            value: 3,
+            description:
+              "Strong ideological beliefs drive hacktivist operations",
+            realExample:
+              "AntiSec movement targeted government agencies to protest surveillance. OurMine hacked high-profile accounts to promote their security company.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "hacktivist",
+            target: "service_disruption",
+            value: 3,
+            description:
+              "Website defacement and DDoS attacks are common protest methods",
+            realExample:
+              "Anonymous took down CIA.gov for 3 hours. Greek hacktivists disrupted government websites during austerity protests. Myanmar hacktivists attack military websites post-coup.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "hacktivist",
+            target: "data_exfiltration",
+            value: 2,
+            description:
+              "May leak sensitive data to expose perceived wrongdoing",
+            realExample:
+              "Anonymous leaked 70GB of BART police data after shooting. GhostSec leaked ISIS training documents. AntiSec released 12 million Apple UDIDs.",
+            strength: "medium",
+            color: "#FFD93D",
+          },
+
+          // INSIDER THREAT CONNECTIONS
+          {
+            source: "insider_threat",
+            target: "internal_external",
+            value: 3,
+            description: "Classic internal threat with legitimate access",
+            realExample:
+              "Edward Snowden (NSA contractor) had administrator access to top-secret systems. Tesla employee modified manufacturing software and exfiltrated data to third parties.",
+            strength: "high",
+            color: "#4ECDC4",
+          },
+          {
+            source: "insider_threat",
+            target: "revenge",
+            value: 3,
+            description:
+              "Disgruntled employees often act out of revenge after termination",
+            realExample:
+              "Morgan Stanley employee stole data of 350,000 clients after being fired. UK school employee changed all staff passwords out of revenge. Wayfair contractor stole data after contract dispute.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "insider_threat",
+            target: "financial_gain",
+            value: 2,
+            description: "May sell access or data to competitors/criminals",
+            realExample:
+              "Goldman Sachs programmer stole trading code for Chinese bank ($100M offer). Coca-Cola employee sold trade secrets to Pepsi for $30,000.",
+            strength: "medium",
+            color: "#FFD93D",
+          },
+          {
+            source: "insider_threat",
+            target: "data_exfiltration",
+            value: 3,
+            description:
+              "Insiders can easily bypass security using legitimate credentials",
+            realExample:
+              "NSA contractor stole 50TB of classified data over 20 years. Boeing engineer stole 300,000+ files. Anthem breach traced to stolen developer credentials.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+
+          // ORGANIZED CRIME CONNECTIONS
+          {
+            source: "organized_crime",
+            target: "financial_gain",
+            value: 3,
+            description: "Primary motivation is profit through cybercrime",
+            realExample:
+              "Carbanak gang stole $1 billion from banks worldwide. FIN7 group made $100M+ through point-of-sale breaches. Cobalt group targeted ATMs globally.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "organized_crime",
+            target: "blackmail",
+            value: 3,
+            description:
+              "Ransomware-as-a-service is now a major criminal enterprise",
+            realExample:
+              "DarkSide collected $90M+ in Bitcoin from Colonial Pipeline and others. REvil demanded $70M from Kaseya and $50M from Apple. Conti group extorted $25M from healthcare orgs.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "organized_crime",
+            target: "data_exfiltration",
+            value: 3,
+            description: "Stolen data is sold on dark web markets for profit",
+            realExample:
+              "Joker's Stash sold 40M+ stolen credit cards. Genesis Market sold 1.5M+ browser fingerprints. 2.2B records from 12 breaches sold on dark web in 2023.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "organized_crime",
+            target: "resources_funding",
+            value: 2.5,
+            description:
+              "Well-funded with sophisticated criminal infrastructure",
+            realExample:
+              "REvil operated as a business with customer support and marketing. Conti had 24/7 call centers for ransom negotiations. DarkSide had investor dividends for affiliates.",
+            strength: "high",
+            color: "#4ECDC4",
+          },
+
+          // SHADOW IT CONNECTIONS
+          {
+            source: "shadow_it",
+            target: "internal_external",
+            value: 3,
+            description:
+              "Internal users accessing external unauthorized services",
+            realExample:
+              "Sales team using personal Gmail to share customer lists. Developers uploading code to personal GitHub. Employees using unapproved cloud storage for work files.",
+            strength: "high",
+            color: "#4ECDC4",
+          },
+          {
+            source: "shadow_it",
+            target: "ethical",
+            value: 2,
+            description: "Often not malicious - just trying to be productive",
+            realExample:
+              "Marketing team using Canva without approval (85% of companies have shadow IT). Engineers using personal AWS for testing. Remote workers using personal devices.",
+            strength: "medium",
+            color: "#FFD93D",
+          },
+          {
+            source: "shadow_it",
+            target: "data_exfiltration",
+            value: 2,
+            description:
+              "Accidental exposure through unauthorized services is common",
+            realExample:
+              "Uber data exposed in personal GitHub repo. Tesla IP leaked through employee's personal cloud. Zoom bombing incidents from unsecured personal meeting links.",
+            strength: "medium",
+            color: "#FFD93D",
+          },
+
+          // ATTRIBUTE TO ATTRIBUTE CONNECTIONS
+          {
+            source: "resources_funding",
+            target: "sophistication",
+            value: 3,
+            description:
+              "More resources enable higher sophistication and custom tools",
+            realExample:
+              "NSA's Tailored Access Operations unit has $1B+ budget for zero-days. Chinese PLA units have 1000+ researchers. In contrast, script kiddies use $30 LOIC tools.",
+            strength: "high",
+            color: "#4ECDC4",
+          },
+
+          // MOTIVATION CLUSTERS - With examples
+          {
+            source: "financial_gain",
+            target: "blackmail",
+            value: 3,
+            description: "Ransomware is the primary method for cyber extortion",
+            realExample:
+              "Colonial Pipeline paid $4.4M in Bitcoin to DarkSide. JBS Foods paid $11M. CNA Financial paid $40M. Average ransom payment now over $800,000.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "financial_gain",
+            target: "data_exfiltration",
+            value: 3,
+            description: "Stolen data is monetized through multiple channels",
+            realExample:
+              "Credit card details sell for $5-100 each on dark web. Medical records sell for $250-1000. Corporate espionage data can fetch millions from competitors.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "espionage",
+            target: "war",
+            value: 3,
+            description:
+              "Cyber espionage often precedes or accompanies military action",
+            realExample:
+              "Russian GRU mapped Ukrainian power grid before 2015 attacks. Chinese military cyber units active in South China Sea disputes. Iranian hackers targeted Saudi Aramco before attacks.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "philosophical_beliefs",
+            target: "ideology",
+            value: 3,
+            description:
+              "Philosophical beliefs and ideology are closely linked drivers",
+            realExample:
+              "Environmental activists hack oil companies. Pro-democracy groups target authoritarian regimes. Anti-fascist hackers attack white supremacist sites.",
+            strength: "high",
+            color: "#FFD93D",
+          },
+          {
+            source: "revenge",
+            target: "service_disruption",
+            value: 2,
+            description: "Revenge often manifests as service disruption",
+            realExample:
+              "Ex-Uber driver deleted customer records. Fired sysadmin deleted 180 servers at Medidata. Former employee wiped 20TB of backup data at insurance company.",
+            strength: "medium",
+            color: "#FFD93D",
+          },
+
+          // Additional connections for completeness
+          {
+            source: "organized_crime",
+            target: "sophistication",
+            value: 2.5,
+            description:
+              "Criminal groups now employ developers, testers, and support staff",
+            realExample:
+              "Carbanak had dedicated reverse engineers. Ryuk ransomware had custom binary per victim. TrickBot had modular architecture with 20+ specialized components.",
+            strength: "high",
+            color: "#4ECDC4",
+          },
+          {
+            source: "hacktivist",
+            target: "revenge",
+            value: 1.5,
+            description:
+              "Some hacktivism is driven by revenge against perceived enemies",
+            realExample:
+              "Anonymous hacked HBGary Federal after CEO threatened to expose members. LulzSec attacked Sony in retaliation for PS3 jailbreak lawsuit.",
+            strength: "medium",
+            color: "#FFD93D",
+          },
+          {
+            source: "insider_threat",
+            target: "espionage",
+            value: 2,
+            description:
+              "Insiders may be recruited by foreign intelligence services",
+            realExample:
+              "CIA agent Aldrich Ames sold secrets to Russia for $4.6M. FBI agent Robert Hanssen spied for Russia for 22 years. NSA translator sold secrets for $600,000.",
+            strength: "medium",
+            color: "#FFD93D",
+          },
+          {
+            source: "apt",
+            target: "war",
+            value: 2,
+            description:
+              "APTs can be precursors to or components of cyber warfare",
+            realExample:
+              "Russian APT29 and APT28 were active in Ukraine months before 2022 invasion. Chinese APT41 conducted both espionage and disruptive attacks on critical infrastructure.",
+            strength: "medium",
+            color: "#FFD93D",
+          },
+          {
+            source: "nation_state",
+            target: "internal_external",
+            value: 2,
+            description:
+              "Nation states are external but may recruit internal assets",
+            realExample:
+              "Russian intelligence recruited Dutch chemical weapons expert. Chinese intelligence cultivated assets at US defense contractors. North Korean IT workers infiltrate companies as employees.",
+            strength: "medium",
+            color: "#4ECDC4",
+          },
+          {
+            source: "shadow_it",
+            target: "internal_external",
+            value: 3,
+            description:
+              "Shadow IT bridges internal users with external services",
+            realExample:
+              "Employees using personal Dropbox (external) for work files. Teams using WhatsApp (external) for internal communication. Developers pushing code to public GitHub (external).",
+            strength: "high",
+            color: "#4ECDC4",
+          },
+        ],
+      };
+
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      const svg = d3
+        .select("#graph-container")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [0, 0, width, height]);
+
+      // Add zoom functionality
+      const g = svg.append("g");
+
+      const zoom = d3
+        .zoom()
+        .scaleExtent([0.2, 4])
+        .on("zoom", (event) => {
+          g.attr("transform", event.transform);
+        });
+
+      svg.call(zoom);
+
+      // Create tooltip
+      const tooltip = d3
+        .select("body")
+        .append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+      // Initialize simulation with adjusted forces
+      const simulation = d3
+        .forceSimulation(graph.nodes)
+        .force(
+          "link",
+          d3
+            .forceLink(graph.links)
+            .id((d) => d.id)
+            .distance((d) => 200 + d.value * 20)
+        )
+        .force("charge", d3.forceManyBody().strength(-500))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force(
+          "collision",
+          d3.forceCollide().radius((d) => (d.type === "actor" ? 45 : 40))
+        )
+        .force("x", d3.forceX(width / 2).strength(0.05))
+        .force("y", d3.forceY(height / 2).strength(0.05));
+
+      // Draw links
+      const link = g
+        .append("g")
+        .selectAll("line")
+        .data(graph.links)
+        .enter()
+        .append("line")
+        .attr("stroke", (d) => d.color)
+        .attr("stroke-width", (d) => {
+          switch (d.strength) {
+            case "high":
+              return 4;
+            case "medium":
+              return 2.5;
+            default:
+              return 1.5;
+          }
+        })
+        .attr("stroke-opacity", 0.5)
+        .attr("cursor", "pointer")
+        .on("click", function (event, d) {
+          showRelationshipDetails(d);
+          highlightLink(this);
+        })
+        .on("mouseover", function (event, d) {
+          if (!isFiltered) {
+            d3.select(this).attr("stroke-opacity", 1);
+
+            let sourceLabel =
+              typeof d.source === "object"
+                ? d.source.label
+                : graph.nodes.find((n) => n.id === d.source).label;
+            let targetLabel =
+              typeof d.target === "object"
+                ? d.target.label
+                : graph.nodes.find((n) => n.id === d.target).label;
+
+            // Clean labels for display
+            sourceLabel = sourceLabel.replace(
+              /[🏛️🎯🔰✊👤💀🌫️🏢💰🎓📤🕵️⛔📨📜⚖️⚡🌪️⚔️]/g,
+              ""
+            );
+            targetLabel = targetLabel.replace(
+              /[🏛️🎯🔰✊👤💀🌫️🏢💰🎓📤🕵️⛔📨📜⚖️⚡🌪️⚔️]/g,
+              ""
+            );
+
+            tooltip
+              .html(
+                `
+                        <strong>${sourceLabel}</strong> ↔ <strong>${targetLabel}</strong><br>
+                        <span style="color: #4CAF50;">${d.description}</span><br>
+                        <span style="color: #FFD93D; font-size: 12px;">🌍 Click for real-world example</span>
+                    `
+              )
+              .style("left", event.pageX + 15 + "px")
+              .style("top", event.pageY - 30 + "px");
+          }
+        })
+        .on("mouseout", function () {
+          if (!isFiltered) {
+            d3.select(this).attr("stroke-opacity", 0.5);
+          }
+          tooltip.transition().duration(300).style("opacity", 0);
+        });
+
+      // Draw nodes
+      const node = g
+        .append("g")
+        .selectAll("circle")
+        .data(graph.nodes)
+        .enter()
+        .append("circle")
+        .attr("r", (d) =>
+          d.type === "actor" ? 40 : d.type === "attribute" ? 35 : 32
+        )
+        .attr("fill", (d) => d.color)
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 3)
+        .attr("cursor", "pointer")
+        .call(
+          d3
+            .drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended)
+        )
+        .on("click", function (event, d) {
+          applyNodeFilter(d);
+        })
+        .on("mouseover", (event, d) => {
+          if (!isFiltered) {
+            tooltip.transition().duration(200).style("opacity", 0.95);
+
+            let examplesList = d.examples
+              ? d.examples.map((ex) => `• ${ex}`).join("<br>")
+              : "";
+
+            tooltip
+              .html(
+                `
+                        <strong style="font-size: 16px;">${d.label}</strong><br>
+                        <span style="color: #4CAF50;">${d.description || ""}</span><br>
+                        ${examplesList ? '<br><strong style="color: #FFD93D;">🌍 Real examples:</strong><br>' + examplesList : ""}
+                        <br><small style="color: #a0b0d0;">Click to filter connections</small>
+                    `
+              )
+              .style("left", event.pageX + 15 + "px")
+              .style("top", event.pageY - 30 + "px");
+          }
+        })
+        .on("mouseout", () => {
+          tooltip.transition().duration(300).style("opacity", 0);
+        });
+
+      // Add labels
+      const labels = g
+        .append("g")
+        .selectAll("text")
+        .data(graph.nodes)
+        .enter()
+        .append("text")
+        .text((d) => {
+          // Shorten labels for display
+          if (d.id === "unskilled_attacker") return "Unskilled Attacker";
+          if (d.id === "insider_threat") return "Insider Threat";
+          if (d.id === "organized_crime") return "Organized Crime";
+          if (d.id === "shadow_it") return "Shadow IT";
+          if (d.id === "nation_state") return "Nation State";
+          if (d.id === "philosophical_beliefs") return "Philosophical";
+          if (d.id === "service_disruption") return "Disruption";
+          if (d.id === "data_exfiltration") return "Data Exfil";
+          if (d.id === "financial_gain") return "Financial";
+          if (d.id === "internal_external") return "Int/Ext";
+          if (d.id === "resources_funding") return "Resources";
+          if (d.id === "disruption_chaos") return "Chaos";
+          if (d.id === "sophistication") return "Sophistication";
+          if (d.id === "apt") return "APT";
+          return d.label
+            .replace(/[🏛️🎯🔰✊👤💀🌫️🏢💰🎓📤🕵️⛔📨📜⚖️⚡🌪️⚔️]/g, "")
+            .trim();
+        })
+        .attr("font-size", (d) => (d.type === "actor" ? "13px" : "12px"))
+        .attr("font-weight", "bold")
+        .attr("fill", "#fff")
+        .attr("text-anchor", "middle")
+        .attr("dy", (d) => (d.type === "actor" ? -50 : -45))
+        .attr("stroke", "#000")
+        .attr("stroke-width", "0.5")
+        .attr("pointer-events", "none");
+
+      // State variables
+      let isFiltered = false;
+      let activeNode = null;
+
+      // Function to apply node filter
+      function applyNodeFilter(clickedNode) {
+        isFiltered = true;
+        activeNode = clickedNode;
+
+        // Get all connected node IDs
+        const connectedNodeIds = new Set();
+        connectedNodeIds.add(clickedNode.id);
+
+        graph.links.forEach((link) => {
+          const sourceId =
+            typeof link.source === "object" ? link.source.id : link.source;
+          const targetId =
+            typeof link.target === "object" ? link.target.id : link.target;
+
+          if (sourceId === clickedNode.id) {
+            connectedNodeIds.add(targetId);
+          }
+          if (targetId === clickedNode.id) {
+            connectedNodeIds.add(sourceId);
+          }
+        });
+
+        // Apply filtering
+        node
+          .transition()
+          .duration(500)
+          .attr("opacity", (d) => (connectedNodeIds.has(d.id) ? 1 : 0.15));
+
+        node.classed("active-node-indicator", (d) => d.id === clickedNode.id);
+
+        link
+          .transition()
+          .duration(500)
+          .attr("stroke-opacity", (d) => {
+            const sourceId =
+              typeof d.source === "object" ? d.source.id : d.source;
+            const targetId =
+              typeof d.target === "object" ? d.target.id : d.target;
+            return sourceId === clickedNode.id || targetId === clickedNode.id
+              ? 1
+              : 0.1;
+          });
+
+        labels
+          .transition()
+          .duration(500)
+          .attr("opacity", (d) => (connectedNodeIds.has(d.id) ? 1 : 0.15));
+
+        // Update UI
+        document.getElementById("resetFilterBtn").classList.add("visible");
+        document.getElementById("filterBadge").style.display = "flex";
+
+        let cleanLabel = clickedNode.label.replace(
+          /[🏛️🎯🔰✊👤💀🌫️🏢💰🎓📤🕵️⛔📨📜⚖️⚡🌪️⚔️]/g,
+          ""
+        );
+        document.getElementById("badgeText").innerHTML =
+          `🔍 Showing connections for: <strong>${cleanLabel}</strong>`;
+
+        closePanel();
+      }
+
+      // Function to reset filter
+      window.resetFilter = function () {
+        isFiltered = false;
+        activeNode = null;
+
+        node.transition().duration(500).attr("opacity", 1);
+        node.classed("active-node-indicator", false);
+
+        link.transition().duration(500).attr("stroke-opacity", 0.5);
+
+        labels.transition().duration(500).attr("opacity", 1);
+
+        document.getElementById("resetFilterBtn").classList.remove("visible");
+        document.getElementById("filterBadge").style.display = "none";
+      };
+
+      // Update positions on simulation tick
+      simulation.on("tick", () => {
+        link
+          .attr("x1", (d) => d.source.x)
+          .attr("y1", (d) => d.source.y)
+          .attr("x2", (d) => d.target.x)
+          .attr("y2", (d) => d.target.y);
+
+        node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+
+        labels.attr("x", (d) => d.x).attr("y", (d) => d.y);
+      });
+
+      // Drag functions
+      function dragstarted(event) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        event.subject.fx = event.subject.x;
+        event.subject.fy = event.subject.y;
+      }
+
+      function dragged(event) {
+        event.subject.fx = event.x;
+        event.subject.fy = event.y;
+      }
+
+      function dragended(event) {
+        if (!event.active) simulation.alphaTarget(0);
+        event.subject.fx = null;
+        event.subject.fy = null;
+      }
+
+      // Function to show relationship details with real-world examples
+      function showRelationshipDetails(linkData) {
+        const panel = document.getElementById("relationship-panel");
+        const panelTitle = document.getElementById("panel-title");
+        const panelContent = document.getElementById("panel-content");
+
+        // Get source and target labels
+        let sourceLabel =
+          typeof linkData.source === "object"
+            ? linkData.source.label
+            : graph.nodes.find((n) => n.id === linkData.source).label;
+        let targetLabel =
+          typeof linkData.target === "object"
+            ? linkData.target.label
+            : graph.nodes.find((n) => n.id === linkData.target).label;
+
+        // Clean labels for display
+        sourceLabel = sourceLabel.replace(
+          /[🏛️🎯🔰✊👤💀🌫️🏢💰🎓📤🕵️⛔📨📜⚖️⚡🌪️⚔️]/g,
+          ""
+        );
+        targetLabel = targetLabel.replace(
+          /[🏛️🎯🔰✊👤💀🌫️🏢💰🎓📤🕵️⛔📨📜⚖️⚡🌪️⚔️]/g,
+          ""
+        );
+
+        // Set panel color based on relationship type
+        let borderColor = linkData.color;
+        panel.style.borderLeftColor = borderColor;
+
+        // Get strength class and text
+        let strengthText =
+          linkData.strength.charAt(0).toUpperCase() +
+          linkData.strength.slice(1);
+        let strengthColor =
+          linkData.strength === "high"
+            ? "#f44336"
+            : linkData.strength === "medium"
+              ? "#ff9800"
+              : "#4CAF50";
+
+        // Build panel content with real-world example
+        panelTitle.innerHTML = `${sourceLabel} ↔ ${targetLabel}`;
+
+        panelContent.innerHTML = `
+                <div class="relationship-detail">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px; justify-content: space-between;">
+                        <strong style="color: #fff;">Relationship Strength:</strong>
+                        <span class="strength-badge" style="background: ${strengthColor};">${strengthText}</span>
+                    </div>
+                    
+                    <p><strong style="color: #fff;">📌 Context:</strong><br>${linkData.description}</p>
+                    
+                    <div class="real-world-example">
+                        <h4>🌍 Real-World Example</h4>
+                        <p>${linkData.realExample || "This relationship is documented in multiple cybersecurity incidents and threat intelligence reports."}</p>
+                    </div>
+                    
+                    <p><strong style="color: #fff;">🔍 Analysis:</strong><br>
+                    This connection demonstrates how ${sourceLabel.toLowerCase()} ${linkData.strength === "high" ? "strongly" : "moderately"} influences ${targetLabel.toLowerCase()} in the threat landscape. Understanding this relationship helps security teams anticipate attack patterns and implement appropriate defenses.</p>
+                </div>
+            `;
+
+        panel.style.display = "block";
+      }
+
+      // Function to highlight clicked link
+      function highlightLink(clickedElement) {
+        if (!isFiltered) {
+          link.classed("link-highlight", false);
+          node.classed("node-highlight", false);
+          d3.select(clickedElement).classed("link-highlight", true);
+        }
+      }
+
+      // Function to close panel
+      function closePanel() {
+        document.getElementById("relationship-panel").style.display = "none";
+        if (!isFiltered) {
+          link.classed("link-highlight", false);
+          node.classed("node-highlight", false);
+        }
+      }
+
+      // Center graph function
+      window.centerGraph = function () {
+        svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+      };
+
+      // Make functions globally available
+      window.closePanel = closePanel;
+
+      // Add initial instruction that fades
+      setTimeout(() => {
+        const instruction = document.querySelector(".instruction");
+        if (instruction) {
+          instruction.style.transition = "opacity 2s";
+          instruction.style.opacity = "0";
+          setTimeout(() => instruction.remove(), 2000);
+        }
+      }, 8000);
+    </script>
+  </body>
+</html>

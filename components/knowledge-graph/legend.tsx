@@ -1,0 +1,58 @@
+"use client";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Info, Network, Target } from "lucide-react";
+
+const LegendItem = ({
+  color,
+  label,
+  count,
+}: {
+  color: string;
+  label: string;
+  count: number;
+}) => (
+  <div className="flex items-center gap-3">
+    <div
+      className="w-5 h-5 rounded-full shadow-lg ring-2 ring-white/10"
+      style={{ backgroundColor: color }}
+    />
+    <span className="text-sm text-slate-200">
+      <span className="font-semibold">{label}</span> ({count})
+    </span>
+  </div>
+);
+
+export const Legend = () => (
+  <motion.div
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay: 0.3 }}
+    className="absolute bottom-20 left-4 z-10"
+  >
+    <Card className="bg-slate-900/95 backdrop-blur-xl border-slate-700/50 shadow-2xl">
+      <CardContent className="p-5">
+        <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+          <Network className="w-5 h-5" />
+          Legend
+        </h3>
+        <div className="space-y-3">
+          <LegendItem color="#FF6B6B" label="Threat Actors" count={7} />
+          <LegendItem color="#4ECDC4" label="Attributes" count={3} />
+          <LegendItem color="#FFD93D" label="Motivations" count={11} />
+        </div>
+        <div className="mt-5 pt-4 border-t border-slate-700 space-y-2 text-xs text-slate-300">
+          <div className="flex items-center gap-2">
+            <Target className="w-3 h-3 text-emerald-400" />
+            <span>Click any node to filter</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Info className="w-3 h-3 text-amber-400" />
+            <span>Click any link for examples</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </motion.div>
+);
