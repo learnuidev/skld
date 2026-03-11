@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { Info, Network, Target, Minimize2, Maximize2 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
 const LegendItem = ({
   color,
@@ -61,7 +62,12 @@ export const SidePanel = ({
         <CardContent
           className={`p-6 ${isMinimized ? "py-3" : "h-full flex flex-col"}`}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div
+            className={cn(
+              "flex items-center justify-between",
+              isMinimized ? "" : "mb-4"
+            )}
+          >
             <h3
               className={`font-medium text-sm flex items-center gap-2 ${isDark ? "text-white" : "text-slate-900"}`}
             >
