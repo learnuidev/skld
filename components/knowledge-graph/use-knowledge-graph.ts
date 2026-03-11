@@ -16,7 +16,7 @@ import { GraphData, Link, Node } from "./knowledge-graph.types";
 type D3Node = Node & d3.SimulationNodeDatum;
 type D3Link = Link & { source: string | D3Node; target: string | D3Node };
 
-export function useKnowledgeGraph(graphData: GraphData) {
+export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isClient, setIsClient] = useState(false);
   const [activeNode, setActiveNode] = useState<Node | null>(null);
@@ -73,6 +73,8 @@ export function useKnowledgeGraph(graphData: GraphData) {
     if (!isClient || !svgRef.current) return;
 
     const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+
     const container = svgRef.current.parentElement;
     const width = container?.clientWidth || window.innerWidth;
     const height = container?.clientHeight || window.innerHeight;
@@ -158,7 +160,7 @@ export function useKnowledgeGraph(graphData: GraphData) {
       .join("circle")
       .attr("r", (d) => NODE_RADIUS[d.type || ""] || 32)
       .attr("fill", (d) => d.color)
-      .attr("stroke", "#fff")
+      .attr("stroke", isDark ? "#fff" : "#1e293b")
       .attr("stroke-width", 3)
       .attr("cursor", "pointer")
       .call(
@@ -203,29 +205,13 @@ export function useKnowledgeGraph(graphData: GraphData) {
       .selectAll<SVGTextElement, D3Node>("text")
       .data(graphData.nodes as D3Node[])
       .join("text")
-      .text((d) => {
-        const shortLabels: Record<string, string> = {
-          unskilled_attacker: "Unskilled Attacker",
-          insider_threat: "Insider Threat",
-          organized_crime: "Organized Crime",
-          shadow_it: "Shadow IT",
-          nation_state: "Nation State",
-          philosophical_beliefs: "Philosophical",
-          service_disruption: "Disruption",
-          data_exfiltration: "Data Exfil",
-          financial_gain: "Financial",
-          internal_external: "Int/Ext",
-          resources_funding: "Resources",
-          disruption_chaos: "Chaos",
-        };
-        return shortLabels[d.id] || d.label;
-      })
+      .text((d) => d.label)
       .attr("font-size", (d) => (d.type === "actor" ? "13px" : "12px"))
       .attr("font-weight", "bold")
-      .attr("fill", "#fff")
+      .attr("fill", isDark ? "#fff" : "#1e293b")
       .attr("text-anchor", "middle")
       .attr("dy", (d) => -(NODE_RADIUS[d.type || ""] || 32) - 10)
-      .attr("stroke", "#000")
+      .attr("stroke", isDark ? "#000" : "#fff")
       .attr("stroke-width", "0.5")
       .attr("pointer-events", "none")
       .attr("paint-order", "stroke");
@@ -245,7 +231,7 @@ export function useKnowledgeGraph(graphData: GraphData) {
     return () => {
       simulation.stop();
     };
-  }, [isClient, deferredActiveNode, handleNodeClick, handleLinkClick, graphData]);
+  }, [isClient, handleNodeClick, handleLinkClick, graphData]);
 
   useEffect(() => {
     if (!svgRef.current) return;

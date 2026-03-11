@@ -1,6 +1,6 @@
 "use client";
 
-export type NodeType = "actor" | "attribute" | "motivation";
+export type NodeType = string;
 export type LinkStrength = "high" | "medium" | "low";
 
 export interface Node {

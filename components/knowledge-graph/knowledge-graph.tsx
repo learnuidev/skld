@@ -9,8 +9,11 @@ import { StatsPanel } from "./stats-panel";
 import { TitlePanel } from "./title-panel";
 import { ControlButtons } from "./control-buttons";
 import { Tooltip } from "./tooltip";
+import { useTheme } from "next-themes";
 
 export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
+  const { theme, resolvedTheme } = useTheme();
+  const isDark = theme === "dark" || resolvedTheme === "dark";
   const {
     svgRef,
     isClient,
@@ -20,12 +23,12 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
     handleReset,
     handleCenter,
     setSelectedLink,
-  } = useKnowledgeGraph(graphData);
+  } = useKnowledgeGraph(graphData, isDark);
 
   if (!isClient) return null;
 
   return (
-    <div className="relative w-full h-screen bg-slate-950 overflow-hidden">
+    <div className={`relative w-full h-screen overflow-hidden ${isDark ? "bg-slate-950" : "bg-slate-50"}`}>
       <svg
         ref={svgRef}
         className="w-full h-full"
