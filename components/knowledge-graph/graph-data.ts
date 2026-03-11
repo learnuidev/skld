@@ -2,22 +2,33 @@
 
 import { GraphData } from "./knowledge-graph.types";
 
-export const NODE_RADIUS: Record<string, number> = {
-  actor: 40,
-  attribute: 35,
-  motivation: 32,
-};
+type NodeColors =
+  | "mutedMauve"
+  | "deepSeaTeal"
+  | "warmSandalwood"
+  | "dustyRose"
+  | "sageGreen"
+  | "terracotta"
+  | "slateBlue"
+  | "goldenOchre"
+  | "charcoalGray"
+  | "cream"
+  | "forestGreen"
+  | "burgundy";
 
-export const NODE_COLORS: Record<string, string> = {
-  actor: "#9B6B7C", // Muted Mauve - refined and subtle
-  attribute: "#4A7A7C", // Deep Sea Teal - sophisticated depth
-  motivation: "#C4A27A", // Warm Sandalwood - organic luxury
-};
-
-export const STROKE_WIDTHS: Record<string, number> = {
-  high: 4,
-  medium: 2.5,
-  low: 1.5,
+const NODE_COLORS: Record<NodeColors, string> = {
+  mutedMauve: "#9B6B7C", // Muted Mauve - refined and subtle
+  deepSeaTeal: "#4A7A7C", // Deep Sea Teal - sophisticated depth
+  warmSandalwood: "#C4A27A", // Warm Sandalwood - organic luxury
+  dustyRose: "#D4A5A5", // Dusty Rose - soft and romantic
+  sageGreen: "#9CAF88", // Sage Green - natural and calming
+  terracotta: "#C97C5D", // Terracotta - earthy and warm
+  slateBlue: "#6A7A8E", // Slate Blue - calm and稳重
+  goldenOchre: "#C69C6D", // Golden Ochre - rich and warm
+  charcoalGray: "#4A4A4A", // Charcoal Gray - neutral and grounding
+  cream: "#F5E6D3", // Cream - soft and light
+  forestGreen: "#2C5F2D", // Forest Green - deep and lush
+  burgundy: "#8B3A3A", // Burgundy - rich and dramatic
 };
 
 export const graphData: GraphData = {
@@ -35,7 +46,7 @@ export const graphData: GraphData = {
         "North Korea's Lazarus Group",
         "Iran's APT33",
       ],
-      color: NODE_COLORS.actor,
+      color: NODE_COLORS.mutedMauve,
       weight: 2,
     },
     {
@@ -51,7 +62,7 @@ export const graphData: GraphData = {
         "APT10 (Cloud Hopper)",
         "APT1 (Comment Crew)",
       ],
-      color: NODE_COLORS.actor,
+      color: NODE_COLORS.mutedMauve,
       weight: 2,
     },
     {
@@ -66,7 +77,7 @@ export const graphData: GraphData = {
         "Teens using purchased RATs",
         "Dark web tool purchasers",
       ],
-      color: NODE_COLORS.actor,
+      color: NODE_COLORS.mutedMauve,
       weight: 1,
     },
     {
@@ -76,7 +87,7 @@ export const graphData: GraphData = {
       label: "Hacktivist",
       description: "Activist hacker with political or social agenda",
       examples: ["Anonymous", "LulzSec", "OurMine", "Syrian Electronic Army"],
-      color: NODE_COLORS.actor,
+      color: NODE_COLORS.mutedMauve,
       weight: 1.5,
     },
     {
@@ -92,7 +103,7 @@ export const graphData: GraphData = {
         "Tesla sabotage incident",
         "Wayfair contractor data theft",
       ],
-      color: NODE_COLORS.actor,
+      color: NODE_COLORS.mutedMauve,
       weight: 2,
     },
     {
@@ -107,7 +118,7 @@ export const graphData: GraphData = {
         "Conti group",
         "Carbanak gang",
       ],
-      color: NODE_COLORS.actor,
+      color: NODE_COLORS.mutedMauve,
       weight: 2,
     },
     {
@@ -122,7 +133,7 @@ export const graphData: GraphData = {
         "Personal Gmail for business",
         "Unauthorized AWS instances",
       ],
-      color: NODE_COLORS.actor,
+      color: NODE_COLORS.mutedMauve,
       weight: 1,
     },
     {
@@ -136,7 +147,7 @@ export const graphData: GraphData = {
         "External: Foreign nation-state",
         "Hybrid: Insider working with outsiders",
       ],
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
       weight: 1.5,
     },
     {
@@ -150,7 +161,7 @@ export const graphData: GraphData = {
         "Medium: Organized crime ($10M+)",
         "Low: Script kiddies ($100-1000)",
       ],
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
       weight: 1.5,
     },
     {
@@ -164,7 +175,7 @@ export const graphData: GraphData = {
         "Medium: Custom malware",
         "Low: Pre-made tools",
       ],
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
       weight: 1.5,
     },
     {
@@ -178,7 +189,7 @@ export const graphData: GraphData = {
         "Marriott breach (500M guests)",
         "Yahoo breach (3B accounts)",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 1.5,
     },
     {
@@ -193,7 +204,7 @@ export const graphData: GraphData = {
         "OPM breach (21.5M records)",
         "NotPetya (Ukraine attacks)",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 1.5,
     },
     {
@@ -207,7 +218,7 @@ export const graphData: GraphData = {
         "WannaCry ransomware",
         "Log4j exploitation",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 1.5,
     },
     {
@@ -221,7 +232,7 @@ export const graphData: GraphData = {
         "Colonial Pipeline attack",
         "JBS Foods ransomware",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 1.5,
     },
     {
@@ -235,7 +246,7 @@ export const graphData: GraphData = {
         "Bangladesh Bank heist ($81M)",
         "Cryptojacking campaigns",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 2,
     },
     {
@@ -249,7 +260,7 @@ export const graphData: GraphData = {
         "Anti-police brutality hacktivism",
         "Environmental activist hacks",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 1.5,
     },
     {
@@ -263,7 +274,7 @@ export const graphData: GraphData = {
         "Vulnerability disclosure programs",
         "Marcus Hutchins (WannaCry kill switch)",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 1,
     },
     {
@@ -277,7 +288,7 @@ export const graphData: GraphData = {
         "Morgan Stanley ex-employee data theft",
         "UK school admin password change revenge",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 1.5,
     },
     {
@@ -291,7 +302,7 @@ export const graphData: GraphData = {
         "LulzSec's 50-day rampage",
         "4chan's Project Chanology",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 1,
     },
     {
@@ -305,7 +316,7 @@ export const graphData: GraphData = {
         "Stuxnet (Iran nuclear)",
         "Ukraine power grid attacks",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 2,
     },
     {
@@ -319,7 +330,7 @@ export const graphData: GraphData = {
         "Chinese social credit system protests",
         "Hong Kong democracy activists",
       ],
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
       weight: 1.5,
     },
   ],
@@ -333,7 +344,7 @@ export const graphData: GraphData = {
       realExample:
         "Russia's GRU deployed APT28 (Fancy Bear) to target the DNC during 2016 US elections. China's PLA deployed APT1 to steal intellectual property from US defense contractors.",
       strength: "high",
-      color: NODE_COLORS.actor,
+      color: NODE_COLORS.mutedMauve,
     },
     {
       source: "nation_state",
@@ -344,7 +355,7 @@ export const graphData: GraphData = {
       realExample:
         "The US Cyber Command has a budget of over $4 billion annually. China's cyber operations employ an estimated 50,000+ personnel across military and civilian units.",
       strength: "high",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "nation_state",
@@ -355,7 +366,7 @@ export const graphData: GraphData = {
       realExample:
         "Stuxnet used four zero-day exploits and sophisticated code to physically destroy Iranian centrifuges. Equation Group's disk firmware malware was undetectable for years.",
       strength: "high",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "nation_state",
@@ -366,7 +377,7 @@ export const graphData: GraphData = {
       realExample:
         "Chinese APT10 compromised 14 global IT management firms to steal data from their clients (Cloud Hopper operation). Russian hackers accessed State Department email systems for diplomatic intelligence.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "nation_state",
@@ -376,7 +387,7 @@ export const graphData: GraphData = {
       realExample:
         "Russia's NotPetya attack on Ukraine (2017) caused $10B in damages globally. Israel and US Stuxnet operation against Iran's nuclear program (physical destruction through cyber means).",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "apt",
@@ -387,7 +398,7 @@ export const graphData: GraphData = {
       realExample:
         "Lazarus Group (North Korea) stole over $2 billion through bank heists and cryptocurrency theft. DarkHotel APT operates from luxury hotels with government backing.",
       strength: "high",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "apt",
@@ -397,7 +408,7 @@ export const graphData: GraphData = {
       realExample:
         "APT29 (Cozy Bear) remained undetected in DNC networks for over a year using custom malware. Equation Group's malware could reprogram hard drive firmware.",
       strength: "high",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "apt",
@@ -407,7 +418,7 @@ export const graphData: GraphData = {
       realExample:
         "APT1 (Comment Crew) operated from Shanghai for 7+ years, stealing 6.5TB of data from 141 organizations. APT41 conducted both espionage and financially motivated attacks simultaneously.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "apt",
@@ -418,7 +429,7 @@ export const graphData: GraphData = {
       realExample:
         "Deep Panda APT exfiltrated 4TB of data from US Joint Chiefs of Staff over 8 months. APT10 stole intellectual property from 350+ companies worldwide.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "unskilled_attacker",
@@ -429,7 +440,7 @@ export const graphData: GraphData = {
       realExample:
         "Teenager purchased DDoS-for-hire service for $19.99 to take down school websites. Script kiddies buy RATs (Remote Access Trojans) for $30-100 on dark web forums.",
       strength: "low",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "unskilled_attacker",
@@ -440,7 +451,7 @@ export const graphData: GraphData = {
       realExample:
         "14-year-old used LOIC (Low Orbit Ion Cannon) to participate in Anonymous DDoS attacks without understanding how it worked. Teenagers using purchased RATs to spy on webcam girls.",
       strength: "low",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "unskilled_attacker",
@@ -451,7 +462,7 @@ export const graphData: GraphData = {
       realExample:
         "College student used ransomware kit to infect 100+ computers, demanding $300 each. Teenager made $50,000 through SIM swapping attacks on crypto investors.",
       strength: "medium",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "unskilled_attacker",
@@ -461,7 +472,7 @@ export const graphData: GraphData = {
       realExample:
         "LulzSec (average age 19) hacked PBS, Sony, and CIA websites for attention. 16-year-old hacked Apple's internal systems just to prove it could be done.",
       strength: "medium",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "hacktivist",
@@ -471,7 +482,7 @@ export const graphData: GraphData = {
       realExample:
         "Anonymous attacked the Church of Scientology (Project Chanology) for religious freedom. Syrian Electronic Army defaced news sites supporting opposition forces.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "hacktivist",
@@ -481,7 +492,7 @@ export const graphData: GraphData = {
       realExample:
         "AntiSec movement targeted government agencies to protest surveillance. OurMine hacked high-profile accounts to promote their security company.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "hacktivist",
@@ -492,7 +503,7 @@ export const graphData: GraphData = {
       realExample:
         "Anonymous took down CIA.gov for 3 hours. Greek hacktivists disrupted government websites during austerity protests. Myanmar hacktivists attack military websites post-coup.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "hacktivist",
@@ -502,7 +513,7 @@ export const graphData: GraphData = {
       realExample:
         "Anonymous leaked 70GB of BART police data after shooting. GhostSec leaked ISIS training documents. AntiSec released 12 million Apple UDIDs.",
       strength: "medium",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "insider_threat",
@@ -512,7 +523,7 @@ export const graphData: GraphData = {
       realExample:
         "Edward Snowden (NSA contractor) had administrator access to top-secret systems. Tesla employee modified manufacturing software and exfiltrated data to third parties.",
       strength: "high",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "insider_threat",
@@ -523,7 +534,7 @@ export const graphData: GraphData = {
       realExample:
         "Morgan Stanley employee stole data of 350,000 clients after being fired. UK school employee changed all staff passwords out of revenge. Wayfair contractor stole data after contract dispute.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "insider_threat",
@@ -533,7 +544,7 @@ export const graphData: GraphData = {
       realExample:
         "Goldman Sachs programmer stole trading code for Chinese bank ($100M offer). Coca-Cola employee sold trade secrets to Pepsi for $30,000.",
       strength: "medium",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "insider_threat",
@@ -544,7 +555,7 @@ export const graphData: GraphData = {
       realExample:
         "NSA contractor stole 50TB of classified data over 20 years. Boeing engineer stole 300,000+ files. Anthem breach traced to stolen developer credentials.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "organized_crime",
@@ -554,7 +565,7 @@ export const graphData: GraphData = {
       realExample:
         "Carbanak gang stole $1 billion from banks worldwide. FIN7 group made $100M+ through point-of-sale breaches. Cobalt group targeted ATMs globally.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "organized_crime",
@@ -564,7 +575,7 @@ export const graphData: GraphData = {
       realExample:
         "DarkSide collected $90M+ in Bitcoin from Colonial Pipeline and others. REvil demanded $70M from Kaseya and $50M from Apple. Conti group extorted $25M from healthcare orgs.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "organized_crime",
@@ -574,7 +585,7 @@ export const graphData: GraphData = {
       realExample:
         "Joker's Stash sold 40M+ stolen credit cards. Genesis Market sold 1.5M+ browser fingerprints. 2.2B records from 12 breaches sold on dark web in 2023.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "organized_crime",
@@ -584,7 +595,7 @@ export const graphData: GraphData = {
       realExample:
         "REvil operated as a business with customer support and marketing. Conti had 24/7 call centers for ransom negotiations. DarkSide had investor dividends for affiliates.",
       strength: "high",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "shadow_it",
@@ -594,7 +605,7 @@ export const graphData: GraphData = {
       realExample:
         "Sales team using personal Gmail to share customer lists. Developers uploading code to personal GitHub. Employees using unapproved cloud storage for work files.",
       strength: "high",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "shadow_it",
@@ -604,7 +615,7 @@ export const graphData: GraphData = {
       realExample:
         "Marketing team using Canva without approval (85% of companies have shadow IT). Engineers using personal AWS for testing. Remote workers using personal devices.",
       strength: "medium",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "shadow_it",
@@ -615,7 +626,7 @@ export const graphData: GraphData = {
       realExample:
         "Uber data exposed in personal GitHub repo. Tesla IP leaked through employee's personal cloud. Zoom bombing incidents from unsecured personal meeting links.",
       strength: "medium",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "resources_funding",
@@ -626,7 +637,7 @@ export const graphData: GraphData = {
       realExample:
         "NSA's Tailored Access Operations unit has $1B+ budget for zero-days. Chinese PLA units have 1000+ researchers. In contrast, script kiddies use $30 LOIC tools.",
       strength: "high",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "financial_gain",
@@ -636,7 +647,7 @@ export const graphData: GraphData = {
       realExample:
         "Colonial Pipeline paid $4.4M in Bitcoin to DarkSide. JBS Foods paid $11M. CNA Financial paid $40M. Average ransom payment now over $800,000.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "financial_gain",
@@ -646,7 +657,7 @@ export const graphData: GraphData = {
       realExample:
         "Credit card details sell for $5-100 each on dark web. Medical records sell for $250-1000. Corporate espionage data can fetch millions from competitors.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "espionage",
@@ -657,7 +668,7 @@ export const graphData: GraphData = {
       realExample:
         "Russian GRU mapped Ukrainian power grid before 2015 attacks. Chinese military cyber units active in South China Sea disputes. Iranian hackers targeted Saudi Aramco before attacks.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "philosophical_beliefs",
@@ -668,7 +679,7 @@ export const graphData: GraphData = {
       realExample:
         "Environmental activists hack oil companies. Pro-democracy groups target authoritarian regimes. Anti-fascist hackers attack white supremacist sites.",
       strength: "high",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "revenge",
@@ -678,7 +689,7 @@ export const graphData: GraphData = {
       realExample:
         "Ex-Uber driver deleted customer records. Fired sysadmin deleted 180 servers at Medidata. Former employee wiped 20TB of backup data at insurance company.",
       strength: "medium",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "organized_crime",
@@ -689,7 +700,7 @@ export const graphData: GraphData = {
       realExample:
         "Carbanak had dedicated reverse engineers. Ryuk ransomware had custom binary per victim. TrickBot had modular architecture with 20+ specialized components.",
       strength: "high",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
     {
       source: "hacktivist",
@@ -700,7 +711,7 @@ export const graphData: GraphData = {
       realExample:
         "Anonymous hacked HBGary Federal after CEO threatened to expose members. LulzSec attacked Sony in retaliation for PS3 jailbreak lawsuit.",
       strength: "medium",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "insider_threat",
@@ -710,7 +721,7 @@ export const graphData: GraphData = {
       realExample:
         "CIA agent Aldrich Ames sold secrets to Russia for $4.6M. FBI agent Robert Hanssen spied for Russia for 22 years. NSA translator sold secrets for $600,000.",
       strength: "medium",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "apt",
@@ -720,7 +731,7 @@ export const graphData: GraphData = {
       realExample:
         "Russian APT29 and APT28 were active in Ukraine months before 2022 invasion. Chinese APT41 conducted both espionage and disruptive attacks on critical infrastructure.",
       strength: "medium",
-      color: NODE_COLORS.motivation,
+      color: NODE_COLORS.warmSandalwood,
     },
     {
       source: "nation_state",
@@ -730,7 +741,7 @@ export const graphData: GraphData = {
       realExample:
         "Russian intelligence recruited Dutch chemical weapons expert. Chinese intelligence cultivated assets at US defense contractors. North Korean IT workers infiltrate companies as employees.",
       strength: "medium",
-      color: NODE_COLORS.attribute,
+      color: NODE_COLORS.deepSeaTeal,
     },
   ],
 };

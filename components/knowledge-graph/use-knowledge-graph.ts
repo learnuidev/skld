@@ -10,7 +10,7 @@ import {
   useTransition,
 } from "react";
 
-import { NODE_RADIUS, STROKE_WIDTHS } from "./graph-data";
+import { NODE_RADIUS, STROKE_WIDTHS } from "./knowledge-graph.constants";
 import { GraphData, Link, Node } from "./knowledge-graph.types";
 
 type D3Node = Node & d3.SimulationNodeDatum;
