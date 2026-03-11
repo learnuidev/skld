@@ -13,6 +13,9 @@ import {
 import { NODE_RADIUS, STROKE_WIDTHS } from "./graph-data";
 import { GraphData, Link, Node } from "./knowledge-graph.types";
 
+type D3Node = Node & d3.SimulationNodeDatum;
+type D3Link = Link & { source: string | D3Node; target: string | D3Node };
+
 export function useKnowledgeGraph(graphData: GraphData) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isClient, setIsClient] = useState(false);
@@ -42,7 +45,7 @@ export function useKnowledgeGraph(graphData: GraphData) {
     });
   }, []);
 
-  const handleLinkClick = useCallback((link: any) => {
+  const handleLinkClick = useCallback((link: D3Link) => {
     startTransition(() => {
       setSelectedLink((prev) => (prev === link ? null : link));
       setTooltip((t) => ({ ...t, visible: false }));
@@ -88,42 +91,42 @@ export function useKnowledgeGraph(graphData: GraphData) {
     svg.call(zoom);
 
     const simulation = d3
-      .forceSimulation(graphData.nodes as any)
+      .forceSimulation<D3Node>(graphData.nodes as D3Node[])
       .force(
         "link",
         d3
-          .forceLink(graphData.links as any)
-          .id((d: any) => d.id)
-          .distance((d: any) => 200 + d.value * 20)
+          .forceLink<D3Node, D3Link>(graphData.links as D3Link[])
+          .id((d) => d.id)
+          .distance((d) => 200 + (d.value || 0) * 20)
       )
       .force("charge", d3.forceManyBody().strength(-500))
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force(
         "collision",
         d3
-          .forceCollide()
-          .radius((d: any) => (NODE_RADIUS[d.type as string] || 32) + 5)
+          .forceCollide<D3Node>()
+          .radius((d) => (NODE_RADIUS[d.type || ""] || 32) + 5)
       )
       .force("x", d3.forceX(width / 2).strength(0.05))
       .force("y", d3.forceY(height / 2).strength(0.05));
 
     const link = g
       .append("g")
-      .selectAll("line")
+      .selectAll<SVGLineElement, D3Link>("line")
       .data(graphData.links)
       .join("line")
-      .attr("stroke", (d: any) => d.color)
+      .attr("stroke", (d) => d.color)
       .attr(
         "stroke-width",
-        (d: any) => STROKE_WIDTHS[d.strength as string] || 2
+        (d) => STROKE_WIDTHS[d.strength || ""] || 2
       )
       .attr("stroke-opacity", 0.5)
       .attr("cursor", "pointer")
-      .on("click", (event: MouseEvent, d: any) => {
+      .on("click", (event, d) => {
         event.stopPropagation();
         handleLinkClick(d);
       })
-      .on("mouseover", function (event: MouseEvent, d: any) {
+      .on("mouseover", function (event, d) {
         if (!deferredActiveNode) {
           d3.select(this).attr("stroke-opacity", 1);
           const sourceLabel =
@@ -150,37 +153,37 @@ export function useKnowledgeGraph(graphData: GraphData) {
 
     const node = g
       .append("g")
-      .selectAll("circle")
-      .data(graphData.nodes)
+      .selectAll<SVGCircleElement, D3Node>("circle")
+      .data(graphData.nodes as D3Node[])
       .join("circle")
-      .attr("r", (d: any) => NODE_RADIUS[d.type as string] || 32)
-      .attr("fill", (d: any) => d.color)
+      .attr("r", (d) => NODE_RADIUS[d.type || ""] || 32)
+      .attr("fill", (d) => d.color)
       .attr("stroke", "#fff")
       .attr("stroke-width", 3)
       .attr("cursor", "pointer")
       .call(
         d3
-          .drag()
-          .on("start", (event: any, d: any) => {
+          .drag<SVGCircleElement, D3Node>()
+          .on("start", (event, d) => {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
           })
-          .on("drag", (event: any, d: any) => {
+          .on("drag", (event, d) => {
             d.fx = event.x;
             d.fy = event.y;
           })
-          .on("end", (event: any, d: any) => {
+          .on("end", (event, d) => {
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
-          }) as any
+          })
       )
-      .on("click", (event: MouseEvent, d: any) => {
+      .on("click", (event, d) => {
         event.stopPropagation();
         handleNodeClick(d);
       })
-      .on("mouseover", (event: MouseEvent, d: any) => {
+      .on("mouseover", (event, d) => {
         if (!deferredActiveNode) {
           setTooltip({
             content: `<strong class="text-base">${d.label}</strong><br><span class="text-emerald-400">${d.description}</span><br><span class="text-amber-400 text-xs">Click to filter connections</span>`,
@@ -197,10 +200,10 @@ export function useKnowledgeGraph(graphData: GraphData) {
 
     const labels = g
       .append("g")
-      .selectAll("text")
-      .data(graphData.nodes)
+      .selectAll<SVGTextElement, D3Node>("text")
+      .data(graphData.nodes as D3Node[])
       .join("text")
-      .text((d: any) => {
+      .text((d) => {
         const shortLabels: Record<string, string> = {
           unskilled_attacker: "Unskilled Attacker",
           insider_threat: "Insider Threat",
@@ -217,11 +220,11 @@ export function useKnowledgeGraph(graphData: GraphData) {
         };
         return shortLabels[d.id] || d.label;
       })
-      .attr("font-size", (d: any) => (d.type === "actor" ? "13px" : "12px"))
+      .attr("font-size", (d) => (d.type === "actor" ? "13px" : "12px"))
       .attr("font-weight", "bold")
       .attr("fill", "#fff")
       .attr("text-anchor", "middle")
-      .attr("dy", (d: any) => -(NODE_RADIUS[d.type as string] || 32) - 10)
+      .attr("dy", (d) => -(NODE_RADIUS[d.type || ""] || 32) - 10)
       .attr("stroke", "#000")
       .attr("stroke-width", "0.5")
       .attr("pointer-events", "none")
@@ -229,20 +232,20 @@ export function useKnowledgeGraph(graphData: GraphData) {
 
     simulation.on("tick", () => {
       link
-        .attr("x1", (d: any) => d.source.x)
-        .attr("y1", (d: any) => d.source.y)
-        .attr("x2", (d: any) => d.target.x)
-        .attr("y2", (d: any) => d.target.y);
+        .attr("x1", (d) => (d.source as D3Node).x || 0)
+        .attr("y1", (d) => (d.source as D3Node).y || 0)
+        .attr("x2", (d) => (d.target as D3Node).x || 0)
+        .attr("y2", (d) => (d.target as D3Node).y || 0);
 
-      node.attr("cx", (d: any) => d.x).attr("cy", (d: any) => d.y);
+      node.attr("cx", (d) => d.x || 0).attr("cy", (d) => d.y || 0);
 
-      labels.attr("x", (d: any) => d.x).attr("y", (d: any) => d.y);
+      labels.attr("x", (d) => d.x || 0).attr("y", (d) => d.y || 0);
     });
 
     return () => {
       simulation.stop();
     };
-  }, [isClient, deferredActiveNode, handleNodeClick, handleLinkClick]);
+  }, [isClient, deferredActiveNode, handleNodeClick, handleLinkClick, graphData]);
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -261,15 +264,15 @@ export function useKnowledgeGraph(graphData: GraphData) {
         if (targetId === deferredActiveNode.id) connectedNodeIds.add(sourceId);
       });
 
-      g.selectAll("circle")
+      g.selectAll<SVGCircleElement, D3Node>("circle")
         .transition()
         .duration(500)
-        .attr("opacity", (d: any) => (connectedNodeIds.has(d.id) ? 1 : 0.15));
+        .attr("opacity", (d) => (connectedNodeIds.has(d.id) ? 1 : 0.15));
 
-      g.selectAll("line")
+      g.selectAll<SVGLineElement, D3Link>("line")
         .transition()
         .duration(500)
-        .attr("stroke-opacity", (d: any) => {
+        .attr("stroke-opacity", (d) => {
           const sourceId =
             typeof d.source === "object" ? d.source.id : d.source;
           const targetId =
@@ -280,13 +283,13 @@ export function useKnowledgeGraph(graphData: GraphData) {
             : 0.1;
         });
     } else {
-      g.selectAll("circle").transition().duration(500).attr("opacity", 1);
-      g.selectAll("line")
+      g.selectAll<SVGCircleElement, D3Node>("circle").transition().duration(500).attr("opacity", 1);
+      g.selectAll<SVGLineElement, D3Link>("line")
         .transition()
         .duration(500)
         .attr("stroke-opacity", 0.5);
     }
-  }, [deferredActiveNode]);
+  }, [deferredActiveNode, graphData]);
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -304,17 +307,17 @@ export function useKnowledgeGraph(graphData: GraphData) {
           ? selectedLink.target.id
           : selectedLink.target;
 
-      g.selectAll("line")
-        .attr("stroke-width", (d: any) => {
+      g.selectAll<SVGLineElement, D3Link>("line")
+        .attr("stroke-width", (d) => {
           const dSourceId =
             typeof d.source === "object" ? d.source.id : d.source;
           const dTargetId =
             typeof d.target === "object" ? d.target.id : d.target;
           return dSourceId === sourceId && dTargetId === targetId
-            ? (STROKE_WIDTHS[selectedLink.strength as string] || 2) * 2
-            : STROKE_WIDTHS[d.strength as string] || 2;
+            ? (STROKE_WIDTHS[selectedLink.strength || ""] || 2) * 2
+            : STROKE_WIDTHS[d.strength || ""] || 2;
         })
-        .attr("filter", (d: any) => {
+        .attr("filter", (d) => {
           const dSourceId =
             typeof d.source === "object" ? d.source.id : d.source;
           const dTargetId =
@@ -324,10 +327,10 @@ export function useKnowledgeGraph(graphData: GraphData) {
             : "none";
         });
     } else {
-      g.selectAll("line")
+      g.selectAll<SVGLineElement, D3Link>("line")
         .attr(
           "stroke-width",
-          (d: any) => STROKE_WIDTHS[d.strength as string] || 2
+          (d) => STROKE_WIDTHS[d.strength || ""] || 2
         )
         .attr("filter", "none");
     }
