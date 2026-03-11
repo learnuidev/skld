@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ReactQueryProvider } from "@/components/react-query/react-query-provider";
 import { AmplifyProvider } from "@/components/amplify-provider";
 
+// @ts-ignore
 import "./globals.css";
 import { NavBar } from "@/components/nav-bar";
 import { Suspense } from "react";
