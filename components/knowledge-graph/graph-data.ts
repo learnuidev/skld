@@ -8,18 +8,6 @@ export const NODE_RADIUS: Record<string, number> = {
   motivation: 32,
 };
 
-// export const NODE_COLORS: Record<string, string> = {
-//   actor: "#B76E79", // Dusty Rose - sophisticated and warm
-//   attribute: "#5D9B9B", // Patina - elegant muted teal
-//   motivation: "#C9A959", // Antique Gold - rich and luxurious
-// };
-
-// export const NODE_COLORS: Record<string, string> = {
-//   actor: "#BF8F8F", // Rose Quartz - soft and premium
-//   attribute: "#6B8E8E", // Slate Teal - cool and elegant
-//   motivation: "#D4AF7A", // Champagne Gold - classic luxury
-// };
-
 export const NODE_COLORS: Record<string, string> = {
   actor: "#9B6B7C", // Muted Mauve - refined and subtle
   attribute: "#4A7A7C", // Deep Sea Teal - sophisticated depth

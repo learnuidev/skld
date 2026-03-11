@@ -42,6 +42,7 @@ export const SidePanel = ({
   activeNode,
   graphData,
   onReset,
+  onLinkClick,
 }: {
   totalNodes: number;
   actorCount: number;
@@ -51,6 +52,7 @@ export const SidePanel = ({
   activeNode: Node | null;
   graphData: GraphData;
   onReset: () => void;
+  onLinkClick: (link: Link) => void;
 }) => {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -178,7 +180,8 @@ export const SidePanel = ({
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.05 }}
-                            className={`p-3 rounded-lg ${isDark ? "bg-slate-800/30" : "bg-slate-100/30"}`}
+                            className={`p-3 rounded-lg cursor-pointer hover:${isDark ? "bg-slate-700/40" : "bg-slate-200/40"} transition-colors ${isDark ? "bg-slate-800/30" : "bg-slate-100/30"}`}
+                            onClick={() => onLinkClick(link)}
                           >
                             <div className="flex items-start gap-2">
                               <div className="flex-1">
