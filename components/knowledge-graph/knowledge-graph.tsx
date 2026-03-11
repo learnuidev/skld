@@ -2,7 +2,6 @@
 
 import { GraphData } from "./knowledge-graph.types";
 import { useKnowledgeGraph } from "./use-knowledge-graph";
-import { FilterBadge } from "./filter-badge";
 import { SidePanel } from "./side-panel";
 import { RelationshipPanel } from "./relationship-panel";
 import { TitlePanel } from "./title-panel";
@@ -54,8 +53,10 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
         attributeCount={graphData.nodes.filter((n) => n.type === "attribute").length}
         motivationCount={graphData.nodes.filter((n) => n.type === "motivation").length}
         linkCount={graphData.links.length}
+        activeNode={deferredActiveNode}
+        graphData={graphData}
+        onReset={handleReset}
       />
-      <FilterBadge activeNode={deferredActiveNode} onReset={handleReset} />
       <RelationshipPanel
         link={selectedLink}
         onClose={() => setSelectedLink(null)}
