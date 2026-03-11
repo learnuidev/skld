@@ -3,9 +3,8 @@
 import { GraphData } from "./knowledge-graph.types";
 import { useKnowledgeGraph } from "./use-knowledge-graph";
 import { FilterBadge } from "./filter-badge";
-import { Legend } from "./legend";
+import { SidePanel } from "./side-panel";
 import { RelationshipPanel } from "./relationship-panel";
-import { StatsPanel } from "./stats-panel";
 import { TitlePanel } from "./title-panel";
 import { ControlButtons } from "./control-buttons";
 import { Tooltip } from "./tooltip";
@@ -49,18 +48,13 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
       </svg>
 
       <TitlePanel />
-      <StatsPanel
+      <SidePanel
         totalNodes={graphData.nodes.length}
         actorCount={graphData.nodes.filter((n) => n.type === "actor").length}
-        attributeCount={
-          graphData.nodes.filter((n) => n.type === "attribute").length
-        }
-        motivationCount={
-          graphData.nodes.filter((n) => n.type === "motivation").length
-        }
+        attributeCount={graphData.nodes.filter((n) => n.type === "attribute").length}
+        motivationCount={graphData.nodes.filter((n) => n.type === "motivation").length}
         linkCount={graphData.links.length}
       />
-      <Legend />
       <FilterBadge activeNode={deferredActiveNode} onReset={handleReset} />
       <RelationshipPanel
         link={selectedLink}
