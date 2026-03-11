@@ -23,6 +23,7 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
     handleReset,
     handleCenter,
     setSelectedLink,
+    closeTooltip,
   } = useKnowledgeGraph(graphData, isDark);
 
   if (!isClient) return null;
@@ -71,6 +72,9 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
         hasFilter={!!deferredActiveNode}
       />
       <Tooltip
+        onClose={() => {
+          closeTooltip();
+        }}
         content={tooltip.content}
         position={tooltip.position}
         visible={tooltip.visible}

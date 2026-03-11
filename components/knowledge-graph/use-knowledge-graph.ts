@@ -35,7 +35,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
   const isDarkRef = useRef(isDark);
 
   const deferredActiveNode = useDeferredValue(activeNode);
-  
+
   useEffect(() => {
     deferredActiveNodeRef.current = deferredActiveNode;
   }, [deferredActiveNode]);
@@ -128,10 +128,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
       .data(graphData.links)
       .join("line")
       .attr("stroke", (d) => d.color)
-      .attr(
-        "stroke-width",
-        (d) => STROKE_WIDTHS[d.strength || ""] || 2
-      )
+      .attr("stroke-width", (d) => STROKE_WIDTHS[d.strength || ""] || 2)
       .attr("stroke-opacity", 0.5)
       .attr("cursor", "pointer")
       .on("click", (event, d) => {
@@ -196,13 +193,13 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
         handleNodeClick(d);
       })
       .on("mouseover", (event, d) => {
-        if (!deferredActiveNodeRef.current) {
-          setTooltip({
-            content: `<strong class="text-base">${d.label}</strong><br><span class="text-emerald-400">${d.description}</span><br><span class="text-amber-400 text-xs">Click to filter connections</span>`,
-            position: { x: event.clientX, y: event.clientY },
-            visible: true,
-          });
-        }
+        // if (!deferredActiveNodeRef.current) {
+        setTooltip({
+          content: `<strong class="text-base">${d.label}</strong><br><span class="text-emerald-400">${d.description}</span><br><span class="text-amber-400 text-xs">Click to filter connections</span>`,
+          position: { x: event.clientX, y: event.clientY },
+          visible: true,
+        });
+        // }
       })
       .on("mouseout", () => {
         if (!deferredActiveNodeRef.current) {
@@ -279,7 +276,10 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
             : 0.1;
         });
     } else {
-      g.selectAll<SVGCircleElement, D3Node>("circle").transition().duration(500).attr("opacity", 1);
+      g.selectAll<SVGCircleElement, D3Node>("circle")
+        .transition()
+        .duration(500)
+        .attr("opacity", 1);
       g.selectAll<SVGLineElement, D3Link>("line")
         .transition()
         .duration(500)
@@ -324,10 +324,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
         });
     } else {
       g.selectAll<SVGLineElement, D3Link>("line")
-        .attr(
-          "stroke-width",
-          (d) => STROKE_WIDTHS[d.strength || ""] || 2
-        )
+        .attr("stroke-width", (d) => STROKE_WIDTHS[d.strength || ""] || 2)
         .attr("filter", "none");
     }
   }, [selectedLink]);
@@ -341,5 +338,8 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
     handleReset,
     handleCenter,
     setSelectedLink,
+    closeTooltip: () => {
+      setTooltip((t) => ({ ...t, visible: false }));
+    },
   };
 }
