@@ -18,7 +18,7 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
     selectedLink,
 
     handleReset,
-    handleCenter,
+
     setSelectedLink,
   } = useKnowledgeGraph(graphData, isDark);
 
@@ -65,7 +65,6 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
         onClose={() => setSelectedLink(null)}
       />
       <ControlButtons
-        onCenter={handleCenter}
         onResetFilter={handleReset}
         hasFilter={!!deferredActiveNode}
       />

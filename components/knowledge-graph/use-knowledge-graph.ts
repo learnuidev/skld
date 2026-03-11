@@ -69,16 +69,6 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
     });
   }, []);
 
-  const handleCenter = useCallback(() => {
-    if (svgRef.current) {
-      const svg = d3.select(svgRef.current);
-      svg
-        .transition()
-        .duration(750)
-        .call(d3.zoom<SVGSVGElement, unknown>().transform, d3.zoomIdentity);
-    }
-  }, []);
-
   useEffect(() => {
     if (!isClient || !svgRef.current) return;
 
@@ -305,7 +295,6 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
     deferredActiveNode,
     selectedLink,
     handleReset,
-    handleCenter,
     setSelectedLink,
   };
 }

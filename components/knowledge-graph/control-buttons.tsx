@@ -6,11 +6,9 @@ import { X, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const ControlButtons = ({
-  onCenter,
   onResetFilter,
   hasFilter,
 }: {
-  onCenter: () => void;
   onResetFilter: () => void;
   hasFilter: boolean;
 }) => (
@@ -31,14 +29,5 @@ export const ControlButtons = ({
         Reset Filter
       </Button>
     )}
-    <Button
-      onClick={onCenter}
-      size="sm"
-      variant={"ghost"}
-      className="shadow-lg "
-    >
-      <ZoomIn className="w-4 h-4 mr-2" />
-      Center View
-    </Button>
   </motion.div>
 );
