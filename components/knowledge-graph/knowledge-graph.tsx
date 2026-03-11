@@ -1,13 +1,12 @@
 "use client";
 
-import { GraphData } from "./knowledge-graph.types";
-import { useKnowledgeGraph } from "./use-knowledge-graph";
-import { SidePanel } from "./side-panel";
-import { RelationshipPanel } from "./relationship-panel";
-import { TitlePanel } from "./title-panel";
-import { ControlButtons } from "./control-buttons";
-import { Tooltip } from "./tooltip";
 import { useTheme } from "next-themes";
+import { ControlButtons } from "./control-buttons";
+import { GraphData } from "./knowledge-graph.types";
+import { RelationshipPanel } from "./relationship-panel";
+import { SidePanel } from "./side-panel";
+import { TitlePanel } from "./title-panel";
+import { useKnowledgeGraph } from "./use-knowledge-graph";
 
 export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
   const { theme, resolvedTheme } = useTheme();
@@ -17,11 +16,10 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
     isClient,
     deferredActiveNode,
     selectedLink,
-    tooltip,
+
     handleReset,
     handleCenter,
     setSelectedLink,
-    closeTooltip,
   } = useKnowledgeGraph(graphData, isDark);
 
   if (!isClient) return null;
@@ -70,14 +68,6 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
         onCenter={handleCenter}
         onResetFilter={handleReset}
         hasFilter={!!deferredActiveNode}
-      />
-      <Tooltip
-        onClose={() => {
-          closeTooltip();
-        }}
-        data={tooltip.data}
-        position={tooltip.position}
-        visible={tooltip.visible}
       />
     </div>
   );

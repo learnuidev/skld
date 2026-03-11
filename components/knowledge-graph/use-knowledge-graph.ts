@@ -12,7 +12,7 @@ import {
 
 import { STROKE_WIDTHS } from "./knowledge-graph.constants";
 import { GraphData, Link, Node } from "./knowledge-graph.types";
-import { TooltipData } from "./tooltip";
+
 import { getRelationships } from "./knowledge-graph.utils";
 
 type D3Node = Node & d3.SimulationNodeDatum;
@@ -30,15 +30,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
   const [isClient, setIsClient] = useState(false);
   const [activeNode, setActiveNode] = useState<Node | null>(null);
   const [selectedLink, setSelectedLink] = useState<Link | null>(null);
-  const [tooltip, setTooltip] = useState<{
-    data: TooltipData | null;
-    position: { x: number; y: number };
-    visible: boolean;
-  }>({
-    data: null,
-    position: { x: 0, y: 0 },
-    visible: false,
-  });
+
   const [, startTransition] = useTransition();
   const deferredActiveNodeRef = useRef<Node | null>(null);
   const isDarkRef = useRef(isDark);
@@ -67,7 +59,6 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
   const handleLinkClick = useCallback((link: D3Link) => {
     startTransition(() => {
       setSelectedLink((prev) => (prev === link ? null : link));
-      setTooltip((t) => ({ ...t, visible: false }));
     });
   }, []);
 
@@ -145,29 +136,11 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
       .on("mouseover", function (event, d) {
         if (!deferredActiveNodeRef.current) {
           d3.select(this).attr("stroke-opacity", 1);
-          const sourceLabel =
-            typeof d.source === "object"
-              ? d.source.label
-              : graphData.nodes.find((n) => n.id === d.source)?.label;
-          const targetLabel =
-            typeof d.target === "object"
-              ? d.target.label
-              : graphData.nodes.find((n) => n.id === d.target)?.label;
-          setTooltip({
-            data: {
-              title: `${sourceLabel} ↔ ${targetLabel}`,
-              description: d.description,
-              hint: "Click for real-world example",
-            },
-            position: { x: event.clientX, y: event.clientY },
-            visible: true,
-          });
         }
       })
       .on("mouseout", function () {
         if (!deferredActiveNodeRef.current) {
           d3.select(this).attr("stroke-opacity", 0.5);
-          setTooltip((t) => ({ ...t, visible: false }));
         }
       });
 
@@ -202,28 +175,6 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
       .on("click", (event, d) => {
         event.stopPropagation();
         handleNodeClick(d);
-
-        setTooltip({
-          data: {
-            title: d.label,
-            description: d.description,
-            hint: "Click to filter connections",
-          },
-          position: { x: event.clientX, y: event.clientY },
-          visible: true,
-        });
-      })
-      // .on("mouseover", (event, d) => {
-      //   setTooltip({
-      //     content: `<strong class="text-base">${d.label}</strong><br><span class="text-emerald-400">${d.description}</span><br><span class="text-amber-400 text-xs">Click to filter connections</span>`,
-      //     position: { x: event.clientX, y: event.clientY },
-      //     visible: true,
-      //   });
-      // })
-      .on("mouseout", () => {
-        if (!deferredActiveNodeRef.current) {
-          setTooltip((t) => ({ ...t, visible: false }));
-        }
       });
 
     const labels = g
@@ -353,12 +304,8 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
     isClient,
     deferredActiveNode,
     selectedLink,
-    tooltip,
     handleReset,
     handleCenter,
     setSelectedLink,
-    closeTooltip: () => {
-      setTooltip((t) => ({ ...t, visible: false }));
-    },
   };
 }
