@@ -191,16 +191,20 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
       .on("click", (event, d) => {
         event.stopPropagation();
         handleNodeClick(d);
-      })
-      .on("mouseover", (event, d) => {
-        // if (!deferredActiveNodeRef.current) {
+
         setTooltip({
           content: `<strong class="text-base">${d.label}</strong><br><span class="text-emerald-400">${d.description}</span><br><span class="text-amber-400 text-xs">Click to filter connections</span>`,
           position: { x: event.clientX, y: event.clientY },
           visible: true,
         });
-        // }
       })
+      // .on("mouseover", (event, d) => {
+      //   setTooltip({
+      //     content: `<strong class="text-base">${d.label}</strong><br><span class="text-emerald-400">${d.description}</span><br><span class="text-amber-400 text-xs">Click to filter connections</span>`,
+      //     position: { x: event.clientX, y: event.clientY },
+      //     visible: true,
+      //   });
+      // })
       .on("mouseout", () => {
         if (!deferredActiveNodeRef.current) {
           setTooltip((t) => ({ ...t, visible: false }));
