@@ -2,7 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { CourseContent } from "@/modules/course-content/course-content.types";
-import { CheckCircle2, Clock, FileText, XCircle, Plus } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  FileText,
+  XCircle,
+  Plus,
+  Eye,
+} from "lucide-react";
 import Link from "next/link";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
@@ -37,6 +44,7 @@ export function ChapterContentsList({
 
     switch (knowledgeGraph.status) {
       case "pending":
+      case "processing":
         return {
           icon: <Clock className="size-4 animate-spin" />,
           text: "Pending",
@@ -71,6 +79,12 @@ export function ChapterContentsList({
 
   const statusInfo = getStatusInfo();
 
+  const isProcessing = ["pending", "processing"].includes(
+    knowledgeGraph?.status || ""
+  );
+
+  const isCompleted = knowledgeGraph?.status === "completed";
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -83,27 +97,36 @@ export function ChapterContentsList({
           </p>
         </div>
         {isAuthor ? (
-          <Button
-            onClick={onCreateKnowledgeGraph}
-            disabled={
-              isCreatingKnowledgeGraph || knowledgeGraph?.status === "pending"
-            }
-            className="rounded-full gap-2"
-          >
-            {isCreatingKnowledgeGraph ? (
-              <>
-                <Clock className="size-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Plus className="size-4" />
-                {knowledgeGraph?.status === "pending"
-                  ? "Creation in Progress"
-                  : "Add Knowledge Graph"}
-              </>
-            )}
-          </Button>
+          isCompleted ? (
+            <Link
+              href={`/studio/${courseId}/chapters/${chapterId}/knowledge-graph`}
+            >
+              <Button className="rounded-full gap-2">
+                <Eye className="size-4" />
+                View Knowledge Graph
+              </Button>
+            </Link>
+          ) : (
+            <Button
+              onClick={onCreateKnowledgeGraph}
+              disabled={isCreatingKnowledgeGraph || isProcessing}
+              className="rounded-full gap-2"
+            >
+              {isCreatingKnowledgeGraph ? (
+                <>
+                  <Clock className="size-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="size-4" />
+                  {isProcessing
+                    ? "Creation in Progress"
+                    : "Add Knowledge Graph"}
+                </>
+              )}
+            </Button>
+          )
         ) : null}
       </div>
 

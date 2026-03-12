@@ -6,9 +6,11 @@ import { useState } from "react";
 export function CourseHeader({
   course,
   children,
+  showDescription = true,
 }: {
   course: any;
   children: React.ReactNode;
+  showDescription?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const DESCRIPTION_LIMIT = 160;
@@ -32,7 +34,7 @@ export function CourseHeader({
         {children}
       </div>
 
-      {course.description && (
+      {showDescription && course.description && (
         <div className="max-w-2xl my-4">
           <p className="text-[15px] leading-relaxed text-muted-foreground">
             {expanded ? course.description : truncated}

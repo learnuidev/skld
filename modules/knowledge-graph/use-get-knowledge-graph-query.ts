@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { appConfig } from "@/lib/app-config";
@@ -22,7 +23,7 @@ export function useGetKnowledgeGraphQuery(chapterId: string) {
           headers: {
             Authorization: token,
           },
-        },
+        }
       );
 
       if (response.status === 404) {
@@ -34,8 +35,48 @@ export function useGetKnowledgeGraphQuery(chapterId: string) {
         throw new Error(error.error || "Failed to get knowledge graph");
       }
 
-      return response.json();
+      const resp = await response.json();
+
+      // const sampLink = {
+      //   source: "nation_state",
+      //   target: "apt",
+      //   value: 3,
+      //   description:
+      //     "Nation states deploy APTs as sophisticated cyber weapons for long-term operations",
+      //   realExample:
+      //     "Russia's GRU deployed APT28 (Fancy Bear) to target the DNC during 2016 US elections. China's PLA deployed APT1 to steal intellectual property from US defense contractors.",
+      //   strength: "high",
+      //   color: NODE_COLORS.mutedMauve,
+      // };
+
+      console.log("RESP", resp);
+
+      return resp;
+
+      return {
+        ...resp,
+        knowledgeGraphData: {
+          ...resp?.knowledgeGraphData,
+          links: resp?.knowledgeGraphData?.links?.map((link: any) => {
+            return {
+              ...link,
+              source:
+                link?.source?.id || resp?.knowledgeGraphData?.nodes?.[0]?.id,
+              target:
+                link?.target?.id || resp?.knowledgeGraphData?.nodes?.[1]?.id,
+            };
+          }),
+        },
+      };
     },
     enabled: !!chapterId,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (!data) return false;
+      if (data.status === "completed" || data.status === "failed") {
+        return false;
+      }
+      return 5000;
+    },
   });
 }

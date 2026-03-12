@@ -44,15 +44,16 @@ const LegendItem = ({
 
 export const SidePanel = ({
   totalNodes,
-  actorCount,
-  attributeCount,
-  motivationCount,
+  // actorCount,
+  // attributeCount,
+  // motivationCount,
   linkCount,
   activeNode,
   graphData,
   onReset,
   onLinkClick,
   selectedLink,
+  stats,
 }: {
   totalNodes: number;
   actorCount: number;
@@ -64,6 +65,7 @@ export const SidePanel = ({
   onReset: () => void;
   onLinkClick: (link: Link) => void;
   selectedLink: Link | null;
+  stats: { id: string; count: number }[];
 }) => {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -168,7 +170,8 @@ export const SidePanel = ({
                         {relationships.map(
                           ({ link, targetNode, isOutgoing }, index) => {
                             const isSelected =
-                              selectedLink && getLinkId(selectedLink) === getLinkId(link);
+                              selectedLink &&
+                              getLinkId(selectedLink) === getLinkId(link);
 
                             return (
                               <motion.div
@@ -179,39 +182,39 @@ export const SidePanel = ({
                                 className={`p-3 rounded-lg cursor-pointer hover:${isDark ? "bg-slate-700/40" : "bg-slate-200/40"} transition-colors ${isDark ? "bg-slate-800/30" : "bg-slate-100/30"} ${selectedLink && !isSelected ? "opacity-30" : ""}`}
                                 onClick={() => onLinkClick(link)}
                               >
-                              <div className="flex items-start gap-2">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <ArrowRight
-                                      className="w-3 h-3 text-emerald-400 flex-shrink-0"
-                                      style={{
-                                        transform: isOutgoing
-                                          ? "rotate(0deg)"
-                                          : "rotate(180deg)",
-                                      }}
-                                    />
-                                    <span
-                                      className={`text-xs font-medium ${isDark ? "text-slate-200" : "text-slate-700"}`}
+                                <div className="flex items-start gap-2">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <ArrowRight
+                                        className="w-3 h-3 text-emerald-400 flex-shrink-0"
+                                        style={{
+                                          transform: isOutgoing
+                                            ? "rotate(0deg)"
+                                            : "rotate(180deg)",
+                                        }}
+                                      />
+                                      <span
+                                        className={`text-xs font-medium ${isDark ? "text-slate-200" : "text-slate-700"}`}
+                                      >
+                                        {targetNode.label}
+                                      </span>
+                                    </div>
+                                    <p
+                                      className={`text-[10px] ${isDark ? "text-slate-400" : "text-slate-500"} leading-relaxed`}
                                     >
-                                      {targetNode.label}
-                                    </span>
+                                      {link.description}
+                                    </p>
                                   </div>
-                                  <p
-                                    className={`text-[10px] ${isDark ? "text-slate-400" : "text-slate-500"} leading-relaxed`}
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-[9px] font-medium text-white uppercase`}
+                                    style={{ backgroundColor: link.color }}
                                   >
-                                    {link.description}
-                                  </p>
+                                    {link.strength}
+                                  </span>
                                 </div>
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-[9px] font-medium text-white uppercase`}
-                                  style={{ backgroundColor: link.color }}
-                                >
-                                  {link.strength}
-                                </span>
-                               </div>
-                             </motion.div>
-                             );
-                           }
+                              </motion.div>
+                            );
+                          }
                         )}
                       </div>
                     </div>
@@ -231,24 +234,22 @@ export const SidePanel = ({
 
                     <div className="space-y-2">
                       <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-600/30 to-transparent" />
-                      <LegendItem
-                        color="#FF6B6B"
-                        label="Threat Actors"
-                        count={actorCount}
-                        isDark={isDark}
-                      />
-                      <LegendItem
-                        color="#4ECDC4"
-                        label="Attributes"
-                        count={attributeCount}
-                        isDark={isDark}
-                      />
-                      <LegendItem
-                        color="#FFD93D"
-                        label="Motivations"
-                        count={motivationCount}
-                        isDark={isDark}
-                      />
+                      {stats.map((statItem, idx) => {
+                        const colors = {
+                          0: "#FF6B6B",
+                          1: "#4ECDC4",
+                          2: "#FFD93D",
+                        } as any;
+                        return (
+                          <LegendItem
+                            key={statItem.id}
+                            color={colors[idx || 0] || colors[0]}
+                            label={statItem.id}
+                            count={statItem.count}
+                            isDark={isDark}
+                          />
+                        );
+                      })}
                     </div>
 
                     <div className="space-y-2">

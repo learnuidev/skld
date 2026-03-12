@@ -22,6 +22,8 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
     setSelectedLink,
   } = useKnowledgeGraph(graphData, isDark);
 
+  console.log("GRAPH DATA", graphData);
+
   if (!isClient) return null;
 
   return (
@@ -46,6 +48,16 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
 
       <TitlePanel />
       <SidePanel
+        stats={Object.entries(
+          Object.groupBy(graphData.nodes, (item) => item.type)
+        ).map((item) => {
+          const [id, items] = item;
+
+          return {
+            id: id,
+            count: (items || []).length,
+          };
+        })}
         totalNodes={graphData.nodes.length}
         actorCount={graphData.nodes.filter((n) => n.type === "actor").length}
         attributeCount={

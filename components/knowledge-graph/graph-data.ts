@@ -38,6 +38,7 @@ export const graphData: GraphData = {
       group: "actor",
       type: "actor",
       label: "Nation State",
+      contentId: "testing",
       description:
         "Government-backed cyber operatives with substantial resources",
       examples: [
@@ -54,6 +55,7 @@ export const graphData: GraphData = {
       group: "actor",
       type: "actor",
       label: "APT",
+      contentId: "testing",
       description:
         "Advanced Persistent Threat - Sophisticated, focused cyberattacks by well-funded opponents",
       examples: [
@@ -70,6 +72,7 @@ export const graphData: GraphData = {
       group: "actor",
       type: "actor",
       label: "Unskilled Attacker",
+      contentId: "testing",
       description:
         "Novice with limited hacking skills, uses off-the-shelf tools",
       examples: [
@@ -85,6 +88,7 @@ export const graphData: GraphData = {
       group: "actor",
       type: "actor",
       label: "Hacktivist",
+      contentId: "testing",
       description: "Activist hacker with political or social agenda",
       examples: ["Anonymous", "LulzSec", "OurMine", "Syrian Electronic Army"],
       color: NODE_COLORS.mutedMauve,
@@ -95,6 +99,7 @@ export const graphData: GraphData = {
       group: "actor",
       type: "actor",
       label: "Insider Threat",
+      contentId: "testing",
       description:
         "Trusted insider posing cybersecurity risks (intentional or accidental)",
       examples: [
@@ -111,6 +116,7 @@ export const graphData: GraphData = {
       group: "actor",
       type: "actor",
       label: "Organized Crime",
+      contentId: "testing",
       description: "Criminal group seeking financial gain via cybercrime",
       examples: [
         "REvil ransomware gang",
@@ -126,6 +132,7 @@ export const graphData: GraphData = {
       group: "actor",
       type: "actor",
       label: "Shadow IT",
+      contentId: "testing",
       description: "Unauthorized, unregulated tech use within an organization",
       examples: [
         "Employees using Dropbox for work files",
@@ -141,6 +148,7 @@ export const graphData: GraphData = {
       group: "attribute",
       type: "attribute",
       label: "Internal/External",
+      contentId: "testing",
       description: "Originating from within or outside an entity",
       examples: [
         "Internal: Disgruntled sysadmin",
@@ -155,6 +163,7 @@ export const graphData: GraphData = {
       group: "attribute",
       type: "attribute",
       label: "Resources/Funding",
+      contentId: "testing",
       description: "Availability of financial and technological support",
       examples: [
         "High: Nation-state budgets ($1B+)",
@@ -169,6 +178,7 @@ export const graphData: GraphData = {
       group: "attribute",
       type: "attribute",
       label: "Sophistication",
+      contentId: "testing",
       description: "Level of expertise and technological proficiency",
       examples: [
         "High: Zero-day exploits",
@@ -183,6 +193,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "Data Exfiltration",
+      contentId: "testing",
       description: "Stealing sensitive data for illicit purposes",
       examples: [
         "Equifax breach (143M records)",
@@ -197,6 +208,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "Espionage",
+      contentId: "testing",
       description:
         "Gathering information for intelligence or competitive advantage",
       examples: [
@@ -212,6 +224,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "Service Disruption",
+      contentId: "testing",
       description: "Disrupting systems or services intentionally",
       examples: [
         "Dyn DDoS attack (2016)",
@@ -226,6 +239,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "Blackmail",
+      contentId: "testing",
       description: "Extortion using compromising information",
       examples: [
         "Hollywood Presbyterian ransomware",
@@ -240,6 +254,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "Financial Gain",
+      contentId: "testing",
       description: "Profiting from cybercriminal activities",
       examples: [
         "Carbanak gang ($1B stolen)",
@@ -254,6 +269,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "Philosophical",
+      contentId: "testing",
       description: "Pursuing digital activism or ideology",
       examples: [
         "Anonymous attacking Westboro Baptist",
@@ -268,6 +284,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "Ethical",
+      contentId: "testing",
       description: "Cyber actions aligned with moral principles",
       examples: [
         "Bug bounty researchers",
@@ -282,6 +299,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "Revenge",
+      contentId: "testing",
       description: "Retaliatory actions driven by personal vendettas",
       examples: [
         "Uber data breach (2016) - fired employee",
@@ -296,6 +314,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "Disruption",
+      contentId: "testing",
       description: "Creating chaos and confusion for various reasons",
       examples: [
         "Anonymous attacking Scientology",
@@ -310,6 +329,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "War",
+      contentId: "testing",
       description: "Engaging in cyber warfare or military conflict",
       examples: [
         "Russia-Georgia cyber war (2008)",
@@ -324,6 +344,7 @@ export const graphData: GraphData = {
       group: "motivation",
       type: "motivation",
       label: "Ideological",
+      contentId: "testing",
       description: "Driven by strong beliefs or principles",
       examples: [
         "ISIS propaganda operations",

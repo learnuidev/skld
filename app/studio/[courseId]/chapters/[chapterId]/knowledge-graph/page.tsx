@@ -5,47 +5,27 @@ import { CourseContainer } from "@/components/course/course-container";
 import { CourseHeader } from "@/components/course/course-header";
 import { LoadingCourse } from "@/components/course/loading-course";
 import { LoadingCourseFailed } from "@/components/course/loading-course-failed";
-import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
+import { KnowledgeGraph } from "@/components/knowledge-graph/knowledge-graph";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
-import { useParams, useRouter } from "next/navigation";
-import { ChapterContentsList } from "./components/chapter-contents-list";
+import { useParams } from "next/navigation";
 
-export default function ChapterDetailPage() {
+export default function KnowledgeGraphPage() {
   const params = useParams<{ courseId: string; chapterId: string }>();
-  const router = useRouter();
 
   const {
     data: course,
     isLoading: courseLoading,
     error: courseError,
   } = useGetCourseQuery(params.courseId);
-  const { data: contents, isLoading: contentsLoading } =
-    useListCourseContentsQuery(params.courseId);
   const { data: knowledgeGraph, isLoading: kgLoading } =
     useGetKnowledgeGraphQuery(params.chapterId);
-  const createKnowledgeGraphMutation = useCreateKnowledgeGraphMutation();
 
   const chapter = course?.domains
     ?.flatMap((d) => d.chapters)
     .find((c) => c.id === params.chapterId);
 
-  const chapterContents =
-    contents?.filter((content) => content.chapterId === params.chapterId) || [];
-
-  const handleCreateKnowledgeGraph = async () => {
-    try {
-      await createKnowledgeGraphMutation.mutateAsync({
-        courseId: params.courseId,
-        chapterId: params.chapterId,
-      });
-    } catch (error) {
-      console.error("Failed to create knowledge graph:", error);
-    }
-  };
-
-  if (courseLoading || contentsLoading || kgLoading) {
+  if (courseLoading || kgLoading) {
     return <LoadingCourse />;
   }
 
@@ -67,11 +47,25 @@ export default function ChapterDetailPage() {
     );
   }
 
+  if (!knowledgeGraph || !knowledgeGraph.knowledgeGraphData) {
+    return (
+      <CourseContainer>
+        <CourseBackLink
+          href={`/studio/${params.courseId}/chapters/${params.chapterId}`}
+          title="Back to Chapter"
+        />
+        <div className="flex items-center justify-center py-24">
+          <p className="text-muted-foreground">Knowledge graph not found</p>
+        </div>
+      </CourseContainer>
+    );
+  }
+
   return (
     <CourseContainer>
       <CourseBackLink
-        href={`/studio/${params.courseId}`}
-        title="Back to Course"
+        href={`/studio/${params.courseId}/chapters/${params.chapterId}`}
+        title="Back to Chapter"
       />
 
       <CourseHeader course={course} showDescription={false}>
@@ -84,14 +78,7 @@ export default function ChapterDetailPage() {
       </CourseHeader>
 
       <div className="mt-12">
-        <ChapterContentsList
-          contents={chapterContents}
-          courseId={params.courseId}
-          chapterId={params.chapterId}
-          knowledgeGraph={knowledgeGraph ?? null}
-          onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
-          isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
-        />
+        <KnowledgeGraph graphData={knowledgeGraph.knowledgeGraphData} />
       </div>
     </CourseContainer>
   );

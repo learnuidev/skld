@@ -12,6 +12,7 @@ export interface Node {
   examples: string[];
   color: string;
   weight: number;
+  contentId: string;
 }
 
 export interface Link {
