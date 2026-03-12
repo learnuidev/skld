@@ -33,6 +33,7 @@ export function useCreateKnowledgeGraphMutation() {
           body: JSON.stringify({
             courseId: params.courseId,
             chapterId: params.chapterId,
+            contentId: params.contentId,
           }),
         },
       );
@@ -45,8 +46,11 @@ export function useCreateKnowledgeGraphMutation() {
       return response.json();
     },
     onSuccess: (data, variables) => {
+      const sk = variables.chapterId
+        ? `CHAPTER#${variables.chapterId}`
+        : `CONTENT#${variables.contentId}`;
       queryClient.invalidateQueries({
-        queryKey: ["knowledgeGraph", variables.chapterId],
+        queryKey: ["knowledgeGraph", sk],
       });
     },
   });

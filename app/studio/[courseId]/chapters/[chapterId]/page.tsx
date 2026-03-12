@@ -16,6 +16,8 @@ export default function ChapterDetailPage() {
   const params = useParams<{ courseId: string; chapterId: string }>();
   const router = useRouter();
 
+  const sk = `CHAPTER#${params.chapterId}`;
+
   const {
     data: course,
     isLoading: courseLoading,
@@ -24,7 +26,7 @@ export default function ChapterDetailPage() {
   const { data: contents, isLoading: contentsLoading } =
     useListCourseContentsQuery(params.courseId);
   const { data: knowledgeGraph, isLoading: kgLoading } =
-    useGetKnowledgeGraphQuery(params.chapterId);
+    useGetKnowledgeGraphQuery(sk);
   const createKnowledgeGraphMutation = useCreateKnowledgeGraphMutation();
 
   const chapter = course?.domains

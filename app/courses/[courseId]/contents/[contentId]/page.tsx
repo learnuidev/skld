@@ -6,11 +6,31 @@ import { useGetCourseContentQuery } from "@/modules/course-content/use-get-cours
 import { useUpdateCourseContentMutation } from "@/modules/course-content/use-update-course-content-mutation";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
-import { fetchAuthSession } from "@aws-amplify/auth";
-import { ArrowLeft, BookOpen, Edit2, Save, X } from "lucide-react";
+import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
+import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
+import {
+  ArrowLeft,
+  Edit2,
+  Save,
+  X,
+  Plus,
+  Eye,
+  Clock,
+  CheckCircle2,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { KnowledgeGraph } from "@/components/knowledge-graph/knowledge-graph";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
@@ -26,15 +46,25 @@ export default function ContentPage() {
     params.contentId
   );
 
+  const sk = `CONTENT#${params.contentId}`;
+  const { data: knowledgeGraph, isLoading: kgLoading } =
+    useGetKnowledgeGraphQuery(sk);
+  const createKnowledgeGraphMutation = useCreateKnowledgeGraphMutation();
+
   const [isEditing, setIsEditing] = useState(false);
-  const [editorContent, setEditorContent] = useState("");
+  const [editorContent, setEditorContent] = useState(content?.content || "");
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editChapterId, setEditChapterId] = useState<string>("");
+  const [isKgDialogOpen, setIsKgDialogOpen] = useState(false);
 
   const textareaRef = useAutoSizeTextarea(editDescription);
 
-  const isLoading = courseLoading || contentLoading;
+  const isLoading = courseLoading || contentLoading || kgLoading;
+
+  const isAuthor = useIsUserCourseAuthor(params.courseId);
+
+  const chapters = course?.domains?.flatMap((d) => d.chapters) || [];
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -48,9 +78,11 @@ export default function ContentPage() {
     getCurrentUser();
   }, []);
 
-  const isAuthor = useIsUserCourseAuthor(params.courseId);
-
-  const chapters = course?.domains?.flatMap((d) => d.chapters) || [];
+  useEffect(() => {
+    if (content?.content) {
+      setEditorContent(content?.content);
+    }
+  }, [content?.content]);
 
   const handleEdit = () => {
     setEditorContent(content?.content || "");
@@ -68,12 +100,6 @@ export default function ContentPage() {
     setEditChapterId(content?.chapterId || "");
   };
 
-  useEffect(() => {
-    if (content?.content) {
-      setEditorContent(content?.content);
-    }
-  }, [content?.content]);
-
   const handleSave = async () => {
     try {
       await updateContentMutation.mutateAsync({
@@ -85,6 +111,17 @@ export default function ContentPage() {
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update content:", error);
+    }
+  };
+
+  const handleCreateKnowledgeGraph = async () => {
+    try {
+      await createKnowledgeGraphMutation.mutateAsync({
+        courseId: params.courseId,
+        contentId: params.contentId,
+      });
+    } catch (error) {
+      console.error("Failed to create knowledge graph:", error);
     }
   };
 
@@ -116,25 +153,62 @@ export default function ContentPage() {
             Back to Course
           </Link>
 
-          {isAuthor ? (
-            !isEditing ? (
-              <button
-                onClick={handleEdit}
-                className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
-                title="Edit content"
-              >
-                <Edit2 className="w-5 h-5 text-muted-foreground" />
-              </button>
-            ) : (
-              <button
-                onClick={handleCancel}
-                disabled={updateContentMutation.isPending}
-                className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
-              >
-                <X className="w-5 h-5 text-muted-foreground" />
-              </button>
-            )
-          ) : null}
+          <div className="flex gap-4 items-center">
+            {isAuthor && (
+              <div className="flex justify-end">
+                {knowledgeGraph?.status === "completed" &&
+                knowledgeGraph.knowledgeGraphData ? (
+                  <Button
+                    onClick={() => setIsKgDialogOpen(true)}
+                    className="rounded-full gap-2"
+                  >
+                    <Eye className="size-4" />
+                    View Knowledge Graph
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleCreateKnowledgeGraph}
+                    disabled={createKnowledgeGraphMutation.isPending}
+                    className="rounded-full gap-2"
+                    variant={"outline"}
+                  >
+                    {createKnowledgeGraphMutation.isPending ? (
+                      <>
+                        <Clock className="size-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="size-4" />
+                        Add Knowledge Graph
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {isAuthor ? (
+              !isEditing ? (
+                <Button
+                  onClick={handleEdit}
+                  className="shrink-0 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
+                  title="Edit content"
+                  variant={"ghost"}
+                >
+                  <Edit2 className="w-5 h-5 text-muted-foreground" />
+                </Button>
+              ) : (
+                <button
+                  onClick={handleCancel}
+                  disabled={updateContentMutation.isPending}
+                  className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              )
+            ) : null}
+          </div>
         </div>
 
         <div className="space-y-8">
@@ -198,6 +272,67 @@ export default function ContentPage() {
             )}
           </header>
 
+          {isAuthor && knowledgeGraph && (
+            <div className="p-4 bg-muted border border-border rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={
+                      knowledgeGraph.status === "completed"
+                        ? "text-green-600"
+                        : knowledgeGraph.status === "failed"
+                          ? "text-red-600"
+                          : "text-yellow-600"
+                    }
+                  >
+                    {knowledgeGraph.status === "completed" ? (
+                      <CheckCircle2 className="size-4" />
+                    ) : knowledgeGraph.status === "failed" ? (
+                      <X className="size-4" />
+                    ) : (
+                      <Clock className="size-4 animate-spin" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      Knowledge Graph Status
+                    </p>
+                    <p
+                      className={`text-xs ${
+                        knowledgeGraph.status === "completed"
+                          ? "text-green-600"
+                          : knowledgeGraph.status === "failed"
+                            ? "text-red-600"
+                            : "text-yellow-600"
+                      }`}
+                    >
+                      {knowledgeGraph.status === "completed"
+                        ? "Completed"
+                        : knowledgeGraph.status === "failed"
+                          ? "Failed"
+                          : knowledgeGraph.status === "processing"
+                            ? "Processing"
+                            : "Pending"}
+                    </p>
+                  </div>
+                </div>
+                {knowledgeGraph.error && (
+                  <p className="text-xs text-red-600 max-w-md truncate">
+                    {knowledgeGraph.error}
+                  </p>
+                )}
+              </div>
+              {knowledgeGraph.knowledgeGraphData && (
+                <div className="mt-3 pt-3 border-t border-border">
+                  <p className="text-xs text-muted-foreground">
+                    Generated:{" "}
+                    {new Date(knowledgeGraph.updatedAt).toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           <div>
             <TiptapEditor
               content={editorContent}
@@ -240,6 +375,25 @@ export default function ContentPage() {
           </footer>
         </div>
       </div>
+
+      {isKgDialogOpen && knowledgeGraph?.knowledgeGraphData && (
+        <Dialog open={isKgDialogOpen} onOpenChange={setIsKgDialogOpen}>
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Knowledge Graph</DialogTitle>
+              <DialogDescription>
+                Visualize the knowledge connections for this content
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <KnowledgeGraph
+                graphData={knowledgeGraph.knowledgeGraphData}
+                courseId={params.courseId ?? undefined}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

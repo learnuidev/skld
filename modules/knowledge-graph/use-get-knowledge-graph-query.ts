@@ -6,9 +6,9 @@ import { fetchAuthSession } from "@aws-amplify/auth";
 import { useQuery } from "@tanstack/react-query";
 import { KnowledgeGraph } from "./knowledge-graph.types";
 
-export function useGetKnowledgeGraphQuery(chapterId: string) {
+export function useGetKnowledgeGraphQuery(sk: string) {
   return useQuery({
-    queryKey: ["knowledgeGraph", chapterId],
+    queryKey: ["knowledgeGraph", sk],
     queryFn: async (): Promise<KnowledgeGraph | null> => {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
@@ -18,7 +18,7 @@ export function useGetKnowledgeGraphQuery(chapterId: string) {
       }
 
       const response = await fetch(
-        `${appConfig.NEXT_PUBLIC_API_BASE_URL}/knowledge-graphs/${chapterId}`,
+        `${appConfig.NEXT_PUBLIC_API_BASE_URL}/v2/knowledge-graphs/${sk}`,
         {
           headers: {
             Authorization: token,
@@ -69,7 +69,7 @@ export function useGetKnowledgeGraphQuery(chapterId: string) {
         },
       };
     },
-    enabled: !!chapterId,
+    enabled: !!sk,
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return false;
