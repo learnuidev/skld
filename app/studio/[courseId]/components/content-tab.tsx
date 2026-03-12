@@ -92,7 +92,7 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
   };
 
   const parseChapterId = (
-    chapterInput: string | number | undefined
+    chapterInput: string | number | undefined,
   ): string | undefined => {
     if (!chapterInput) return undefined;
 
@@ -113,7 +113,7 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
   };
 
   const validateParsedContents = (
-    items: ParsedContent[]
+    items: ParsedContent[],
   ): { valid: ParsedContent[]; errors: string[] } => {
     const valid: ParsedContent[] = [];
     const errors: string[] = [];
@@ -129,7 +129,7 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
 
       if (!chapterId && (item.chapter || item.chapterNumber)) {
         errors.push(
-          `Row ${index + 1}: Could not find chapter "${item.chapter || item.chapterNumber}"`
+          `Row ${index + 1}: Could not find chapter "${item.chapter || item.chapterNumber}"`,
         );
         return;
       }
@@ -467,39 +467,44 @@ function ContentCard({
   return (
     <div className="p-6 bg-card border border-border rounded-2xl hover:border-border/80 transition-all">
       <div className="flex items-start justify-between gap-4">
-        <Link
-          href={`/courses/${courseId}/contents/${content.id}`}
-          className="flex-1 space-y-2"
-        >
+        <div className="flex-1 space-y-2">
           {chapter && (
-            <div className="text-xs font-medium text-primary">
+            <Link
+              href={`/studio/${courseId}/chapters/${chapter.id}`}
+              className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+            >
               {chapter.number
                 ? `Chapter ${chapter.number}: ${chapter.name}`
                 : chapter.name}
-            </div>
+            </Link>
           )}
-          <h3 className="text-base font-semibold text-foreground hover:text-primary/80 transition-colors">
-            {content.title}
-          </h3>
-          {content.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {content.description}
-            </p>
-          )}
-          <div className="flex items-center gap-2 pt-1">
-            {content.contentVaraints?.map((variant) => (
-              <span
-                key={variant}
-                className="px-2.5 py-1 text-xs font-medium rounded-full bg-muted text-muted-foreground capitalize"
-              >
-                {variant}
+          <Link
+            href={`/courses/${courseId}/contents/${content.id}`}
+            className="block"
+          >
+            <h3 className="text-base font-semibold text-foreground hover:text-primary/80 transition-colors">
+              {content.title}
+            </h3>
+            {content.description && (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {content.description}
+              </p>
+            )}
+            <div className="flex items-center gap-2 pt-1">
+              {content.contentVaraints?.map((variant) => (
+                <span
+                  key={variant}
+                  className="px-2.5 py-1 text-xs font-medium rounded-full bg-muted text-muted-foreground capitalize"
+                >
+                  {variant}
+                </span>
+              ))}
+              <span className="text-xs text-muted-foreground">
+                Order: {content.order}
               </span>
-            ))}
-            <span className="text-xs text-muted-foreground">
-              Order: {content.order}
-            </span>
-          </div>
-        </Link>
+            </div>
+          </Link>
+        </div>
       </div>
     </div>
   );

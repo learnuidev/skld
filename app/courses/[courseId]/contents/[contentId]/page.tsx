@@ -116,23 +116,25 @@ export default function ContentPage() {
             Back to Course
           </Link>
 
-          {isAuthor && !isEditing ? (
-            <button
-              onClick={handleEdit}
-              className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
-              title="Edit content"
-            >
-              <Edit2 className="w-5 h-5 text-muted-foreground" />
-            </button>
-          ) : (
-            <button
-              onClick={handleCancel}
-              disabled={updateContentMutation.isPending}
-              className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
-            >
-              <X className="w-5 h-5 text-muted-foreground" />
-            </button>
-          )}
+          {isAuthor ? (
+            !isEditing ? (
+              <button
+                onClick={handleEdit}
+                className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
+                title="Edit content"
+              >
+                <Edit2 className="w-5 h-5 text-muted-foreground" />
+              </button>
+            ) : (
+              <button
+                onClick={handleCancel}
+                disabled={updateContentMutation.isPending}
+                className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
+              >
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            )
+          ) : null}
         </div>
 
         <div className="space-y-8">
