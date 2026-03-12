@@ -86,8 +86,7 @@ export function ChapterContentsList({
           <Button
             onClick={onCreateKnowledgeGraph}
             disabled={
-              isCreatingKnowledgeGraph ||
-              knowledgeGraph?.status === "in_progress"
+              isCreatingKnowledgeGraph || knowledgeGraph?.status === "pending"
             }
             className="rounded-full gap-2"
           >
@@ -99,7 +98,9 @@ export function ChapterContentsList({
             ) : (
               <>
                 <Plus className="size-4" />
-                Add Knowledge Graph
+                {knowledgeGraph?.status === "pending"
+                  ? "Creation in Progress"
+                  : "Add Knowledge Graph"}
               </>
             )}
           </Button>
