@@ -8,8 +8,6 @@ export const WithAuthenticated = async ({
 }) => {
   const auth = await getIsAuthenticated();
 
-  // console.log("AUTH", auth);
-
   if (!auth) {
     return <AuthFlow />;
   }
