@@ -78,7 +78,10 @@ export default function KnowledgeGraphPage() {
       </CourseHeader>
 
       <div className="mt-12">
-        <KnowledgeGraph graphData={knowledgeGraph.knowledgeGraphData} />
+        <KnowledgeGraph
+          graphData={knowledgeGraph.knowledgeGraphData}
+          courseId={params.courseId ?? undefined}
+        />
       </div>
     </CourseContainer>
   );

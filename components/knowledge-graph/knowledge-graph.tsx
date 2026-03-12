@@ -8,7 +8,13 @@ import { SidePanel } from "./side-panel";
 import { TitlePanel } from "./title-panel";
 import { useKnowledgeGraph } from "./use-knowledge-graph";
 
-export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
+export function KnowledgeGraph({
+  graphData,
+  courseId,
+}: {
+  graphData: GraphData;
+  courseId?: string;
+}) {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
   const {
@@ -49,7 +55,7 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
       <TitlePanel />
       <SidePanel
         stats={Object.entries(
-          Object.groupBy(graphData.nodes, (item) => item.type)
+          Object.groupBy(graphData.nodes, (item) => item.type),
         ).map((item) => {
           const [id, items] = item;
 
@@ -72,6 +78,7 @@ export function KnowledgeGraph({ graphData }: { graphData: GraphData }) {
         onReset={handleReset}
         onLinkClick={setSelectedLink}
         selectedLink={selectedLink}
+        courseId={courseId}
       />
       <RelationshipPanel
         link={selectedLink}

@@ -11,6 +11,7 @@ import {
   Maximize2,
   X,
   ArrowRight,
+  ExternalLink,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,7 @@ export const SidePanel = ({
   onLinkClick,
   selectedLink,
   stats,
+  courseId,
 }: {
   totalNodes: number;
   actorCount: number;
@@ -66,6 +68,7 @@ export const SidePanel = ({
   onLinkClick: (link: Link) => void;
   selectedLink: Link | null;
   stats: { id: string; count: number }[];
+  courseId?: string;
 }) => {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -91,7 +94,7 @@ export const SidePanel = ({
           <div
             className={cn(
               "flex items-center justify-between",
-              isMinimized ? "" : "mb-4"
+              isMinimized ? "" : "mb-4",
             )}
           >
             <h3
@@ -158,6 +161,27 @@ export const SidePanel = ({
                       </p>
                     </div>
 
+                    {activeNode.contentId && courseId && (
+                      <div
+                        className={`p-3 rounded-lg ${isDark ? "bg-slate-800/30 border border-slate-700/50" : "bg-slate-100/30 border border-slate-200/50"}`}
+                      >
+                        <p
+                          className={`text-[10px] uppercase tracking-wider mb-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                        >
+                          Related Content
+                        </p>
+                        <a
+                          href={`/courses/${courseId}/contents/${activeNode.contentId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`text-xs font-medium ${isDark ? "text-emerald-400 hover:text-emerald-300" : "text-emerald-600 hover:text-emerald-500"} transition-colors flex items-center gap-1`}
+                        >
+                          {activeNode.label}
+                          <ExternalLink className="size-3" />
+                        </a>
+                      </div>
+                    )}
+
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-600/30 to-transparent" />
 
                     <div>
@@ -214,7 +238,7 @@ export const SidePanel = ({
                                 </div>
                               </motion.div>
                             );
-                          }
+                          },
                         )}
                       </div>
                     </div>
