@@ -10,9 +10,9 @@ export const WithAuthenticated = async ({
 
   // console.log("AUTH", auth);
 
-  // if (!auth) {
-  //   return <AuthFlow />;
-  // }
+  if (!auth) {
+    return <AuthFlow />;
+  }
 
   return children;
 };
