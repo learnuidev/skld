@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Clock, XCircle, Eye } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Eye, Plus } from "lucide-react";
 import Link from "next/link";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
 
@@ -10,6 +10,9 @@ interface KnowledgeGraphStatusProps {
   onViewKnowledgeGraph?: () => void;
   viewKnowledgeGraphLink?: string;
   showCompletedStatus?: boolean;
+  isAuthor?: boolean;
+  onGenerateKnowledgeGraph?: () => void;
+  isGenerating?: boolean;
 }
 
 export function KnowledgeGraphStatus({
@@ -17,6 +20,9 @@ export function KnowledgeGraphStatus({
   onViewKnowledgeGraph,
   viewKnowledgeGraphLink,
   showCompletedStatus = false,
+  isAuthor = false,
+  onGenerateKnowledgeGraph,
+  isGenerating = false,
 }: KnowledgeGraphStatusProps) {
   const getStatusInfo = () => {
     if (!knowledgeGraph) {
@@ -88,7 +94,7 @@ export function KnowledgeGraphStatus({
           </p>
         )}
 
-        {isCompleted && viewKnowledgeGraphLink && (
+        {isCompleted && viewKnowledgeGraphLink ? (
           <div>
             <Link href={viewKnowledgeGraphLink}>
               <Button
@@ -101,7 +107,29 @@ export function KnowledgeGraphStatus({
               </Button>
             </Link>
           </div>
-        )}
+        ) : !knowledgeGraph && isAuthor && onGenerateKnowledgeGraph ? (
+          <div>
+            <Button
+              onClick={onGenerateKnowledgeGraph}
+              disabled={isGenerating}
+              variant="outline"
+              size="sm"
+              className="rounded-full gap-2"
+            >
+              {isGenerating ? (
+                <>
+                  <Clock className="size-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Plus className="size-4" />
+                  Generate Knowledge Graph
+                </>
+              )}
+            </Button>
+          </div>
+        ) : null}
       </div>
 
       {knowledgeGraph?.knowledgeGraphData && (

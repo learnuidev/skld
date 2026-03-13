@@ -203,6 +203,9 @@ export default function ContentPage() {
             knowledgeGraph={knowledgeGraph}
             viewKnowledgeGraphLink={`/courses/${params.courseId}/contents/${params.contentId}/knowledge-graph`}
             showCompletedStatus={true}
+            isAuthor={isAuthor}
+            onGenerateKnowledgeGraph={handleCreateKnowledgeGraph}
+            isGenerating={createKnowledgeGraphMutation.isPending}
           />
 
           <div>

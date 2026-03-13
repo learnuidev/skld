@@ -69,6 +69,9 @@ export function ChapterContentsList({
         knowledgeGraph={knowledgeGraph}
         viewKnowledgeGraphLink={`/studio/${courseId}/chapters/${chapterId}/knowledge-graph`}
         showCompletedStatus={true}
+        isAuthor={isAuthor}
+        onGenerateKnowledgeGraph={onCreateKnowledgeGraph}
+        isGenerating={isCreatingKnowledgeGraph}
       />
 
       {!contents || contents.length === 0 ? (
