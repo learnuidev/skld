@@ -8,6 +8,7 @@ import { LoadingCourseFailed } from "@/components/course/loading-course-failed";
 import { KnowledgeGraph } from "@/components/knowledge-graph/knowledge-graph";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
+import { useUpdateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-update-knowledge-graph-mutation";
 import { useParams } from "next/navigation";
 
 export default function KnowledgeGraphPage() {
@@ -20,6 +21,7 @@ export default function KnowledgeGraphPage() {
   } = useGetCourseQuery(params.courseId);
   const { data: knowledgeGraph, isLoading: kgLoading } =
     useGetKnowledgeGraphQuery({ chapterId: params.chapterId });
+  const updateKnowledgeGraphMutation = useUpdateKnowledgeGraphMutation();
 
   const chapter = course?.domains
     ?.flatMap((d) => d.chapters)
@@ -83,6 +85,8 @@ export default function KnowledgeGraphPage() {
           courseId={params.courseId ?? undefined}
           title={course?.title}
           description={chapter?.name}
+          sk={knowledgeGraph.sk}
+          updateMutation={updateKnowledgeGraphMutation}
         />
       </div>
     </CourseContainer>

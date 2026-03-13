@@ -29,3 +29,23 @@ export interface GraphData {
   nodes: Node[];
   links: Link[];
 }
+
+export interface KnowledgeGraph {
+  id: string;
+  sk: string;
+  courseId: string;
+  chapterId: string | null;
+  contentId: string | null;
+  userId: string;
+  status: "pending" | "in_progress" | "completed" | "failed" | "processing";
+  knowledgeGraphData?: GraphData;
+  error?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface CreateKnowledgeGraphParams {
+  courseId: string;
+  chapterId?: string;
+  contentId?: string;
+}

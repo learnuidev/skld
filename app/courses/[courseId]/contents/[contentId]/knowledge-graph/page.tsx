@@ -7,16 +7,17 @@ import { KnowledgeGraph } from "@/components/knowledge-graph/knowledge-graph";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
+import { useUpdateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-update-knowledge-graph-mutation";
 
 export default function ContentKnowledgeGraphPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
 
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId
+    params.courseId,
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const chapter = course?.domains
@@ -25,6 +26,7 @@ export default function ContentKnowledgeGraphPage() {
 
   const { data: knowledgeGraph, isLoading: kgLoading } =
     useGetKnowledgeGraphQuery({ contentId: params.contentId });
+  const updateKnowledgeGraphMutation = useUpdateKnowledgeGraphMutation();
 
   const isLoading = courseLoading || contentLoading || kgLoading;
 
@@ -82,6 +84,8 @@ export default function ContentKnowledgeGraphPage() {
               contentId={params.contentId}
               title={chapter?.name}
               description={content?.title}
+              sk={knowledgeGraph.sk}
+              updateMutation={updateKnowledgeGraphMutation}
             />
           </div>
         </div>

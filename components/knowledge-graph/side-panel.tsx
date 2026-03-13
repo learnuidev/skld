@@ -12,6 +12,7 @@ import {
   X,
   ArrowRight,
   ExternalLink,
+  Edit,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
@@ -57,6 +58,9 @@ export const SidePanel = ({
   stats,
   courseId,
   contentId,
+  isEditing = false,
+  onEditNode,
+  onEditLink,
 }: {
   totalNodes: number;
   actorCount: number;
@@ -71,6 +75,9 @@ export const SidePanel = ({
   stats: { id: string; count: number }[];
   courseId?: string;
   contentId?: string;
+  isEditing?: boolean;
+  onEditNode?: (node: Node) => void;
+  onEditLink?: (link: Link) => void;
 }) => {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -96,7 +103,7 @@ export const SidePanel = ({
           <div
             className={cn(
               "flex items-center justify-between",
-              isMinimized ? "" : "mb-4"
+              isMinimized ? "" : "mb-4",
             )}
           >
             <h3
@@ -145,16 +152,28 @@ export const SidePanel = ({
                 {activeNode ? (
                   <div className="space-y-4">
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: activeNode.color }}
-                        />
-                        <h4
-                          className={`font-medium ${isDark ? "text-white" : "text-slate-900"}`}
-                        >
-                          {activeNode.label}
-                        </h4>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: activeNode.color }}
+                          />
+                          <h4
+                            className={`font-medium ${isDark ? "text-white" : "text-slate-900"}`}
+                          >
+                            {activeNode.label}
+                          </h4>
+                        </div>
+                        {isEditing && onEditNode && (
+                          <button
+                            onClick={() => onEditNode(activeNode)}
+                            className={`hover:${isDark ? "bg-slate-700/50" : "bg-slate-200/50"} rounded p-1 transition-colors`}
+                          >
+                            <Edit
+                              className={`w-3 h-3 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}
+                            />
+                          </button>
+                        )}
                       </div>
                       <p
                         className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"} leading-relaxed`}
@@ -224,6 +243,19 @@ export const SidePanel = ({
                                       >
                                         {targetNode.label}
                                       </span>
+                                      {isEditing && onEditLink && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            onEditLink(link);
+                                          }}
+                                          className={`ml-auto hover:${isDark ? "bg-slate-700/50" : "bg-slate-200/50"} rounded p-1 transition-colors`}
+                                        >
+                                          <Edit
+                                            className={`w-3 h-3 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}
+                                          />
+                                        </button>
+                                      )}
                                     </div>
                                     <p
                                       className={`text-[10px] ${isDark ? "text-slate-400" : "text-slate-500"} leading-relaxed`}
@@ -240,7 +272,7 @@ export const SidePanel = ({
                                 </div>
                               </motion.div>
                             );
-                          }
+                          },
                         )}
                       </div>
                     </div>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Info, X, GripVertical } from "lucide-react";
+import { Info, X, GripVertical, Edit } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,9 +12,13 @@ import { PANEL_DARK_BACKGROUND } from "./knowledge-graph.constants";
 export const RelationshipPanel = ({
   link,
   onClose,
+  isEditing = false,
+  onEditLink,
 }: {
   link: Link | null;
   onClose: () => void;
+  isEditing?: boolean;
+  onEditLink?: (link: Link) => void;
 }) => {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -43,21 +47,35 @@ export const RelationshipPanel = ({
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <GripVertical className={`w-4 h-4 ${isDark ? "text-slate-500" : "text-slate-400"}`} />
+                    <GripVertical
+                      className={`w-4 h-4 ${isDark ? "text-slate-500" : "text-slate-400"}`}
+                    />
                     <h3
                       className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}
                     >
                       Relationship Details
                     </h3>
                   </div>
-                  <button
-                    onClick={onClose}
-                    className={`hover:${isDark ? "bg-slate-700/50" : "bg-slate-200/50"} rounded-lg p-2 transition-colors`}
-                  >
-                    <X
-                      className={`w-4 h-4 ${isDark ? "text-slate-400" : "text-slate-500"}`}
-                    />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {isEditing && onEditLink && (
+                      <button
+                        onClick={() => onEditLink(link)}
+                        className={`hover:${isDark ? "bg-slate-700/50" : "bg-slate-200/50"} rounded-lg p-2 transition-colors`}
+                      >
+                        <Edit
+                          className={`w-4 h-4 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}
+                        />
+                      </button>
+                    )}
+                    <button
+                      onClick={onClose}
+                      className={`hover:${isDark ? "bg-slate-700/50" : "bg-slate-200/50"} rounded-lg p-2 transition-colors`}
+                    >
+                      <X
+                        className={`w-4 h-4 ${isDark ? "text-slate-400" : "text-slate-500"}`}
+                      />
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-4">
                   <div
