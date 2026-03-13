@@ -1,15 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { KnowledgeGraphStatus } from "@/components/knowledge-graph/knowledge-graph-status";
 import { CourseContent } from "@/modules/course-content/course-content.types";
-import {
-  CheckCircle2,
-  Clock,
-  FileText,
-  XCircle,
-  Plus,
-  Eye,
-} from "lucide-react";
+import { FileText, Plus, Clock } from "lucide-react";
 import Link from "next/link";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
@@ -33,52 +27,6 @@ export function ChapterContentsList({
 }: ChapterContentsListProps) {
   const isAuthor = useIsUserCourseAuthor(courseId);
 
-  const getStatusInfo = () => {
-    if (!knowledgeGraph) {
-      return {
-        icon: <Clock className="size-4" />,
-        text: "Not generated",
-        color: "text-muted-foreground",
-      };
-    }
-
-    switch (knowledgeGraph.status) {
-      case "pending":
-      case "processing":
-        return {
-          icon: <Clock className="size-4 animate-spin" />,
-          text: "Pending",
-          color: "text-yellow-600",
-        };
-      case "in_progress":
-        return {
-          icon: <Clock className="size-4 animate-spin" />,
-          text: "Processing",
-          color: "text-blue-600",
-        };
-      case "completed":
-        return {
-          icon: <CheckCircle2 className="size-4" />,
-          text: "Completed",
-          color: "text-green-600",
-        };
-      case "failed":
-        return {
-          icon: <XCircle className="size-4" />,
-          text: "Failed",
-          color: "text-red-600",
-        };
-      default:
-        return {
-          icon: <Clock className="size-4" />,
-          text: "Unknown",
-          color: "text-muted-foreground",
-        };
-    }
-  };
-
-  const statusInfo = getStatusInfo();
-
   const isProcessing = ["pending", "processing"].includes(
     knowledgeGraph?.status || ""
   );
@@ -96,69 +44,32 @@ export function ChapterContentsList({
             {contents.length} content{contents.length !== 1 ? "s" : ""}
           </p>
         </div>
-        {isAuthor ? (
-          isCompleted ? (
-            <Link
-              href={`/studio/${courseId}/chapters/${chapterId}/knowledge-graph`}
-            >
-              <Button className="rounded-full gap-2">
-                <Eye className="size-4" />
-                View Knowledge Graph
-              </Button>
-            </Link>
-          ) : (
-            <Button
-              onClick={onCreateKnowledgeGraph}
-              disabled={isCreatingKnowledgeGraph || isProcessing}
-              className="rounded-full gap-2"
-            >
-              {isCreatingKnowledgeGraph ? (
-                <>
-                  <Clock className="size-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Plus className="size-4" />
-                  {isProcessing
-                    ? "Creation in Progress"
-                    : "Add Knowledge Graph"}
-                </>
-              )}
-            </Button>
-          )
-        ) : null}
+        {isAuthor && !isCompleted && (
+          <Button
+            onClick={onCreateKnowledgeGraph}
+            disabled={isCreatingKnowledgeGraph || isProcessing}
+            className="rounded-full gap-2"
+          >
+            {isCreatingKnowledgeGraph ? (
+              <>
+                <Clock className="size-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Plus className="size-4" />
+                {isProcessing ? "Creation in Progress" : "Add Knowledge Graph"}
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
-      {knowledgeGraph && (
-        <div className="p-4 bg-muted border border-border rounded-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={statusInfo.color}>{statusInfo.icon}</div>
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  Knowledge Graph Status
-                </p>
-                <p className={`text-xs ${statusInfo.color}`}>
-                  {statusInfo.text}
-                </p>
-              </div>
-            </div>
-            {knowledgeGraph.error && (
-              <p className="text-xs text-red-600 max-w-md truncate">
-                {knowledgeGraph.error}
-              </p>
-            )}
-          </div>
-          {knowledgeGraph.knowledgeGraphData && (
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-xs text-muted-foreground">
-                Generated: {new Date(knowledgeGraph.updatedAt).toLocaleString()}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      <KnowledgeGraphStatus
+        knowledgeGraph={knowledgeGraph}
+        viewKnowledgeGraphLink={`/studio/${courseId}/chapters/${chapterId}/knowledge-graph`}
+        showCompletedStatus={true}
+      />
 
       {!contents || contents.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 px-6">

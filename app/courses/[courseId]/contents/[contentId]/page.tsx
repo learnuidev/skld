@@ -2,6 +2,7 @@
 
 import { TiptapEditor } from "@/components/editor/tiptap-editor";
 import { FloatingMenu } from "@/components/floating-menu";
+import { KnowledgeGraphStatus } from "@/components/knowledge-graph/knowledge-graph-status";
 import { useAutoSizeTextarea } from "@/hooks/ui/use-auto-size-textarea";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
@@ -11,7 +12,7 @@ import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-autho
 import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
 import { fetchAuthSession } from "aws-amplify/auth";
-import { ArrowLeft, Clock, Save, X } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -198,61 +199,11 @@ export default function ContentPage() {
             )}
           </header>
 
-          {isAuthor &&
-            knowledgeGraph &&
-            knowledgeGraph.status !== "completed" && (
-              <div className="p-4 bg-muted border border-border rounded-xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={
-                        knowledgeGraph.status === "failed"
-                          ? "text-red-600"
-                          : "text-yellow-600"
-                      }
-                    >
-                      {knowledgeGraph.status === "failed" ? (
-                        <X className="size-4" />
-                      ) : (
-                        <Clock className="size-4 animate-spin" />
-                      )}
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Knowledge Graph Status
-                      </p>
-                      <p
-                        className={`text-xs ${
-                          knowledgeGraph.status === "failed"
-                            ? "text-red-600"
-                            : "text-yellow-600"
-                        }`}
-                      >
-                        {knowledgeGraph.status === "failed"
-                          ? "Failed"
-                          : knowledgeGraph.status === "processing"
-                            ? "Processing"
-                            : "Pending"}
-                      </p>
-                    </div>
-                  </div>
-                  {knowledgeGraph.error && (
-                    <p className="text-xs text-red-600 max-w-md truncate">
-                      {knowledgeGraph.error}
-                    </p>
-                  )}
-                </div>
-                {knowledgeGraph.knowledgeGraphData && (
-                  <div className="mt-3 pt-3 border-t border-border">
-                    <p className="text-xs text-muted-foreground">
-                      Generated:{" "}
-                      {new Date(knowledgeGraph.updatedAt).toLocaleString()}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+          <KnowledgeGraphStatus
+            knowledgeGraph={knowledgeGraph}
+            viewKnowledgeGraphLink={`/courses/${params.courseId}/contents/${params.contentId}/knowledge-graph`}
+            showCompletedStatus={true}
+          />
 
           <div>
             <TiptapEditor
