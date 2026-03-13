@@ -12,9 +12,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SkldLogo } from "./skld-logo";
+import { usePathname } from "next/navigation";
 
 export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
+
+  const pathName = usePathname();
+  const containsKnowledgeGraph = pathName.includes("knowledge-graph");
+
+  if (containsKnowledgeGraph) {
+    return null;
+  }
 
   const handleSignOut = async () => {
     try {
