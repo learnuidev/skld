@@ -4,7 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 
-export const TitlePanel = () => {
+interface TitlePanelProps {
+  title: string;
+  description?: string;
+}
+
+export const TitlePanel = ({ title, description }: TitlePanelProps) => {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
 
@@ -16,14 +21,14 @@ export const TitlePanel = () => {
       className="absolute top-4 left-4 z-10"
     >
       <div>
-        <h1 className={`text-xl font-light`}>
-          Threat Actors, Attributes & Motivations
-        </h1>
-        <p
-          className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}
-        >
-          CompTIA Security+ | Domain 2.1 | Real-World Examples
-        </p>
+        <h1 className={`text-xl font-light`}>{title}</h1>
+        {description && (
+          <p
+            className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}
+          >
+            {description}
+          </p>
+        )}
       </div>
     </motion.div>
   );

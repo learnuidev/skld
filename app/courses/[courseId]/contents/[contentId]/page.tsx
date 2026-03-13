@@ -19,23 +19,20 @@ import { useEffect, useState } from "react";
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId,
+    params.courseId
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
   const { data: contents } = useListCourseContentsQuery(params.courseId);
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
 
-  const sk = `CONTENT_${params.contentId}`;
-
-  console.log("YOOO", sk);
   const { data: knowledgeGraph, isLoading: kgLoading } =
-    useGetKnowledgeGraphQuery(sk);
+    useGetKnowledgeGraphQuery({ contentId: params.contentId });
   const createKnowledgeGraphMutation = useCreateKnowledgeGraphMutation();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -180,7 +177,7 @@ export default function ContentPage() {
                   chapters.length > 0 &&
                   (() => {
                     const chapter = chapters.find(
-                      (ch) => ch.id === content.chapterId,
+                      (ch) => ch.id === content.chapterId
                     );
                     return chapter ? (
                       <div className="text-xs font-medium text-primary">

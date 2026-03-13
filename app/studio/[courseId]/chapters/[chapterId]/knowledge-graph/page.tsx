@@ -12,7 +12,6 @@ import { useParams } from "next/navigation";
 
 export default function KnowledgeGraphPage() {
   const params = useParams<{ courseId: string; chapterId: string }>();
-  const sk = `CHAPTER_${params.chapterId}`;
 
   const {
     data: course,
@@ -20,7 +19,7 @@ export default function KnowledgeGraphPage() {
     error: courseError,
   } = useGetCourseQuery(params.courseId);
   const { data: knowledgeGraph, isLoading: kgLoading } =
-    useGetKnowledgeGraphQuery(sk);
+    useGetKnowledgeGraphQuery({ chapterId: params.chapterId });
 
   const chapter = course?.domains
     ?.flatMap((d) => d.chapters)
@@ -82,6 +81,8 @@ export default function KnowledgeGraphPage() {
         <KnowledgeGraph
           graphData={knowledgeGraph.knowledgeGraphData}
           courseId={params.courseId ?? undefined}
+          title={course?.title}
+          description={chapter?.name}
         />
       </div>
     </CourseContainer>

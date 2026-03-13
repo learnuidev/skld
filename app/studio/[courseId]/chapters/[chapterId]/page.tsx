@@ -5,18 +5,15 @@ import { CourseContainer } from "@/components/course/course-container";
 import { CourseHeader } from "@/components/course/course-header";
 import { LoadingCourse } from "@/components/course/loading-course";
 import { LoadingCourseFailed } from "@/components/course/loading-course-failed";
-import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
-import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
+import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ChapterContentsList } from "./components/chapter-contents-list";
 
 export default function ChapterDetailPage() {
   const params = useParams<{ courseId: string; chapterId: string }>();
-  const router = useRouter();
-
-  const sk = `CHAPTER_${params.chapterId}`;
 
   const {
     data: course,
@@ -26,7 +23,7 @@ export default function ChapterDetailPage() {
   const { data: contents, isLoading: contentsLoading } =
     useListCourseContentsQuery(params.courseId);
   const { data: knowledgeGraph, isLoading: kgLoading } =
-    useGetKnowledgeGraphQuery(sk);
+    useGetKnowledgeGraphQuery({ chapterId: params.chapterId });
   const createKnowledgeGraphMutation = useCreateKnowledgeGraphMutation();
 
   const chapter = course?.domains

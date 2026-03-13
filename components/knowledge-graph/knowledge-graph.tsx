@@ -12,10 +12,14 @@ export function KnowledgeGraph({
   graphData,
   courseId,
   contentId,
+  title,
+  description,
 }: {
   graphData: GraphData;
   courseId?: string;
   contentId?: string;
+  title?: string;
+  description?: string;
 }) {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -36,7 +40,7 @@ export function KnowledgeGraph({
 
   return (
     <div
-      className={`relative w-full lg:h-200 mb-12 overflow-hidden ${isDark ? "bg-[rgb(11,12,13)]" : "bg-slate-50"}`}
+      className={`relative w-full h-200 mb-12 overflow-hidden ${isDark ? "bg-[rgb(11,12,13)]" : "bg-slate-50"}`}
     >
       <svg
         ref={svgRef}
@@ -54,7 +58,10 @@ export function KnowledgeGraph({
         </defs>
       </svg>
 
-      <TitlePanel />
+      <TitlePanel
+        title={title || "Knowledge Graph"}
+        description={description}
+      />
       <SidePanel
         stats={Object.entries(
           Object.groupBy(graphData.nodes, (item) => item.group)

@@ -13,7 +13,7 @@ export function useCreateKnowledgeGraphMutation() {
 
   return useMutation({
     mutationFn: async (
-      params: CreateKnowledgeGraphParams,
+      params: CreateKnowledgeGraphParams
     ): Promise<KnowledgeGraph> => {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
@@ -35,7 +35,7 @@ export function useCreateKnowledgeGraphMutation() {
             chapterId: params.chapterId,
             contentId: params.contentId,
           }),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -46,11 +46,8 @@ export function useCreateKnowledgeGraphMutation() {
       return response.json();
     },
     onSuccess: (data, variables) => {
-      const sk = variables.chapterId
-        ? `CHAPTER#${variables.chapterId}`
-        : `CONTENT#${variables.contentId}`;
-      queryClient.invalidateQueries({
-        queryKey: ["knowledgeGraph", sk],
+      queryClient.refetchQueries({
+        queryKey: ["knowledgeGraph", data.sk],
       });
     },
   });

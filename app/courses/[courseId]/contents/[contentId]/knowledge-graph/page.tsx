@@ -10,7 +10,6 @@ import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-kno
 
 export default function ContentKnowledgeGraphPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
-  const sk = `CONTENT_${params.contentId}`;
 
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
     params.courseId
@@ -19,8 +18,13 @@ export default function ContentKnowledgeGraphPage() {
     params.courseId,
     params.contentId
   );
+
+  const chapter = course?.domains
+    ?.flatMap((d) => d.chapters)
+    .find((c) => c.id === content?.chapterId);
+
   const { data: knowledgeGraph, isLoading: kgLoading } =
-    useGetKnowledgeGraphQuery(sk);
+    useGetKnowledgeGraphQuery({ contentId: params.contentId });
 
   const isLoading = courseLoading || contentLoading || kgLoading;
 
@@ -76,6 +80,8 @@ export default function ContentKnowledgeGraphPage() {
               graphData={knowledgeGraph.knowledgeGraphData}
               courseId={params.courseId}
               contentId={params.contentId}
+              title={chapter?.name}
+              description={content?.title}
             />
           </div>
         </div>
