@@ -1,16 +1,17 @@
 "use client";
 
 import { TiptapEditor } from "@/components/editor/tiptap-editor";
-import { Button } from "@/components/ui/button";
+import { FloatingMenu } from "@/components/floating-menu";
 import { useAutoSizeTextarea } from "@/hooks/ui/use-auto-size-textarea";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
+import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
 import { useUpdateCourseContentMutation } from "@/modules/course-content/use-update-course-content-mutation";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
 import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
 import { fetchAuthSession } from "aws-amplify/auth";
-import { ArrowLeft, Clock, Edit2, Plus, Save, X } from "lucide-react";
+import { ArrowLeft, Clock, Save, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,15 +19,16 @@ import { useEffect, useState } from "react";
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId
+    params.courseId,
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
+  const { data: contents } = useListCourseContentsQuery(params.courseId);
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const sk = `CONTENT_${params.contentId}`;
@@ -136,63 +138,6 @@ export default function ContentPage() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Course
           </Link>
-
-          <div className="flex gap-4 items-center">
-            {isAuthor && (
-              <div className="flex justify-end">
-                {knowledgeGraph?.status === "completed" &&
-                knowledgeGraph.knowledgeGraphData ? (
-                  <Button asChild className="rounded-full gap-2">
-                    <Link
-                      href={`/courses/${params.courseId}/contents/${params.contentId}/knowledge-graph`}
-                    >
-                      View Knowledge Graph
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleCreateKnowledgeGraph}
-                    disabled={createKnowledgeGraphMutation.isPending}
-                    className="rounded-full gap-2"
-                    variant={"outline"}
-                  >
-                    {createKnowledgeGraphMutation.isPending ? (
-                      <>
-                        <Clock className="size-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="size-4" />
-                        Add Knowledge Graph
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-            )}
-
-            {isAuthor ? (
-              !isEditing ? (
-                <Button
-                  onClick={handleEdit}
-                  className="shrink-0 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
-                  title="Edit content"
-                  variant={"ghost"}
-                >
-                  <Edit2 className="w-5 h-5 text-muted-foreground" />
-                </Button>
-              ) : (
-                <button
-                  onClick={handleCancel}
-                  disabled={updateContentMutation.isPending}
-                  className="shrink-0 w-12 h-12 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent flex items-center justify-center transition-all"
-                >
-                  <X className="w-5 h-5 text-muted-foreground" />
-                </button>
-              )
-            ) : null}
-          </div>
         </div>
 
         <div className="space-y-8">
@@ -235,7 +180,7 @@ export default function ContentPage() {
                   chapters.length > 0 &&
                   (() => {
                     const chapter = chapters.find(
-                      (ch) => ch.id === content.chapterId
+                      (ch) => ch.id === content.chapterId,
                     );
                     return chapter ? (
                       <div className="text-xs font-medium text-primary">
@@ -354,6 +299,20 @@ export default function ContentPage() {
           </footer>
         </div>
       </div>
+
+      {isAuthor && (
+        <FloatingMenu
+          courseId={params.courseId}
+          contentId={params.contentId}
+          contents={contents || []}
+          isEditing={isEditing}
+          onEdit={handleEdit}
+          onCancel={handleCancel}
+          knowledgeGraph={knowledgeGraph || undefined}
+          onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
+          isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
+        />
+      )}
     </div>
   );
 }
