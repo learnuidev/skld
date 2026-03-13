@@ -14,7 +14,6 @@ import {
   Save,
   X,
   Plus,
-  Eye,
   Clock,
   CheckCircle2,
 } from "lucide-react";
@@ -22,31 +21,25 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { KnowledgeGraph } from "@/components/knowledge-graph/knowledge-graph";
 import { fetchAuthSession } from "aws-amplify/auth";
 
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId
+    params.courseId,
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
-  const sk = `CONTENT#${params.contentId}`;
+  const sk = `CONTENT_${params.contentId}`;
+
+  console.log("YOOO", sk);
   const { data: knowledgeGraph, isLoading: kgLoading } =
     useGetKnowledgeGraphQuery(sk);
   const createKnowledgeGraphMutation = useCreateKnowledgeGraphMutation();
@@ -56,7 +49,6 @@ export default function ContentPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editChapterId, setEditChapterId] = useState<string>("");
-  const [isKgDialogOpen, setIsKgDialogOpen] = useState(false);
 
   const textareaRef = useAutoSizeTextarea(editDescription);
 
@@ -158,12 +150,12 @@ export default function ContentPage() {
               <div className="flex justify-end">
                 {knowledgeGraph?.status === "completed" &&
                 knowledgeGraph.knowledgeGraphData ? (
-                  <Button
-                    onClick={() => setIsKgDialogOpen(true)}
-                    className="rounded-full gap-2"
-                  >
-                    <Eye className="size-4" />
-                    View Knowledge Graph
+                  <Button asChild className="rounded-full gap-2">
+                    <Link
+                      href={`/courses/${params.courseId}/contents/${params.contentId}/knowledge-graph`}
+                    >
+                      View Knowledge Graph
+                    </Link>
                   </Button>
                 ) : (
                   <Button
@@ -251,7 +243,7 @@ export default function ContentPage() {
                   chapters.length > 0 &&
                   (() => {
                     const chapter = chapters.find(
-                      (ch) => ch.id === content.chapterId
+                      (ch) => ch.id === content.chapterId,
                     );
                     return chapter ? (
                       <div className="text-xs font-medium text-primary">
@@ -293,28 +285,26 @@ export default function ContentPage() {
                       <Clock className="size-4 animate-spin" />
                     )}
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      Knowledge Graph Status
-                    </p>
-                    <p
-                      className={`text-xs ${
-                        knowledgeGraph.status === "completed"
-                          ? "text-green-600"
-                          : knowledgeGraph.status === "failed"
+                  {knowledgeGraph.status === "completed" ? null : (
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Knowledge Graph Status
+                      </p>
+                      <p
+                        className={`text-xs ${
+                          knowledgeGraph.status === "failed"
                             ? "text-red-600"
                             : "text-yellow-600"
-                      }`}
-                    >
-                      {knowledgeGraph.status === "completed"
-                        ? "Completed"
-                        : knowledgeGraph.status === "failed"
+                        }`}
+                      >
+                        {knowledgeGraph.status === "failed"
                           ? "Failed"
                           : knowledgeGraph.status === "processing"
                             ? "Processing"
                             : "Pending"}
-                    </p>
-                  </div>
+                      </p>
+                    </div>
+                  )}
                 </div>
                 {knowledgeGraph.error && (
                   <p className="text-xs text-red-600 max-w-md truncate">
@@ -375,25 +365,6 @@ export default function ContentPage() {
           </footer>
         </div>
       </div>
-
-      {isKgDialogOpen && knowledgeGraph?.knowledgeGraphData && (
-        <Dialog open={isKgDialogOpen} onOpenChange={setIsKgDialogOpen}>
-          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Knowledge Graph</DialogTitle>
-              <DialogDescription>
-                Visualize the knowledge connections for this content
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <KnowledgeGraph
-                graphData={knowledgeGraph.knowledgeGraphData}
-                courseId={params.courseId ?? undefined}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }

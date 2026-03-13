@@ -12,7 +12,7 @@ import { useParams } from "next/navigation";
 
 export default function KnowledgeGraphPage() {
   const params = useParams<{ courseId: string; chapterId: string }>();
-  const sk = `CHAPTER#${params.chapterId}`;
+  const sk = `CHAPTER_${params.chapterId}`;
 
   const {
     data: course,

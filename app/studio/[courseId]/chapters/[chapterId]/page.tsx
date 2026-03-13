@@ -16,7 +16,7 @@ export default function ChapterDetailPage() {
   const params = useParams<{ courseId: string; chapterId: string }>();
   const router = useRouter();
 
-  const sk = `CHAPTER#${params.chapterId}`;
+  const sk = `CHAPTER_${params.chapterId}`;
 
   const {
     data: course,

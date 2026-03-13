@@ -8,9 +8,9 @@ export const WithAuthenticated = async ({
 }) => {
   const auth = await getIsAuthenticated();
 
-  if (!auth) {
-    return <AuthFlow />;
-  }
+  // if (!auth) {
+  //   return <AuthFlow />;
+  // }
 
   return children;
 };
