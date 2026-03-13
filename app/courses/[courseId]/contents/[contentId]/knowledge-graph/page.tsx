@@ -43,7 +43,7 @@ export default function ContentKnowledgeGraphPage() {
   if (!knowledgeGraph || !knowledgeGraph.knowledgeGraphData) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="px-0 py-16 lg:py-24">
+        <div className="px-0 pb-16 lg:pb-24 lg:pt-8 pt-4">
           <Link
             href={`/courses/${params.courseId}/contents/${params.contentId}`}
             className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -61,7 +61,7 @@ export default function ContentKnowledgeGraphPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="py-16 lg:py-24">
+      <div className="px-0 pb-16 lg:pb-24 lg:pt-8 pt-4">
         <Link
           href={`/courses/${params.courseId}/contents/${params.contentId}`}
           className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -71,18 +71,6 @@ export default function ContentKnowledgeGraphPage() {
         </Link>
 
         <div className="space-y-8">
-          <header>
-            <p className="text-xs font-medium text-muted-foreground mb-2">
-              {course.title}
-            </p>
-            <h1 className="text-3xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15]">
-              {content.title}
-            </h1>
-            <p className="text-lg text-muted-foreground mt-2">
-              Knowledge Graph
-            </p>
-          </header>
-
           <div>
             <KnowledgeGraph
               graphData={knowledgeGraph.knowledgeGraphData}

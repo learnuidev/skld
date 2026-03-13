@@ -8,7 +8,7 @@ export const CourseBackLink = ({
   title: string;
 }) => {
   return (
-    <div className="mb-20 sm:mt-20 mt-0">
+    <div className="mb-20 mt-8">
       <Link
         href={href}
         className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
