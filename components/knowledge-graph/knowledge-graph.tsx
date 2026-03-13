@@ -11,9 +11,11 @@ import { useKnowledgeGraph } from "./use-knowledge-graph";
 export function KnowledgeGraph({
   graphData,
   courseId,
+  contentId,
 }: {
   graphData: GraphData;
   courseId?: string;
+  contentId?: string;
 }) {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -79,6 +81,7 @@ export function KnowledgeGraph({
         onLinkClick={setSelectedLink}
         selectedLink={selectedLink}
         courseId={courseId}
+        contentId={contentId}
       />
       <RelationshipPanel
         link={selectedLink}

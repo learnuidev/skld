@@ -75,6 +75,7 @@ export default function ContentKnowledgeGraphPage() {
             <KnowledgeGraph
               graphData={knowledgeGraph.knowledgeGraphData}
               courseId={params.courseId}
+              contentId={params.contentId}
             />
           </div>
         </div>

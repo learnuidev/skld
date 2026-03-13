@@ -56,6 +56,7 @@ export const SidePanel = ({
   selectedLink,
   stats,
   courseId,
+  contentId,
 }: {
   totalNodes: number;
   actorCount: number;
@@ -69,6 +70,7 @@ export const SidePanel = ({
   selectedLink: Link | null;
   stats: { id: string; count: number }[];
   courseId?: string;
+  contentId?: string;
 }) => {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -94,7 +96,7 @@ export const SidePanel = ({
           <div
             className={cn(
               "flex items-center justify-between",
-              isMinimized ? "" : "mb-4",
+              isMinimized ? "" : "mb-4"
             )}
           >
             <h3
@@ -171,7 +173,7 @@ export const SidePanel = ({
                           Related Content
                         </p>
                         <a
-                          href={`/courses/${courseId}/contents/${activeNode.contentId}`}
+                          href={`/courses/${courseId}/contents/${contentId || activeNode.contentId}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className={`text-xs font-medium ${isDark ? "text-emerald-400 hover:text-emerald-300" : "text-emerald-600 hover:text-emerald-500"} transition-colors flex items-center gap-1`}
@@ -238,7 +240,7 @@ export const SidePanel = ({
                                 </div>
                               </motion.div>
                             );
-                          },
+                          }
                         )}
                       </div>
                     </div>
