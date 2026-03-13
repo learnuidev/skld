@@ -94,7 +94,7 @@ export const SidePanel = ({
           <div
             className={cn(
               "flex items-center justify-between",
-              isMinimized ? "" : "mb-4",
+              isMinimized ? "" : "mb-4"
             )}
           >
             <h3
@@ -238,7 +238,7 @@ export const SidePanel = ({
                                 </div>
                               </motion.div>
                             );
-                          },
+                          }
                         )}
                       </div>
                     </div>
@@ -260,9 +260,18 @@ export const SidePanel = ({
                       <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-600/30 to-transparent" />
                       {stats.map((statItem, idx) => {
                         const colors = {
-                          0: "#FF6B6B",
-                          1: "#4ECDC4",
-                          2: "#FFD93D",
+                          0: "#9B6B7C",
+                          1: "#4A7A7C",
+                          2: "#C4A27A",
+                          3: "#D4A5A5",
+                          4: "#9CAF88",
+                          5: "#C97C5D",
+                          6: "#6A7A8E",
+                          7: "#C69C6D",
+                          8: "#4A4A4A",
+                          9: "#F5E6D3",
+                          10: "#2C5F2D",
+                          11: "#8B3A3A",
                         } as any;
                         return (
                           <LegendItem

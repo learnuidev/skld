@@ -55,7 +55,7 @@ export function KnowledgeGraph({
       <TitlePanel />
       <SidePanel
         stats={Object.entries(
-          Object.groupBy(graphData.nodes, (item) => item.type),
+          Object.groupBy(graphData.nodes, (item) => item.group)
         ).map((item) => {
           const [id, items] = item;
 
