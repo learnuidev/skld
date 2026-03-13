@@ -11,6 +11,7 @@ import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
 import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
+import { useRetryKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-retry-knowledge-graph-mutation";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
@@ -20,21 +21,22 @@ import { useEffect, useState } from "react";
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId
+    params.courseId,
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
   const { data: contents } = useListCourseContentsQuery(params.courseId);
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const { data: knowledgeGraph, isLoading: kgLoading } =
     useGetKnowledgeGraphQuery({ contentId: params.contentId });
   const createKnowledgeGraphMutation = useCreateKnowledgeGraphMutation();
+  const retryKnowledgeGraphMutation = useRetryKnowledgeGraphMutation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editorContent, setEditorContent] = useState(content?.content || "");
@@ -109,6 +111,15 @@ export default function ContentPage() {
     }
   };
 
+  const handleRetryKnowledgeGraph = async () => {
+    if (!knowledgeGraph?.sk) return;
+    try {
+      await retryKnowledgeGraphMutation.mutateAsync(knowledgeGraph.sk);
+    } catch (error) {
+      console.error("Failed to retry knowledge graph:", error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -178,7 +189,7 @@ export default function ContentPage() {
                   chapters.length > 0 &&
                   (() => {
                     const chapter = chapters.find(
-                      (ch) => ch.id === content.chapterId
+                      (ch) => ch.id === content.chapterId,
                     );
                     return chapter ? (
                       <div className="text-xs font-medium text-primary">
@@ -206,6 +217,8 @@ export default function ContentPage() {
             isAuthor={isAuthor}
             onGenerateKnowledgeGraph={handleCreateKnowledgeGraph}
             isGenerating={createKnowledgeGraphMutation.isPending}
+            onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
+            isRetrying={retryKnowledgeGraphMutation.isPending}
           />
 
           <div>
@@ -262,6 +275,8 @@ export default function ContentPage() {
           knowledgeGraph={knowledgeGraph || undefined}
           onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
           isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
+          onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
+          isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
         />
       )}
     </div>

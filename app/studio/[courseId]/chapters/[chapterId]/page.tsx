@@ -9,6 +9,7 @@ import { useListCourseContentsQuery } from "@/modules/course-content/use-list-co
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
+import { useRetryKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-retry-knowledge-graph-mutation";
 import { useParams } from "next/navigation";
 import { ChapterContentsList } from "./components/chapter-contents-list";
 
@@ -25,6 +26,7 @@ export default function ChapterDetailPage() {
   const { data: knowledgeGraph, isLoading: kgLoading } =
     useGetKnowledgeGraphQuery({ chapterId: params.chapterId });
   const createKnowledgeGraphMutation = useCreateKnowledgeGraphMutation();
+  const retryKnowledgeGraphMutation = useRetryKnowledgeGraphMutation();
 
   const chapter = course?.domains
     ?.flatMap((d) => d.chapters)
@@ -41,6 +43,15 @@ export default function ChapterDetailPage() {
       });
     } catch (error) {
       console.error("Failed to create knowledge graph:", error);
+    }
+  };
+
+  const handleRetryKnowledgeGraph = async () => {
+    if (!knowledgeGraph?.sk) return;
+    try {
+      await retryKnowledgeGraphMutation.mutateAsync(knowledgeGraph.sk);
+    } catch (error) {
+      console.error("Failed to retry knowledge graph:", error);
     }
   };
 
@@ -90,6 +101,8 @@ export default function ChapterDetailPage() {
           knowledgeGraph={knowledgeGraph ?? null}
           onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
           isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
+          onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
+          isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
         />
       </div>
     </CourseContainer>

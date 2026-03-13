@@ -15,6 +15,8 @@ interface ChapterContentsListProps {
   knowledgeGraph: KnowledgeGraph | null | undefined;
   onCreateKnowledgeGraph: () => void;
   isCreatingKnowledgeGraph: boolean;
+  onRetryKnowledgeGraph?: () => void;
+  isRetryingKnowledgeGraph?: boolean;
 }
 
 export function ChapterContentsList({
@@ -24,11 +26,13 @@ export function ChapterContentsList({
   knowledgeGraph,
   onCreateKnowledgeGraph,
   isCreatingKnowledgeGraph,
+  onRetryKnowledgeGraph,
+  isRetryingKnowledgeGraph = false,
 }: ChapterContentsListProps) {
   const isAuthor = useIsUserCourseAuthor(courseId);
 
   const isProcessing = ["pending", "processing"].includes(
-    knowledgeGraph?.status || ""
+    knowledgeGraph?.status || "",
   );
 
   const isCompleted = knowledgeGraph?.status === "completed";
@@ -72,6 +76,8 @@ export function ChapterContentsList({
         isAuthor={isAuthor}
         onGenerateKnowledgeGraph={onCreateKnowledgeGraph}
         isGenerating={isCreatingKnowledgeGraph}
+        onRetryKnowledgeGraph={onRetryKnowledgeGraph}
+        isRetrying={isRetryingKnowledgeGraph}
       />
 
       {!contents || contents.length === 0 ? (

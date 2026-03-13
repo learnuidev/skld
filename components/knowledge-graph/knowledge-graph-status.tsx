@@ -1,7 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Clock, XCircle, Eye, Plus } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Eye,
+  Plus,
+  RefreshCw,
+} from "lucide-react";
 import Link from "next/link";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
 
@@ -13,6 +20,8 @@ interface KnowledgeGraphStatusProps {
   isAuthor?: boolean;
   onGenerateKnowledgeGraph?: () => void;
   isGenerating?: boolean;
+  onRetryKnowledgeGraph?: () => void;
+  isRetrying?: boolean;
 }
 
 export function KnowledgeGraphStatus({
@@ -23,6 +32,8 @@ export function KnowledgeGraphStatus({
   isAuthor = false,
   onGenerateKnowledgeGraph,
   isGenerating = false,
+  onRetryKnowledgeGraph,
+  isRetrying = false,
 }: KnowledgeGraphStatusProps) {
   const getStatusInfo = () => {
     if (!knowledgeGraph) {
@@ -85,14 +96,20 @@ export function KnowledgeGraphStatus({
             <p className="text-sm font-medium text-foreground">
               Knowledge Graph Status
             </p>
-            <p className={`text-xs ${statusInfo.color}`}>{statusInfo.text}</p>
+
+            <div>
+              <p className={`text-xs ${statusInfo.color}`}>
+                <span className="font-bold"> {statusInfo.text}</span>
+
+                {knowledgeGraph?.error && (
+                  <span className="text-xs text-red-600 max-w-md truncate">
+                    : {knowledgeGraph.error}
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
         </div>
-        {knowledgeGraph?.error && (
-          <p className="text-xs text-red-600 max-w-md truncate">
-            {knowledgeGraph.error}
-          </p>
-        )}
 
         {isCompleted && viewKnowledgeGraphLink ? (
           <div>
@@ -129,13 +146,37 @@ export function KnowledgeGraphStatus({
               )}
             </Button>
           </div>
+        ) : knowledgeGraph?.status === "failed" &&
+          isAuthor &&
+          onRetryKnowledgeGraph ? (
+          <div>
+            <Button
+              onClick={onRetryKnowledgeGraph}
+              disabled={isRetrying}
+              variant="outline"
+              size="sm"
+              className="rounded-full gap-2"
+            >
+              {isRetrying ? (
+                <>
+                  <RefreshCw className="size-4 animate-spin" />
+                  Retrying...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="size-4" />
+                  Retry Generation
+                </>
+              )}
+            </Button>
+          </div>
         ) : null}
       </div>
 
       {knowledgeGraph?.knowledgeGraphData && (
         <div>
           <p className="text-xs text-muted-foreground">
-            Generated: {new Date(knowledgeGraph.updatedAt).toLocaleString()}
+            Last Updated: {new Date(knowledgeGraph.updatedAt).toLocaleString()}
           </p>
         </div>
       )}

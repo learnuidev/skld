@@ -8,7 +8,9 @@ export const WithAuthenticated = async ({
 }) => {
   const auth = await getIsAuthenticated();
 
-  if (!auth) {
+  const isDev = process.env.NODE_ENV === "development";
+
+  if (!auth && !isDev) {
     return <AuthFlow />;
   }
 

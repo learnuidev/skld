@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/popover";
 import { CourseContent } from "@/modules/course-content/course-content.types";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
-import { List, Network, Pencil, X } from "lucide-react";
+import { List, Network, Pencil, X, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
 interface FloatingMenuProps {
@@ -21,6 +21,8 @@ interface FloatingMenuProps {
   knowledgeGraph?: KnowledgeGraph;
   onCreateKnowledgeGraph?: () => void;
   isCreatingKnowledgeGraph?: boolean;
+  onRetryKnowledgeGraph?: () => void;
+  isRetryingKnowledgeGraph?: boolean;
 }
 
 export function FloatingMenu({
@@ -33,6 +35,8 @@ export function FloatingMenu({
   knowledgeGraph,
   onCreateKnowledgeGraph,
   isCreatingKnowledgeGraph,
+  onRetryKnowledgeGraph,
+  isRetryingKnowledgeGraph = false,
 }: FloatingMenuProps) {
   return (
     <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
@@ -96,6 +100,19 @@ export function FloatingMenu({
               <Network className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
             </Button>
           </Link>
+        ) : knowledgeGraph?.status === "failed" ? (
+          <Button
+            size="icon-lg"
+            onClick={onRetryKnowledgeGraph}
+            disabled={isRetryingKnowledgeGraph}
+            className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
+          >
+            <RefreshCw
+              className={`w-5 h-5 text-red-500 group-hover:text-red-600 transition-colors ${
+                isRetryingKnowledgeGraph ? "animate-spin" : ""
+              }`}
+            />
+          </Button>
         ) : (
           <Button
             size="icon-lg"
