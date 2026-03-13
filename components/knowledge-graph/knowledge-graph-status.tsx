@@ -44,7 +44,7 @@ export function KnowledgeGraphStatus({
       case "completed":
         return {
           icon: <CheckCircle2 className="size-4" />,
-          text: "Completed",
+          text: "Success",
           color: "text-green-600",
         };
       case "failed":
