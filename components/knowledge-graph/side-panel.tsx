@@ -94,7 +94,7 @@ export const SidePanel = ({
           <div
             className={cn(
               "flex items-center justify-between",
-              isMinimized ? "" : "mb-4"
+              isMinimized ? "" : "mb-4",
             )}
           >
             <h3
@@ -184,7 +184,7 @@ export const SidePanel = ({
 
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-600/30 to-transparent" />
 
-                    <div>
+                    <div className="max-h-[calc(100vh-32rem)] overflow-y-auto">
                       <div
                         className={`text-[10px] uppercase tracking-wider mb-3 ${isDark ? "text-slate-500" : "text-slate-400"}`}
                       >
@@ -238,7 +238,7 @@ export const SidePanel = ({
                                 </div>
                               </motion.div>
                             );
-                          }
+                          },
                         )}
                       </div>
                     </div>
