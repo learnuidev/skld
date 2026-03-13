@@ -26,15 +26,15 @@ import { fetchAuthSession } from "aws-amplify/auth";
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId,
+    params.courseId
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
 
   const sk = `CONTENT_${params.contentId}`;
@@ -135,7 +135,7 @@ export default function ContentPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto sm:px-6 px-0 py-16 lg:py-24">
+      <div className="px-0 pb-16 lg:pb-24">
         <div className="mb-16 flex items-center justify-between">
           <Link
             href={`/courses/${params.courseId}`}
@@ -243,7 +243,7 @@ export default function ContentPage() {
                   chapters.length > 0 &&
                   (() => {
                     const chapter = chapters.find(
-                      (ch) => ch.id === content.chapterId,
+                      (ch) => ch.id === content.chapterId
                     );
                     return chapter ? (
                       <div className="text-xs font-medium text-primary">
@@ -264,28 +264,26 @@ export default function ContentPage() {
             )}
           </header>
 
-          {isAuthor && knowledgeGraph && (
-            <div className="p-4 bg-muted border border-border rounded-xl">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={
-                      knowledgeGraph.status === "completed"
-                        ? "text-green-600"
-                        : knowledgeGraph.status === "failed"
+          {isAuthor &&
+            knowledgeGraph &&
+            knowledgeGraph.status !== "completed" && (
+              <div className="p-4 bg-muted border border-border rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={
+                        knowledgeGraph.status === "failed"
                           ? "text-red-600"
                           : "text-yellow-600"
-                    }
-                  >
-                    {knowledgeGraph.status === "completed" ? (
-                      <CheckCircle2 className="size-4" />
-                    ) : knowledgeGraph.status === "failed" ? (
-                      <X className="size-4" />
-                    ) : (
-                      <Clock className="size-4 animate-spin" />
-                    )}
-                  </div>
-                  {knowledgeGraph.status === "completed" ? null : (
+                      }
+                    >
+                      {knowledgeGraph.status === "failed" ? (
+                        <X className="size-4" />
+                      ) : (
+                        <Clock className="size-4 animate-spin" />
+                      )}
+                    </div>
+
                     <div>
                       <p className="text-sm font-medium text-foreground">
                         Knowledge Graph Status
@@ -304,24 +302,23 @@ export default function ContentPage() {
                             : "Pending"}
                       </p>
                     </div>
+                  </div>
+                  {knowledgeGraph.error && (
+                    <p className="text-xs text-red-600 max-w-md truncate">
+                      {knowledgeGraph.error}
+                    </p>
                   )}
                 </div>
-                {knowledgeGraph.error && (
-                  <p className="text-xs text-red-600 max-w-md truncate">
-                    {knowledgeGraph.error}
-                  </p>
+                {knowledgeGraph.knowledgeGraphData && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-xs text-muted-foreground">
+                      Generated:{" "}
+                      {new Date(knowledgeGraph.updatedAt).toLocaleString()}
+                    </p>
+                  </div>
                 )}
               </div>
-              {knowledgeGraph.knowledgeGraphData && (
-                <div className="mt-3 pt-3 border-t border-border">
-                  <p className="text-xs text-muted-foreground">
-                    Generated:{" "}
-                    {new Date(knowledgeGraph.updatedAt).toLocaleString()}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+            )}
 
           <div>
             <TiptapEditor
