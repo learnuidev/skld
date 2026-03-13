@@ -1,6 +1,7 @@
 "use client";
 
 import { TiptapEditor } from "@/components/editor/tiptap-editor";
+import { Button } from "@/components/ui/button";
 import { useAutoSizeTextarea } from "@/hooks/ui/use-auto-size-textarea";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useUpdateCourseContentMutation } from "@/modules/course-content/use-update-course-content-mutation";
@@ -8,20 +9,11 @@ import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
 import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
-import {
-  ArrowLeft,
-  Edit2,
-  Save,
-  X,
-  Plus,
-  Clock,
-  CheckCircle2,
-} from "lucide-react";
+import { fetchAuthSession } from "aws-amplify/auth";
+import { ArrowLeft, Clock, Edit2, Plus, Save, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { fetchAuthSession } from "aws-amplify/auth";
 
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
