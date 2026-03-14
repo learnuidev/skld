@@ -2,7 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit, X, Trash2, Link2, Undo, Redo } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  X,
+  Trash2,
+  Link2,
+  Undo,
+  Redo,
+  Sparkles,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +31,11 @@ import {
 } from "@/components/ui/select";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { Node, Link, GraphData } from "./knowledge-graph.types";
+import { Node, Link } from "./knowledge-graph.types";
+import {
+  useGenerateLinkRelationshipsMutation,
+  LinkRelationship,
+} from "@/modules/knowledge-graph/use-gen-link-relationships-mutation";
 
 interface NodeEditorProps {
   node?: Node | null;
@@ -138,14 +151,14 @@ export function NodeEditor({
           "max-w-2xl max-h-[90vh] overflow-y-auto",
           isDark
             ? "bg-[rgb(13,14,15)] border-slate-800"
-            : "bg-white border-slate-200",
+            : "bg-white border-slate-200"
         )}
       >
         <DialogHeader>
           <DialogTitle
             className={cn(
               "text-xl font-semibold",
-              isDark ? "text-white" : "text-slate-900",
+              isDark ? "text-white" : "text-slate-900"
             )}
           >
             {node ? "Edit Node" : "Add New Node"}
@@ -167,7 +180,7 @@ export function NodeEditor({
                 className={cn(
                   isDark
                     ? "bg-slate-900 border-slate-700 text-white"
-                    : "bg-slate-50 border-slate-300",
+                    : "bg-slate-50 border-slate-300"
                 )}
               />
             </div>
@@ -185,7 +198,7 @@ export function NodeEditor({
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
-                      : "bg-slate-50 border-slate-300",
+                      : "bg-slate-50 border-slate-300"
                   )}
                 >
                   <SelectValue placeholder="Select type" />
@@ -225,7 +238,7 @@ export function NodeEditor({
               className={cn(
                 isDark
                   ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300",
+                  : "bg-slate-50 border-slate-300"
               )}
             />
           </div>
@@ -244,7 +257,7 @@ export function NodeEditor({
               className={cn(
                 isDark
                   ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300",
+                  : "bg-slate-50 border-slate-300"
               )}
             />
           </div>
@@ -268,7 +281,7 @@ export function NodeEditor({
                         ? "border-emerald-500 ring-2 ring-emerald-500 ring-offset-2"
                         : isDark
                           ? "border-slate-700"
-                          : "border-slate-300",
+                          : "border-slate-300"
                     )}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
@@ -290,7 +303,7 @@ export function NodeEditor({
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
-                      : "bg-slate-50 border-slate-300",
+                      : "bg-slate-50 border-slate-300"
                   )}
                 >
                   <SelectValue />
@@ -329,7 +342,7 @@ export function NodeEditor({
               className={cn(
                 isDark
                   ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300",
+                  : "bg-slate-50 border-slate-300"
               )}
             />
           </div>
@@ -357,7 +370,7 @@ export function NodeEditor({
               className={cn(
                 isDark
                   ? "border-slate-700 text-slate-300"
-                  : "border-slate-300 text-slate-700",
+                  : "border-slate-300 text-slate-700"
               )}
             >
               <X className="w-4 h-4" />
@@ -412,6 +425,13 @@ export function LinkEditor({
     color: "#4A7A7C",
   });
 
+  const [showRecommendations, setShowRecommendations] = useState(false);
+  const [recommendations, setRecommendations] = useState<LinkRelationship[]>(
+    []
+  );
+
+  const generateLinkRelationships = useGenerateLinkRelationshipsMutation();
+
   useEffect(() => {
     if (link) {
       setFormData({
@@ -433,6 +453,8 @@ export function LinkEditor({
         strength: "medium",
         color: "#4A7A7C",
       });
+      setShowRecommendations(false);
+      setRecommendations([]);
     }
   }, [link, isOpen]);
 
@@ -450,6 +472,59 @@ export function LinkEditor({
     onClose();
   };
 
+  const handleGenerateRecommendations = async () => {
+    if (!formData.source || !formData.target) return;
+
+    const sourceNode = nodes.find((n) => n.id === formData.source);
+    const targetNode = nodes.find((n) => n.id === formData.target);
+
+    if (!sourceNode || !targetNode) return;
+
+    try {
+      generateLinkRelationships
+        .mutateAsync({
+          sourceNode: {
+            id: sourceNode.id,
+            label: sourceNode.label,
+            type: sourceNode.type,
+            group: sourceNode.group,
+            description: sourceNode.description,
+            examples: sourceNode.examples,
+          },
+          targetNode: {
+            id: targetNode.id,
+            label: targetNode.label,
+            type: targetNode.type,
+            group: targetNode.group,
+            description: targetNode.description,
+            examples: targetNode.examples,
+          },
+        })
+        .then((result) => {
+          console.log("RESULT", result);
+          setRecommendations(result);
+          setShowRecommendations(true);
+        });
+    } catch (error) {
+      console.error("Failed to generate recommendations:", error);
+      alert("Failed to generate recommendations. Please try again.");
+    }
+  };
+
+  const handleApplyRecommendation = (recommendation: LinkRelationship) => {
+    setFormData({
+      ...formData,
+      description: recommendation.description,
+      realExample: recommendation.realExample,
+      strength: recommendation.strength,
+      value: LINK_VALUES[recommendation.strength],
+    });
+    setShowRecommendations(false);
+  };
+
+  const canGenerateRecommendations =
+    formData.source && formData.target && !link;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
@@ -457,14 +532,14 @@ export function LinkEditor({
           "max-w-2xl max-h-[90vh] overflow-y-auto",
           isDark
             ? "bg-[rgb(13,14,15)] border-slate-800"
-            : "bg-white border-slate-200",
+            : "bg-white border-slate-200"
         )}
       >
         <DialogHeader>
           <DialogTitle
             className={cn(
               "text-xl font-semibold",
-              isDark ? "text-white" : "text-slate-900",
+              isDark ? "text-white" : "text-slate-900"
             )}
           >
             {link ? "Edit Link" : "Add New Link"}
@@ -487,7 +562,7 @@ export function LinkEditor({
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
-                      : "bg-slate-50 border-slate-300",
+                      : "bg-slate-50 border-slate-300"
                   )}
                 >
                   <SelectValue placeholder="Select source" />
@@ -525,7 +600,7 @@ export function LinkEditor({
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
-                      : "bg-slate-50 border-slate-300",
+                      : "bg-slate-50 border-slate-300"
                   )}
                 >
                   <SelectValue placeholder="Select target" />
@@ -565,7 +640,7 @@ export function LinkEditor({
               className={cn(
                 isDark
                   ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300",
+                  : "bg-slate-50 border-slate-300"
               )}
             />
           </div>
@@ -584,7 +659,7 @@ export function LinkEditor({
               className={cn(
                 isDark
                   ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300",
+                  : "bg-slate-50 border-slate-300"
               )}
             />
           </div>
@@ -608,7 +683,7 @@ export function LinkEditor({
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
-                      : "bg-slate-50 border-slate-300",
+                      : "bg-slate-50 border-slate-300"
                   )}
                 >
                   <SelectValue />
@@ -650,7 +725,7 @@ export function LinkEditor({
                         ? "border-emerald-500 ring-2 ring-emerald-500 ring-offset-2"
                         : isDark
                           ? "border-slate-700"
-                          : "border-slate-300",
+                          : "border-slate-300"
                     )}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
@@ -659,6 +734,95 @@ export function LinkEditor({
               </div>
             </div>
           </div>
+
+          {canGenerateRecommendations && (
+            <Button
+              onClick={handleGenerateRecommendations}
+              disabled={generateLinkRelationships.isPending}
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white gap-2"
+            >
+              {generateLinkRelationships.isPending ? (
+                <>
+                  <motion.div
+                    className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  />
+                  <span>Generating recommendations...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Suggest relationship</span>
+                </>
+              )}
+            </Button>
+          )}
+
+          <AnimatePresence>
+            {showRecommendations && recommendations.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-2"
+              >
+                <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
+                  AI Recommendations
+                </Label>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {recommendations.map((rec, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => handleApplyRecommendation(rec)}
+                      className={cn(
+                        "w-full text-left p-3 rounded-lg border transition-all hover:scale-[1.02]",
+                        isDark
+                          ? "bg-slate-900/50 border-slate-700 hover:border-purple-500"
+                          : "bg-slate-50 border-slate-300 hover:border-purple-500"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span
+                          className={cn(
+                            "text-xs font-medium px-2 py-1 rounded-full",
+                            rec.strength === "high"
+                              ? "bg-red-100 text-red-700"
+                              : rec.strength === "medium"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "bg-green-100 text-green-700"
+                          )}
+                        >
+                          {rec.strength.toUpperCase()} STRENGTH
+                        </span>
+                      </div>
+                      <p
+                        className={cn(
+                          "text-sm font-medium mb-1",
+                          isDark ? "text-white" : "text-slate-900"
+                        )}
+                      >
+                        {rec.description}
+                      </p>
+                      <p
+                        className={cn(
+                          "text-xs",
+                          isDark ? "text-slate-400" : "text-slate-600"
+                        )}
+                      >
+                        {rec.realExample}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="flex gap-2 pt-4">
             <Button
@@ -683,7 +847,7 @@ export function LinkEditor({
               className={cn(
                 isDark
                   ? "border-slate-700 text-slate-300"
-                  : "border-slate-300 text-slate-700",
+                  : "border-slate-300 text-slate-700"
               )}
             >
               <X className="w-4 h-4" />
@@ -738,7 +902,7 @@ export function EditControls({
           "flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl backdrop-blur-xl",
           isDark
             ? "bg-[rgb(13,14,15)]/90 border border-slate-800/50"
-            : "bg-white/90 border border-slate-200/50",
+            : "bg-white/90 border border-slate-200/50"
         )}
       >
         {!isEditing ? (
@@ -750,7 +914,7 @@ export function EditControls({
               "gap-2 transition-all duration-300",
               isDark
                 ? "bg-slate-800/50 border-slate-700 text-slate-200 hover:bg-slate-700/50"
-                : "bg-slate-100/50 border-slate-300 text-slate-700 hover:bg-slate-200/50",
+                : "bg-slate-100/50 border-slate-300 text-slate-700 hover:bg-slate-200/50"
             )}
           >
             <Edit className="w-4 h-4" />
@@ -784,7 +948,7 @@ export function EditControls({
                 "gap-2",
                 isDark
                   ? "text-slate-400 hover:text-slate-200 disabled:opacity-30"
-                  : "text-slate-500 hover:text-slate-700 disabled:opacity-30",
+                  : "text-slate-500 hover:text-slate-700 disabled:opacity-30"
               )}
               title="Undo (Cmd/Ctrl + Z)"
             >
@@ -799,7 +963,7 @@ export function EditControls({
                 "gap-2",
                 isDark
                   ? "text-slate-400 hover:text-slate-200 disabled:opacity-30"
-                  : "text-slate-500 hover:text-slate-700 disabled:opacity-30",
+                  : "text-slate-500 hover:text-slate-700 disabled:opacity-30"
               )}
               title="Redo (Cmd/Ctrl + Shift + Z)"
             >
@@ -815,7 +979,7 @@ export function EditControls({
                 "gap-2",
                 isDark
                   ? "text-slate-400 hover:text-slate-200"
-                  : "text-slate-500 hover:text-slate-700",
+                  : "text-slate-500 hover:text-slate-700"
               )}
             >
               <X className="w-4 h-4" />
@@ -826,7 +990,7 @@ export function EditControls({
               disabled={!hasChanges || isSaving}
               className={cn(
                 "bg-emerald-600 hover:bg-emerald-700 text-white gap-2 transition-all",
-                hasChanges && !isSaving ? "animate-pulse" : "opacity-50",
+                hasChanges && !isSaving ? "animate-pulse" : "opacity-50"
               )}
             >
               {isSaving ? (
