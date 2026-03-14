@@ -151,14 +151,14 @@ export function NodeEditor({
           "max-w-2xl max-h-[90vh] overflow-y-auto",
           isDark
             ? "bg-[rgb(13,14,15)] border-slate-800"
-            : "bg-white border-slate-200"
+            : "bg-white border-slate-200",
         )}
       >
         <DialogHeader>
           <DialogTitle
             className={cn(
               "text-xl font-semibold",
-              isDark ? "text-white" : "text-slate-900"
+              isDark ? "text-white" : "text-slate-900",
             )}
           >
             {node ? "Edit Node" : "Add New Node"}
@@ -180,7 +180,7 @@ export function NodeEditor({
                 className={cn(
                   isDark
                     ? "bg-slate-900 border-slate-700 text-white"
-                    : "bg-slate-50 border-slate-300"
+                    : "bg-slate-50 border-slate-300",
                 )}
               />
             </div>
@@ -198,7 +198,7 @@ export function NodeEditor({
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
-                      : "bg-slate-50 border-slate-300"
+                      : "bg-slate-50 border-slate-300",
                   )}
                 >
                   <SelectValue placeholder="Select type" />
@@ -238,7 +238,7 @@ export function NodeEditor({
               className={cn(
                 isDark
                   ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300"
+                  : "bg-slate-50 border-slate-300",
               )}
             />
           </div>
@@ -257,7 +257,7 @@ export function NodeEditor({
               className={cn(
                 isDark
                   ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300"
+                  : "bg-slate-50 border-slate-300",
               )}
             />
           </div>
@@ -281,7 +281,7 @@ export function NodeEditor({
                         ? "border-emerald-500 ring-2 ring-emerald-500 ring-offset-2"
                         : isDark
                           ? "border-slate-700"
-                          : "border-slate-300"
+                          : "border-slate-300",
                     )}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
@@ -303,7 +303,7 @@ export function NodeEditor({
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
-                      : "bg-slate-50 border-slate-300"
+                      : "bg-slate-50 border-slate-300",
                   )}
                 >
                   <SelectValue />
@@ -342,7 +342,7 @@ export function NodeEditor({
               className={cn(
                 isDark
                   ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300"
+                  : "bg-slate-50 border-slate-300",
               )}
             />
           </div>
@@ -370,7 +370,7 @@ export function NodeEditor({
               className={cn(
                 isDark
                   ? "border-slate-700 text-slate-300"
-                  : "border-slate-300 text-slate-700"
+                  : "border-slate-300 text-slate-700",
               )}
             >
               <X className="w-4 h-4" />
@@ -427,7 +427,7 @@ export function LinkEditor({
 
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<LinkRelationship[]>(
-    []
+    [],
   );
 
   const generateLinkRelationships = useGenerateLinkRelationshipsMutation();
@@ -522,8 +522,7 @@ export function LinkEditor({
     setShowRecommendations(false);
   };
 
-  const canGenerateRecommendations =
-    formData.source && formData.target && !link;
+  const canGenerateRecommendations = formData.source && formData.target;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -532,14 +531,14 @@ export function LinkEditor({
           "max-w-2xl max-h-[90vh] overflow-y-auto",
           isDark
             ? "bg-[rgb(13,14,15)] border-slate-800"
-            : "bg-white border-slate-200"
+            : "bg-white border-slate-200",
         )}
       >
         <DialogHeader>
           <DialogTitle
             className={cn(
               "text-xl font-semibold",
-              isDark ? "text-white" : "text-slate-900"
+              isDark ? "text-white" : "text-slate-900",
             )}
           >
             {link ? "Edit Link" : "Add New Link"}
@@ -562,7 +561,7 @@ export function LinkEditor({
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
-                      : "bg-slate-50 border-slate-300"
+                      : "bg-slate-50 border-slate-300",
                   )}
                 >
                   <SelectValue placeholder="Select source" />
@@ -600,7 +599,7 @@ export function LinkEditor({
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
-                      : "bg-slate-50 border-slate-300"
+                      : "bg-slate-50 border-slate-300",
                   )}
                 >
                   <SelectValue placeholder="Select target" />
@@ -640,7 +639,7 @@ export function LinkEditor({
               className={cn(
                 isDark
                   ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300"
+                  : "bg-slate-50 border-slate-300",
               )}
             />
           </div>
@@ -659,7 +658,7 @@ export function LinkEditor({
               className={cn(
                 isDark
                   ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300"
+                  : "bg-slate-50 border-slate-300",
               )}
             />
           </div>
@@ -683,7 +682,7 @@ export function LinkEditor({
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
-                      : "bg-slate-50 border-slate-300"
+                      : "bg-slate-50 border-slate-300",
                   )}
                 >
                   <SelectValue />
@@ -725,7 +724,7 @@ export function LinkEditor({
                         ? "border-emerald-500 ring-2 ring-emerald-500 ring-offset-2"
                         : isDark
                           ? "border-slate-700"
-                          : "border-slate-300"
+                          : "border-slate-300",
                     )}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
@@ -784,7 +783,7 @@ export function LinkEditor({
                         "w-full text-left p-3 rounded-lg border transition-all hover:scale-[1.02]",
                         isDark
                           ? "bg-slate-900/50 border-slate-700 hover:border-purple-500"
-                          : "bg-slate-50 border-slate-300 hover:border-purple-500"
+                          : "bg-slate-50 border-slate-300 hover:border-purple-500",
                       )}
                     >
                       <div className="flex items-center justify-between mb-2">
@@ -795,7 +794,7 @@ export function LinkEditor({
                               ? "bg-red-100 text-red-700"
                               : rec.strength === "medium"
                                 ? "bg-yellow-100 text-yellow-700"
-                                : "bg-green-100 text-green-700"
+                                : "bg-green-100 text-green-700",
                           )}
                         >
                           {rec.strength.toUpperCase()} STRENGTH
@@ -804,7 +803,7 @@ export function LinkEditor({
                       <p
                         className={cn(
                           "text-sm font-medium mb-1",
-                          isDark ? "text-white" : "text-slate-900"
+                          isDark ? "text-white" : "text-slate-900",
                         )}
                       >
                         {rec.description}
@@ -812,7 +811,7 @@ export function LinkEditor({
                       <p
                         className={cn(
                           "text-xs",
-                          isDark ? "text-slate-400" : "text-slate-600"
+                          isDark ? "text-slate-400" : "text-slate-600",
                         )}
                       >
                         {rec.realExample}
@@ -847,7 +846,7 @@ export function LinkEditor({
               className={cn(
                 isDark
                   ? "border-slate-700 text-slate-300"
-                  : "border-slate-300 text-slate-700"
+                  : "border-slate-300 text-slate-700",
               )}
             >
               <X className="w-4 h-4" />
@@ -902,7 +901,7 @@ export function EditControls({
           "flex items-center gap-2 px-4 py-3 rounded-full shadow-2xl backdrop-blur-xl",
           isDark
             ? "bg-[rgb(13,14,15)]/90 border border-slate-800/50"
-            : "bg-white/90 border border-slate-200/50"
+            : "bg-white/90 border border-slate-200/50",
         )}
       >
         {!isEditing ? (
@@ -914,7 +913,7 @@ export function EditControls({
               "gap-2 transition-all duration-300",
               isDark
                 ? "bg-slate-800/50 border-slate-700 text-slate-200 hover:bg-slate-700/50"
-                : "bg-slate-100/50 border-slate-300 text-slate-700 hover:bg-slate-200/50"
+                : "bg-slate-100/50 border-slate-300 text-slate-700 hover:bg-slate-200/50",
             )}
           >
             <Edit className="w-4 h-4" />
@@ -948,7 +947,7 @@ export function EditControls({
                 "gap-2",
                 isDark
                   ? "text-slate-400 hover:text-slate-200 disabled:opacity-30"
-                  : "text-slate-500 hover:text-slate-700 disabled:opacity-30"
+                  : "text-slate-500 hover:text-slate-700 disabled:opacity-30",
               )}
               title="Undo (Cmd/Ctrl + Z)"
             >
@@ -963,7 +962,7 @@ export function EditControls({
                 "gap-2",
                 isDark
                   ? "text-slate-400 hover:text-slate-200 disabled:opacity-30"
-                  : "text-slate-500 hover:text-slate-700 disabled:opacity-30"
+                  : "text-slate-500 hover:text-slate-700 disabled:opacity-30",
               )}
               title="Redo (Cmd/Ctrl + Shift + Z)"
             >
@@ -979,7 +978,7 @@ export function EditControls({
                 "gap-2",
                 isDark
                   ? "text-slate-400 hover:text-slate-200"
-                  : "text-slate-500 hover:text-slate-700"
+                  : "text-slate-500 hover:text-slate-700",
               )}
             >
               <X className="w-4 h-4" />
@@ -990,7 +989,7 @@ export function EditControls({
               disabled={!hasChanges || isSaving}
               className={cn(
                 "bg-emerald-600 hover:bg-emerald-700 text-white gap-2 transition-all",
-                hasChanges && !isSaving ? "animate-pulse" : "opacity-50"
+                hasChanges && !isSaving ? "animate-pulse" : "opacity-50",
               )}
             >
               {isSaving ? (
