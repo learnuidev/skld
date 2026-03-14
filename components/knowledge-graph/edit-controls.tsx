@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Edit, X, Trash2, Link2 } from "lucide-react";
+import { Plus, Edit, X, Trash2, Link2, Undo, Redo } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -704,6 +704,10 @@ interface EditControlsProps {
   onSave: () => void;
   onCancel: () => void;
   isSaving?: boolean;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
 export function EditControls({
@@ -715,6 +719,10 @@ export function EditControls({
   onSave,
   onCancel,
   isSaving = false,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
 }: EditControlsProps) {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -765,6 +773,37 @@ export function EditControls({
             >
               <Link2 className="w-4 h-4" />
               <span className="font-medium">Link</span>
+            </Button>
+            <div className="w-px h-6 bg-slate-600/30" />
+            <Button
+              onClick={onUndo}
+              variant="ghost"
+              size="sm"
+              disabled={!canUndo || isSaving}
+              className={cn(
+                "gap-2",
+                isDark
+                  ? "text-slate-400 hover:text-slate-200 disabled:opacity-30"
+                  : "text-slate-500 hover:text-slate-700 disabled:opacity-30",
+              )}
+              title="Undo (Cmd/Ctrl + Z)"
+            >
+              <Undo className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={onRedo}
+              variant="ghost"
+              size="sm"
+              disabled={!canRedo || isSaving}
+              className={cn(
+                "gap-2",
+                isDark
+                  ? "text-slate-400 hover:text-slate-200 disabled:opacity-30"
+                  : "text-slate-500 hover:text-slate-700 disabled:opacity-30",
+              )}
+              title="Redo (Cmd/Ctrl + Shift + Z)"
+            >
+              <Redo className="w-4 h-4" />
             </Button>
             <div className="w-px h-6 bg-slate-600/30" />
             <Button

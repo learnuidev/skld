@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { appConfig } from "@/lib/app-config";
@@ -17,7 +18,7 @@ export function useUpdateKnowledgeGraphMutation() {
 
   return useMutation({
     mutationFn: async (
-      params: UpdateKnowledgeGraphParams,
+      params: UpdateKnowledgeGraphParams
     ): Promise<KnowledgeGraph> => {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
@@ -36,9 +37,15 @@ export function useUpdateKnowledgeGraphMutation() {
           },
           body: JSON.stringify({
             nodes: params.nodes,
-            links: params.links,
+            links: params.links?.map((link: any) => {
+              return {
+                ...link,
+                source: link?.source?.id,
+                target: link?.target?.id,
+              };
+            }),
           }),
-        },
+        }
       );
 
       if (!response.ok) {

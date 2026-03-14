@@ -11,20 +11,17 @@ export function useGetKnowledgeGraphQuery(params: {
   chapterId?: string;
 }) {
   let sk = "";
-  let ogSK = "";
 
   if (params.contentId) {
-    ogSK = `CONTENT#${params.contentId}`;
     sk = `CONTENT_${params.contentId}`;
   }
 
   if (params.chapterId) {
-    ogSK = `CHAPTER#${params.chapterId}`;
     sk = `CHAPTER_${params.chapterId}`;
   }
 
   return useQuery({
-    queryKey: ["knowledgeGraph", ogSK],
+    queryKey: ["knowledgeGraph", sk],
     queryFn: async (): Promise<KnowledgeGraph | null> => {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();

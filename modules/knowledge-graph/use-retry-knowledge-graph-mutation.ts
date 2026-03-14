@@ -25,13 +25,13 @@ export function useRetryKnowledgeGraphMutation() {
             Authorization: token,
             "Content-Type": "application/json",
           },
-        },
+        }
       );
 
       if (!response.ok) {
         const error = await response.json();
         throw new Error(
-          error.error || "Failed to retry knowledge graph generation",
+          error.error || "Failed to retry knowledge graph generation"
         );
       }
 

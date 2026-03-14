@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { UseMutationResult } from "@tanstack/react-query";
 import { ControlButtons } from "./control-buttons";
@@ -44,10 +44,14 @@ export function KnowledgeGraph({
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedGraphData, setEditedGraphData] = useState<GraphData>(graphData);
+  const [history, setHistory] = useState<GraphData[]>([]);
+  const [future, setFuture] = useState<GraphData[]>([]);
   const [nodeEditorOpen, setNodeEditorOpen] = useState(false);
   const [linkEditorOpen, setLinkEditorOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [editingLink, setEditingLink] = useState<Link | null>(null);
+
+  const isUpdatingGraphRef = useRef(false);
 
   const {
     svgRef,
@@ -63,6 +67,40 @@ export function KnowledgeGraph({
   const hasChanges =
     JSON.stringify(editedGraphData) !== JSON.stringify(graphData);
 
+  const canUndo = history.length > 0;
+  const canRedo = future.length > 0;
+
+  const pushToHistory = useCallback(
+    (newGraphData: GraphData) => {
+      setHistory((prev) => [...prev, editedGraphData]);
+      setFuture([]);
+      setEditedGraphData(newGraphData);
+    },
+    [editedGraphData],
+  );
+
+  const handleUndo = useCallback(() => {
+    if (history.length === 0) return;
+
+    setHistory((prev) => {
+      const previous = prev[prev.length - 1];
+      setEditedGraphData(previous);
+      setFuture((future) => [editedGraphData, ...future]);
+      return prev.slice(0, -1);
+    });
+  }, [history, editedGraphData]);
+
+  const handleRedo = useCallback(() => {
+    if (future.length === 0) return;
+
+    setFuture((prev) => {
+      const next = prev[0];
+      setEditedGraphData(next);
+      setHistory((history) => [...history, editedGraphData]);
+      return prev.slice(1);
+    });
+  }, [future, editedGraphData]);
+
   const handleToggleEdit = useCallback(() => {
     if (isEditing && hasChanges) {
       const confirm = window.confirm(
@@ -73,8 +111,17 @@ export function KnowledgeGraph({
     setIsEditing((prev) => !prev);
     if (!isEditing) {
       setEditedGraphData(graphData);
+      setHistory([]);
+      setFuture([]);
     }
   }, [isEditing, hasChanges, graphData]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setHistory([]);
+      setFuture([]);
+    }
+  }, [isEditing]);
 
   const handleAddNode = useCallback(() => {
     setEditingNode(null);
@@ -98,72 +145,107 @@ export function KnowledgeGraph({
 
   const handleSaveNode = useCallback(
     (node: Node) => {
-      const existingIndex = editedGraphData.nodes.findIndex(
-        (n) => n.id === node.id,
-      );
-      if (existingIndex >= 0) {
-        setEditedGraphData((prev) => ({
-          ...prev,
-          nodes: prev.nodes.map((n) => (n.id === node.id ? node : n)),
-        }));
+      if (isUpdatingGraphRef.current) return;
+      isUpdatingGraphRef.current = true;
+
+      if (editingNode) {
+        const newGraphData = {
+          ...editedGraphData,
+          nodes: editedGraphData.nodes.map((n) =>
+            n.id === node.id ? node : n,
+          ),
+        };
+        pushToHistory(newGraphData);
       } else {
-        setEditedGraphData((prev) => ({
-          ...prev,
-          nodes: [...prev.nodes, node],
-        }));
+        const newGraphData = {
+          ...editedGraphData,
+          nodes: [...editedGraphData.nodes, node],
+        };
+        pushToHistory(newGraphData);
       }
+
+      setTimeout(() => {
+        isUpdatingGraphRef.current = false;
+      }, 0);
     },
-    [editedGraphData],
+    [editedGraphData, pushToHistory, editingNode],
   );
 
   const handleDeleteNode = useCallback(() => {
     if (!editingNode) return;
-    setEditedGraphData((prev) => ({
-      ...prev,
-      nodes: prev.nodes.filter((n) => n.id !== editingNode.id),
-      links: prev.links.filter(
+    if (isUpdatingGraphRef.current) return;
+    isUpdatingGraphRef.current = true;
+
+    const newGraphData = {
+      ...editedGraphData,
+      nodes: editedGraphData.nodes.filter((n) => n.id !== editingNode.id),
+      links: editedGraphData.links.filter(
         (l) =>
           (typeof l.source === "object" ? l.source.id : l.source) !==
             editingNode.id &&
           (typeof l.target === "object" ? l.target.id : l.target) !==
             editingNode.id,
       ),
-    }));
+    };
+    pushToHistory(newGraphData);
+
     setNodeEditorOpen(false);
     setEditingNode(null);
-  }, [editingNode]);
+
+    setTimeout(() => {
+      isUpdatingGraphRef.current = false;
+    }, 0);
+  }, [editingNode, editedGraphData, pushToHistory]);
 
   const handleSaveLink = useCallback(
     (link: Link) => {
-      const sourceId =
-        typeof link.source === "object" ? link.source.id : link.source;
-      const targetId =
-        typeof link.target === "object" ? link.target.id : link.target;
+      if (isUpdatingGraphRef.current) return;
+      isUpdatingGraphRef.current = true;
 
-      const existingIndex = editedGraphData.links.findIndex(
-        (l) =>
-          (typeof l.source === "object" ? l.source.id : l.source) ===
-            sourceId &&
-          (typeof l.target === "object" ? l.target.id : l.target) === targetId,
-      );
+      if (editingLink) {
+        const editingSourceId =
+          typeof editingLink.source === "object"
+            ? editingLink.source.id
+            : editingLink.source;
+        const editingTargetId =
+          typeof editingLink.target === "object"
+            ? editingLink.target.id
+            : editingLink.target;
 
-      if (existingIndex >= 0) {
-        setEditedGraphData((prev) => ({
-          ...prev,
-          links: prev.links.map((l, i) => (i === existingIndex ? link : l)),
-        }));
+        const newGraphData = {
+          ...editedGraphData,
+          links: editedGraphData.links.map((l) => {
+            const lSourceId =
+              typeof l.source === "object" ? l.source.id : l.source;
+            const lTargetId =
+              typeof l.target === "object" ? l.target.id : l.target;
+            return lSourceId === editingSourceId &&
+              lTargetId === editingTargetId
+              ? link
+              : l;
+          }),
+        };
+        pushToHistory(newGraphData);
       } else {
-        setEditedGraphData((prev) => ({
-          ...prev,
-          links: [...prev.links, link],
-        }));
+        const newGraphData = {
+          ...editedGraphData,
+          links: [...editedGraphData.links, link],
+        };
+        pushToHistory(newGraphData);
       }
+
+      setTimeout(() => {
+        isUpdatingGraphRef.current = false;
+      }, 0);
     },
-    [editedGraphData],
+    [editedGraphData, pushToHistory, editingLink],
   );
 
   const handleDeleteLink = useCallback(() => {
     if (!editingLink) return;
+    if (isUpdatingGraphRef.current) return;
+    isUpdatingGraphRef.current = true;
+
     const sourceId =
       typeof editingLink.source === "object"
         ? editingLink.source.id
@@ -173,9 +255,9 @@ export function KnowledgeGraph({
         ? editingLink.target.id
         : editingLink.target;
 
-    setEditedGraphData((prev) => ({
-      ...prev,
-      links: prev.links.filter(
+    const newGraphData = {
+      ...editedGraphData,
+      links: editedGraphData.links.filter(
         (l) =>
           !(
             (typeof l.source === "object" ? l.source.id : l.source) ===
@@ -183,11 +265,17 @@ export function KnowledgeGraph({
             (typeof l.target === "object" ? l.target.id : l.target) === targetId
           ),
       ),
-    }));
+    };
+    pushToHistory(newGraphData);
+
     setLinkEditorOpen(false);
     setEditingLink(null);
     setSelectedLink(null);
-  }, [editingLink, setSelectedLink]);
+
+    setTimeout(() => {
+      isUpdatingGraphRef.current = false;
+    }, 0);
+  }, [editingLink, editedGraphData, pushToHistory, setSelectedLink]);
 
   const handleSave = useCallback(async () => {
     if (!sk || !updateMutation) return;
@@ -214,7 +302,27 @@ export function KnowledgeGraph({
     }
     setEditedGraphData(graphData);
     setIsEditing(false);
+    setHistory([]);
+    setFuture([]);
   }, [hasChanges, graphData]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isEditing) return;
+
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isEditing, handleUndo, handleRedo]);
 
   const currentGraphData = isEditing ? editedGraphData : graphData;
 
@@ -296,6 +404,10 @@ export function KnowledgeGraph({
         onSave={handleSave}
         onCancel={handleCancel}
         isSaving={updateMutation?.isPending}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
       />
       <NodeEditor
         node={editingNode}
