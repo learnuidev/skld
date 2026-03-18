@@ -59,28 +59,19 @@ export function ContentHistoryDialog({
                     <div className="flex items-center gap-2 text-sm">
                       <Clock className="w-4 h-4 text-muted-foreground" />
                       <span className="font-medium">
-                        Time spent: {history.metadata.timespent}s
+                        Time spent: {history.totalTimeSpent}s
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="w-4 h-4 text-muted-foreground" />
                       <span>
-                        {new Date(history.metadata.createdAt).toLocaleString(
-                          "en-US",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Eye className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">
-                        Read #{history.metadata.timesRead}
+                        {new Date(history.createdAt).toLocaleString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </span>
                     </div>
                   </div>

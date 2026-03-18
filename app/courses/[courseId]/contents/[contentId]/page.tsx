@@ -237,74 +237,7 @@ export default function ContentPage() {
         </div>
 
         <div className="space-y-8">
-          <header className="sm:mb-16 mb-12">
-            {isEditing ? (
-              <>
-                {chapters.length > 0 && (
-                  <select
-                    value={editChapterId}
-                    onChange={(e) => setEditChapterId(e.target.value)}
-                    className="h-12 px-3 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    <option value="">No chapter</option>
-                    {chapters.map((chapter) => (
-                      <option key={chapter.id} value={chapter.id}>
-                        {chapter.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15] bg-transparent outline-none placeholder:text-muted-foreground/50"
-                  placeholder="Content title"
-                />
-                <textarea
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full text-lg text-muted-foreground leading-relaxed max-w-2xl bg-transparent outline-none resize-none placeholder:text-muted-foreground/50 h-auto"
-                  placeholder="Add a description..."
-                  // rows={2}
-                  ref={textareaRef}
-                />
-              </>
-            ) : (
-              <>
-                {content.chapterId &&
-                  chapters.length > 0 &&
-                  (() => {
-                    const chapter = chapters.find(
-                      (ch) => ch.id === content.chapterId
-                    );
-                    return chapter ? (
-                      <div className="text-xs font-medium text-gray-500">
-                        {chapter.name}
-                      </div>
-                    ) : null;
-                  })()}
-                <h1 className="text-3xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15]">
-                  {content.title}
-                </h1>
-
-                {content.description && (
-                  <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                    {content.description}
-                  </p>
-                )}
-                <div className="text-sm text-muted-foreground mt-4">
-                  {estimatedReadTime < 60
-                    ? `${estimatedReadTime} sec read`
-                    : estimatedReadTime < 3600
-                      ? `${Math.floor(estimatedReadTime / 60)} min read`
-                      : `${Math.floor(estimatedReadTime / 3600)} hr read`}
-                </div>
-              </>
-            )}
-          </header>
-
-          {showRecommendations && recommendations && (
+          {showRecommendations && recommendations ? (
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">Recommended Content</h2>
               <div className="grid gap-3">
@@ -348,59 +281,127 @@ export default function ContentPage() {
                 ))}
               </div>
             </div>
-          )}
+          ) : (
+            <>
+              <header className="sm:mb-16 mb-12">
+                {isEditing ? (
+                  <>
+                    {chapters.length > 0 && (
+                      <select
+                        value={editChapterId}
+                        onChange={(e) => setEditChapterId(e.target.value)}
+                        className="h-12 px-3 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="">No chapter</option>
+                        {chapters.map((chapter) => (
+                          <option key={chapter.id} value={chapter.id}>
+                            {chapter.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="w-full text-4xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15] bg-transparent outline-none placeholder:text-muted-foreground/50"
+                      placeholder="Content title"
+                    />
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      className="w-full text-lg text-muted-foreground leading-relaxed max-w-2xl bg-transparent outline-none resize-none placeholder:text-muted-foreground/50 h-auto"
+                      placeholder="Add a description..."
+                      // rows={2}
+                      ref={textareaRef}
+                    />
+                  </>
+                ) : (
+                  <>
+                    {content.chapterId &&
+                      chapters.length > 0 &&
+                      (() => {
+                        const chapter = chapters.find(
+                          (ch) => ch.id === content.chapterId
+                        );
+                        return chapter ? (
+                          <div className="text-xs font-medium text-gray-500">
+                            {chapter.name}
+                          </div>
+                        ) : null;
+                      })()}
+                    <h1 className="text-3xl lg:text-5xl font-semibold tracking-tight text-foreground text-balance leading-[1.15]">
+                      {content.title}
+                    </h1>
 
-          <KnowledgeGraphStatus
-            knowledgeGraph={knowledgeGraph}
-            viewKnowledgeGraphLink={`/courses/${params.courseId}/contents/${params.contentId}/knowledge-graph`}
-            showCompletedStatus={true}
-            isAuthor={isAuthor}
-            onGenerateKnowledgeGraph={handleCreateKnowledgeGraph}
-            isGenerating={createKnowledgeGraphMutation.isPending}
-            onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
-            isRetrying={retryKnowledgeGraphMutation.isPending}
-          />
+                    {content.description && (
+                      <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+                        {content.description}
+                      </p>
+                    )}
+                    <div className="text-sm text-muted-foreground mt-4">
+                      {estimatedReadTime < 60
+                        ? `${estimatedReadTime} sec read`
+                        : estimatedReadTime < 3600
+                          ? `${Math.floor(estimatedReadTime / 60)} min read`
+                          : `${Math.floor(estimatedReadTime / 3600)} hr read`}
+                    </div>
+                  </>
+                )}
+              </header>
+              <KnowledgeGraphStatus
+                knowledgeGraph={knowledgeGraph}
+                viewKnowledgeGraphLink={`/courses/${params.courseId}/contents/${params.contentId}/knowledge-graph`}
+                showCompletedStatus={true}
+                isAuthor={isAuthor}
+                onGenerateKnowledgeGraph={handleCreateKnowledgeGraph}
+                isGenerating={createKnowledgeGraphMutation.isPending}
+                onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
+                isRetrying={retryKnowledgeGraphMutation.isPending}
+              />
 
-          <div>
-            <TiptapEditor
-              content={editorContent}
-              editable={isAuthor && isEditing}
-              onUpdate={setEditorContent}
-            />
-          </div>
-
-          {isEditing && (
-            <div className="sticky bottom-6 z-10">
-              <div className="flex justify-end">
-                <button
-                  onClick={handleSave}
-                  disabled={updateContentMutation.isPending}
-                  className="inline-flex items-center gap-2 px-8 py-3 bg-foreground text-background rounded-xl text-sm font-medium hover:bg-foreground/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                >
-                  <Save className="w-4 h-4" />
-                  {updateContentMutation.isPending
-                    ? "Saving..."
-                    : "Save Changes"}
-                </button>
+              <div>
+                <TiptapEditor
+                  content={editorContent}
+                  editable={isAuthor && isEditing}
+                  onUpdate={setEditorContent}
+                />
               </div>
-            </div>
+
+              {isEditing && (
+                <div className="sticky bottom-6 z-10">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSave}
+                      disabled={updateContentMutation.isPending}
+                      className="inline-flex items-center gap-2 px-8 py-3 bg-foreground text-background rounded-xl text-sm font-medium hover:bg-foreground/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    >
+                      <Save className="w-4 h-4" />
+                      {updateContentMutation.isPending
+                        ? "Saving..."
+                        : "Save Changes"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-12">
+                <div className="h-px bg-border/60" />
+              </div>
+
+              <footer className="space-y-4">
+                <p className="text-sm text-muted-foreground">{course.title}</p>
+                <p className="text-xs text-muted-foreground/60">
+                  Last updated{" "}
+                  {new Date(content.updatedAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
+              </footer>
+            </>
           )}
-
-          <div className="pt-12">
-            <div className="h-px bg-border/60" />
-          </div>
-
-          <footer className="space-y-4">
-            <p className="text-sm text-muted-foreground">{course.title}</p>
-            <p className="text-xs text-muted-foreground/60">
-              Last updated{" "}
-              {new Date(content.updatedAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
-          </footer>
         </div>
       </div>
 
