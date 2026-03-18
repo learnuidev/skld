@@ -123,7 +123,7 @@ export function PresentationMode({
           break;
       }
     },
-    [handlePrevious, handleNext, onClose, handleFullscreenToggle],
+    [handlePrevious, handleNext, onClose, handleFullscreenToggle]
   );
 
   useEffect(() => {
@@ -155,15 +155,13 @@ export function PresentationMode({
 
   const renderNode = (
     node: ContentNode,
-    maxItems?: number,
+    maxItems?: number
   ): React.ReactNode => {
     if (node.type === "paragraph") {
       const text = node.content?.map((c) => c.text).join("") || node.text || "";
       if (!text.trim()) return null;
       return (
-        <p className="text-lg leading-relaxed text-foreground/90 mb-8">
-          {text}
-        </p>
+        <p className="text-lg leading-relaxed text-foreground/90">{text}</p>
       );
     }
 
@@ -217,7 +215,7 @@ export function PresentationMode({
 
   const renderContentWithSteps = (
     nodes: ContentNode[],
-    remainingSteps: number,
+    remainingSteps: number
   ) => {
     let stepsUsed = 0;
     const renderedNodes = [];
@@ -238,7 +236,7 @@ export function PresentationMode({
               transition={{ duration: 0.4 }}
             >
               {renderNode(node, node.content?.length)}
-            </motion.div>,
+            </motion.div>
           );
         } else {
           renderedNodes.push(
@@ -249,7 +247,7 @@ export function PresentationMode({
               transition={{ duration: 0.4 }}
             >
               {renderNode(node)}
-            </motion.div>,
+            </motion.div>
           );
         }
         stepsUsed += nodeSteps;
@@ -263,7 +261,7 @@ export function PresentationMode({
             transition={{ duration: 0.4 }}
           >
             {renderNode(node, partialItems)}
-          </motion.div>,
+          </motion.div>
         );
         stepsUsed = remainingSteps;
       }
@@ -387,7 +385,7 @@ export function PresentationMode({
                         >
                           {renderContentWithSteps(
                             currentSlide.content,
-                            Math.max(0, currentStep - contentOffset),
+                            Math.max(0, currentStep - contentOffset)
                           )}
                         </motion.div>
                       )}
