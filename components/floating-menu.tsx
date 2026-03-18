@@ -20,8 +20,6 @@ import {
   LightbulbIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { ContentHistoryDialog } from "@/components/content-history-dialog";
-import { useState } from "react";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
 import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
 import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
@@ -55,8 +53,6 @@ export function FloatingMenu({
   isRetryingKnowledgeGraph = false,
   onStartQuiz,
 }: FloatingMenuProps) {
-  const [showHistory, setShowHistory] = useState(false);
-
   const isAuthor = useIsUserCourseAuthor(courseId);
 
   const { data: mockExams } = useGetMockExamsQuery(courseId);
@@ -72,7 +68,7 @@ export function FloatingMenu({
   const ongoingContentQuiz = mockExams?.find(
     (exam) =>
       exam.status === "in_progress" &&
-      exam.selectedContentIds?.includes(contentId)
+      exam.selectedContentIds?.includes(contentId),
   );
 
   return (
@@ -128,13 +124,14 @@ export function FloatingMenu({
             </PopoverContent>
           </Popover>
 
-          <Button
-            size="icon-lg"
-            onClick={() => setShowHistory(true)}
-            className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
-          >
-            <BarChart3 className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </Button>
+          <Link href={`/courses/${courseId}/contents/${contentId}/history`}>
+            <Button
+              size="icon-lg"
+              className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
+            >
+              <BarChart3 className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </Button>
+          </Link>
 
           {knowledgeGraph?.status === "completed" &&
           knowledgeGraph.knowledgeGraphData ? (
@@ -201,12 +198,6 @@ export function FloatingMenu({
           )}
         </div>
       </div>
-      <ContentHistoryDialog
-        open={showHistory}
-        onOpenChange={setShowHistory}
-        courseId={courseId}
-        contentId={contentId}
-      />
     </>
   );
 }

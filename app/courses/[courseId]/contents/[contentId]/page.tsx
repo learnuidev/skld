@@ -363,7 +363,7 @@ export default function ContentPage() {
                           (ch) => ch.id === content.chapterId
                         );
                         return chapter ? (
-                          <div className="text-xs font-medium text-gray-500">
+                          <div className="text-xs font-medium text-gray-500 mb-2">
                             {chapter.name}
                           </div>
                         ) : null;
@@ -372,11 +372,11 @@ export default function ContentPage() {
                       {content.title}
                     </h1>
 
-                    {content.description && (
+                    {/* {content.description && (
                       <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
                         {content.description}
                       </p>
-                    )}
+                    )} */}
                     <div className="text-sm text-muted-foreground mt-4">
                       {estimatedReadTime < 60
                         ? `${estimatedReadTime} sec read`
@@ -387,16 +387,18 @@ export default function ContentPage() {
                   </>
                 )}
               </header>
-              <KnowledgeGraphStatus
-                knowledgeGraph={knowledgeGraph}
-                viewKnowledgeGraphLink={`/courses/${params.courseId}/contents/${params.contentId}/knowledge-graph`}
-                showCompletedStatus={true}
-                isAuthor={isAuthor}
-                onGenerateKnowledgeGraph={handleCreateKnowledgeGraph}
-                isGenerating={createKnowledgeGraphMutation.isPending}
-                onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
-                isRetrying={retryKnowledgeGraphMutation.isPending}
-              />
+              {isAuthor && (
+                <KnowledgeGraphStatus
+                  knowledgeGraph={knowledgeGraph}
+                  viewKnowledgeGraphLink={`/courses/${params.courseId}/contents/${params.contentId}/knowledge-graph`}
+                  showCompletedStatus={true}
+                  isAuthor={isAuthor}
+                  onGenerateKnowledgeGraph={handleCreateKnowledgeGraph}
+                  isGenerating={createKnowledgeGraphMutation.isPending}
+                  onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
+                  isRetrying={retryKnowledgeGraphMutation.isPending}
+                />
+              )}
 
               <div>
                 <TiptapEditor
@@ -426,53 +428,47 @@ export default function ContentPage() {
         </div>
       </div>
 
-      {showTimeSpent && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60">
-          <div className="max-w-4xl mx-auto sm:px-6 px-4 py-3 relative">
-            <div className="flex justify-between items-center">
-              <FloatingMenu
-                courseId={params.courseId}
-                contentId={params.contentId}
-                contents={contents || []}
-                isEditing={isEditing}
-                onEdit={handleEdit}
-                onCancel={handleCancel}
-                knowledgeGraph={knowledgeGraph || undefined}
-                onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
-                isCreatingKnowledgeGraph={
-                  createKnowledgeGraphMutation.isPending
-                }
-                onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
-                isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
-                onStartQuiz={handleStartQuiz}
-              />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60">
+        <div className="max-w-4xl mx-auto sm:px-6 px-4 py-3 relative">
+          <div className="flex justify-between items-center">
+            <FloatingMenu
+              courseId={params.courseId}
+              contentId={params.contentId}
+              contents={contents || []}
+              isEditing={isEditing}
+              onEdit={handleEdit}
+              onCancel={handleCancel}
+              knowledgeGraph={knowledgeGraph || undefined}
+              onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
+              isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
+              onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
+              isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
+              onStartQuiz={handleStartQuiz}
+            />
 
-              {isEditing ? (
-                <Button
-                  onClick={handleSave}
-                  disabled={updateContentMutation.isPending}
-                  className="rounded-full"
-                >
-                  <Save className="w-4 h-4" />
-                  {updateContentMutation.isPending
-                    ? "Saving..."
-                    : "Save Changes"}
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleNext}
-                  disabled={skldMutation.isPending || !!ongoingContentQuiz}
-                  variant={"outline"}
-                  className="rounded-full"
-                >
-                  {skldMutation.isPending ? "Processing..." : "Next"}
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
+            {isEditing ? (
+              <Button
+                onClick={handleSave}
+                disabled={updateContentMutation.isPending}
+                className="rounded-full"
+              >
+                <Save className="w-4 h-4" />
+                {updateContentMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNext}
+                disabled={skldMutation.isPending || !!ongoingContentQuiz}
+                variant={"outline"}
+                className="rounded-full"
+              >
+                {skldMutation.isPending ? "Processing..." : "Next"}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
