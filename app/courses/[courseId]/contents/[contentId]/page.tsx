@@ -29,6 +29,12 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useGetUserContentStatsQuery } from "@/modules/user-content-stats/use-get-user-content-stats-query";
 
+function estimateReadTime(text = "", wordsPerMinute: number = 225): number {
+  const words: number = text.trim().split(/\s+/).length;
+  const minutes: number = words / wordsPerMinute;
+  return Math.ceil(minutes * 60); // Returns seconds, rounded up
+}
+
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
@@ -115,7 +121,7 @@ export default function ContentPage() {
 
       const result = await skldMutation.mutateAsync({
         contentId: params.contentId,
-        enrollmentId: params.courseId,
+        courseId: params.courseId,
         metadata: { timespent },
       });
 
@@ -193,6 +199,8 @@ export default function ContentPage() {
     );
   }
 
+  const estimatedReadTime = estimateReadTime(content?.content);
+
   return (
     <div className="min-h-screen bg-background mt-24">
       {showTimeSpent && (
@@ -203,14 +211,16 @@ export default function ContentPage() {
               <span>{Math.floor((currentTime - startTime) / 1000)}s</span>
             </div>
 
-            <div>
-              <div className="text-sm text-muted-foreground flex gap-2 items-end">
-                <Eye />
-                <span>
-                  {userContentStats?.userContentStat?.metadata?.timesRead}
-                </span>
+            {userContentStats?.userContentStat?.metadata?.timesRead && (
+              <div>
+                <div className="text-sm text-muted-foreground flex gap-2 items-end">
+                  <Eye />
+                  <span>
+                    {userContentStats?.userContentStat?.metadata?.timesRead}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -227,7 +237,7 @@ export default function ContentPage() {
         </div>
 
         <div className="space-y-8">
-          <header className="space-y-6 sm:mb-16 mb-12">
+          <header className="sm:mb-16 mb-12">
             {isEditing ? (
               <>
                 {chapters.length > 0 && (
@@ -269,7 +279,7 @@ export default function ContentPage() {
                       (ch) => ch.id === content.chapterId
                     );
                     return chapter ? (
-                      <div className="text-xs font-medium text-primary">
+                      <div className="text-xs font-medium text-gray-500">
                         {chapter.name}
                       </div>
                     ) : null;
@@ -283,6 +293,13 @@ export default function ContentPage() {
                     {content.description}
                   </p>
                 )}
+                <div className="text-sm text-muted-foreground mt-4">
+                  {estimatedReadTime < 60
+                    ? `${estimatedReadTime} sec read`
+                    : estimatedReadTime < 3600
+                      ? `${Math.floor(estimatedReadTime / 60)} min read`
+                      : `${Math.floor(estimatedReadTime / 3600)} hr read`}
+                </div>
               </>
             )}
           </header>

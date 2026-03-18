@@ -33,7 +33,7 @@ export interface ContentRecommendation {
 
 export interface SkldRequest {
   contentId: string;
-  enrollmentId: string;
+  courseId: string;
   metadata: SkldMetadata;
 }
 
