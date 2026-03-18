@@ -26,10 +26,22 @@ export interface QuestionResult {
 
 export interface SubmitContentQuizResponse {
   mockExam: MockExam;
-  userContentStat: UserContentStat;
-  questionResults: QuestionResult[];
+  questionResult: QuestionResult;
+  questionFeedback: string;
+  currentQuestion: {
+    id: string;
+    question: string;
+    options: string[];
+    type: string;
+  };
+  isCorrect: boolean;
+  correctAnswer: unknown;
+  userAnswer: unknown;
+  isLastQuestion: boolean;
   overallAccuracy: number;
   totalCorrect: number;
   totalIncorrect: number;
-  totalTimeTaken: number;
+  totalQuestions: number;
+  answeredQuestions: number;
+  userContentStat: UserContentStat;
 }

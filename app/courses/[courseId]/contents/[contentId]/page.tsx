@@ -328,7 +328,7 @@ export default function ContentPage() {
                       <select
                         value={editChapterId}
                         onChange={(e) => setEditChapterId(e.target.value)}
-                        className="h-12 px-3 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="mb-4 h-12 px-3 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                       >
                         <option value="">No chapter</option>
                         {chapters.map((chapter) => (
@@ -406,23 +406,6 @@ export default function ContentPage() {
                 />
               </div>
 
-              {isEditing && (
-                <div className="sticky bottom-6 z-10">
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleSave}
-                      disabled={updateContentMutation.isPending}
-                      className="inline-flex items-center gap-2 px-8 py-3 bg-foreground text-background rounded-xl text-sm font-medium hover:bg-foreground/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                    >
-                      <Save className="w-4 h-4" />
-                      {updateContentMutation.isPending
-                        ? "Saving..."
-                        : "Save Changes"}
-                    </button>
-                  </div>
-                </div>
-              )}
-
               <div className="pt-12">
                 <div className="h-px bg-border/60" />
               </div>
@@ -464,15 +447,28 @@ export default function ContentPage() {
                 onStartQuiz={handleStartQuiz}
               />
 
-              <Button
-                onClick={handleNext}
-                disabled={skldMutation.isPending || !!ongoingContentQuiz}
-                variant={"outline"}
-                className="rounded-full"
-              >
-                {skldMutation.isPending ? "Processing..." : "Next"}
-                <ArrowRight className="w-4 h-4" />
-              </Button>
+              {isEditing ? (
+                <Button
+                  onClick={handleSave}
+                  disabled={updateContentMutation.isPending}
+                  className="rounded-full"
+                >
+                  <Save className="w-4 h-4" />
+                  {updateContentMutation.isPending
+                    ? "Saving..."
+                    : "Save Changes"}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleNext}
+                  disabled={skldMutation.isPending || !!ongoingContentQuiz}
+                  variant={"outline"}
+                  className="rounded-full"
+                >
+                  {skldMutation.isPending ? "Processing..." : "Next"}
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </div>
         </div>
