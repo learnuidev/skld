@@ -17,6 +17,7 @@ export interface MockExam {
   courseId: string;
   examBankIds: string[];
   examType: ExamType;
+  selectedContentIds?: string[];
   selectedDomains: string[];
   currentQuestionIndex: number;
   answers: Record<string, Answer>;

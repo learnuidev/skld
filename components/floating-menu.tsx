@@ -8,10 +8,21 @@ import {
 } from "@/components/ui/popover";
 import { CourseContent } from "@/modules/course-content/course-content.types";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
-import { List, Network, Pencil, X, RefreshCw, BarChart3 } from "lucide-react";
+import {
+  List,
+  Network,
+  Pencil,
+  X,
+  RefreshCw,
+  BarChart3,
+  BrainCircuit,
+  BrainIcon,
+  LightbulbIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { ContentHistoryDialog } from "@/components/content-history-dialog";
 import { useState } from "react";
+import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
 
 interface FloatingMenuProps {
   courseId: string;
@@ -25,6 +36,7 @@ interface FloatingMenuProps {
   isCreatingKnowledgeGraph?: boolean;
   onRetryKnowledgeGraph?: () => void;
   isRetryingKnowledgeGraph?: boolean;
+  onStartQuiz?: () => void;
 }
 
 export function FloatingMenu({
@@ -39,8 +51,11 @@ export function FloatingMenu({
   isCreatingKnowledgeGraph,
   onRetryKnowledgeGraph,
   isRetryingKnowledgeGraph = false,
+  onStartQuiz,
 }: FloatingMenuProps) {
   const [showHistory, setShowHistory] = useState(false);
+
+  const isAuthor = useIsUserCourseAuthor(courseId);
 
   return (
     <>
@@ -80,7 +95,9 @@ export function FloatingMenu({
                           : "hover:bg-accent hover:text-accent-foreground text-foreground"
                       }`}
                     >
-                      <div className="font-medium truncate">{content.title}</div>
+                      <div className="font-medium truncate">
+                        {content.title}
+                      </div>
                       {content.description && (
                         <div className="text-xs mt-0.5 opacity-80 truncate">
                           {content.description}
@@ -141,17 +158,29 @@ export function FloatingMenu({
             </Button>
           )}
 
-          <Button
-            size="icon-lg"
-            onClick={isEditing ? onCancel : onEdit}
-            className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
-          >
-            {isEditing ? (
-              <X className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-            ) : (
-              <Pencil className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-            )}
-          </Button>
+          {onStartQuiz && (
+            <Button
+              size="icon-lg"
+              onClick={onStartQuiz}
+              className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
+            >
+              <LightbulbIcon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </Button>
+          )}
+
+          {isAuthor && (
+            <Button
+              size="icon-lg"
+              onClick={isEditing ? onCancel : onEdit}
+              className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
+            >
+              {isEditing ? (
+                <X className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              ) : (
+                <Pencil className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              )}
+            </Button>
+          )}
         </div>
       </div>
       <ContentHistoryDialog

@@ -14,6 +14,7 @@ import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-kno
 import { useRetryKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-retry-knowledge-graph-mutation";
 import { useSkldMutation } from "@/modules/skld/use-skld-mutation";
 import { ContentRecommendation } from "@/modules/skld/skld.types";
+import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
 import { fetchAuthSession } from "aws-amplify/auth";
 import {
   ArrowLeft,
@@ -24,7 +25,7 @@ import {
   Save,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useGetUserContentStatsQuery } from "@/modules/user-content-stats/use-get-user-content-stats-query";
@@ -37,6 +38,7 @@ function estimateReadTime(text = "", wordsPerMinute: number = 225): number {
 
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
+  const router = useRouter();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
     params.courseId
   );
@@ -59,6 +61,8 @@ export default function ContentPage() {
     params.courseId,
     params.contentId
   );
+
+  const createContentQuizMutation = useCreateContentQuizMutation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editorContent, setEditorContent] = useState(content?.content || "");
@@ -180,6 +184,20 @@ export default function ContentPage() {
       await retryKnowledgeGraphMutation.mutateAsync(knowledgeGraph.sk);
     } catch (error) {
       console.error("Failed to retry knowledge graph:", error);
+    }
+  };
+
+  const handleStartQuiz = async () => {
+    try {
+      const mockExam = await createContentQuizMutation.mutateAsync({
+        courseId: params.courseId,
+        contentId: params.contentId,
+      });
+      router.push(
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`
+      );
+    } catch (error) {
+      console.error("Failed to start quiz:", error);
     }
   };
 
@@ -409,25 +427,22 @@ export default function ContentPage() {
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60">
           <div className="max-w-4xl mx-auto sm:px-6 px-4 py-3 relative">
             <div className="flex justify-between items-center">
-              {isAuthor && (
-                <FloatingMenu
-                  courseId={params.courseId}
-                  contentId={params.contentId}
-                  contents={contents || []}
-                  isEditing={isEditing}
-                  onEdit={handleEdit}
-                  onCancel={handleCancel}
-                  knowledgeGraph={knowledgeGraph || undefined}
-                  onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
-                  isCreatingKnowledgeGraph={
-                    createKnowledgeGraphMutation.isPending
-                  }
-                  onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
-                  isRetryingKnowledgeGraph={
-                    retryKnowledgeGraphMutation.isPending
-                  }
-                />
-              )}
+              <FloatingMenu
+                courseId={params.courseId}
+                contentId={params.contentId}
+                contents={contents || []}
+                isEditing={isEditing}
+                onEdit={handleEdit}
+                onCancel={handleCancel}
+                knowledgeGraph={knowledgeGraph || undefined}
+                onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
+                isCreatingKnowledgeGraph={
+                  createKnowledgeGraphMutation.isPending
+                }
+                onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
+                isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
+                onStartQuiz={handleStartQuiz}
+              />
 
               <Button
                 onClick={handleNext}
