@@ -30,6 +30,7 @@ export function PresentationMode({
 }: PresentationModeProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [slideSteps, setSlideSteps] = useState<Record<number, number>>({});
 
   const slides = useState<ParsedSlide[]>(() => {
     if (!isStructuredContent(content)) return [];
@@ -37,63 +38,8 @@ export function PresentationMode({
   })[0];
 
   const currentSlide = slides[currentIndex];
-
-  const handlePrevious = useCallback(() => {
-    setCurrentIndex((prev) => Math.max(0, prev - 1));
-  }, []);
-
-  const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => Math.min(slides.length - 1, prev + 1));
-  }, [slides.length]);
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      switch (e.key) {
-        case "ArrowLeft":
-        case "ArrowUp":
-          handlePrevious();
-          break;
-        case "ArrowRight":
-        case "ArrowDown":
-        case " ":
-          e.preventDefault();
-          handleNext();
-          break;
-        case "Escape":
-          onClose();
-          break;
-        case "f":
-          if (e.key === "f") {
-            e.preventDefault();
-            toggleFullscreen();
-          }
-          break;
-      }
-    },
-    [handlePrevious, handleNext, onClose]
-  );
-
-  const toggleFullscreen = useCallback(() => {
-    setIsFullscreen((prev) => !prev);
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleKeyDown]);
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
+  const currentStep = slideSteps[currentIndex] || 0;
+  const totalSteps = currentSlide?.content?.length || 0;
 
   const enterFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -114,6 +60,82 @@ export function PresentationMode({
       enterFullscreen();
     }
   }, [isFullscreen, enterFullscreen, exitFullscreen]);
+
+  const handlePrevious = useCallback(() => {
+    const currentSlideStep = slideSteps[currentIndex] || 0;
+    if (currentSlideStep > 0) {
+      setSlideSteps((prev) => ({
+        ...prev,
+        [currentIndex]: currentSlideStep - 1,
+      }));
+    } else {
+      setCurrentIndex((prev) => Math.max(0, prev - 1));
+    }
+  }, [currentIndex, slideSteps]);
+
+  const handleNext = useCallback(() => {
+    const currentSlideStep = slideSteps[currentIndex] || 0;
+    if (currentSlideStep < totalSteps) {
+      setSlideSteps((prev) => ({
+        ...prev,
+        [currentIndex]: currentSlideStep + 1,
+      }));
+    } else {
+      setCurrentIndex((prev) => Math.min(slides.length - 1, prev + 1));
+    }
+  }, [slides.length, currentIndex, totalSteps, slideSteps]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      switch (e.key) {
+        case "ArrowLeft":
+        case "ArrowUp":
+          handlePrevious();
+          break;
+        case "ArrowRight":
+        case "ArrowDown":
+        case " ":
+          e.preventDefault();
+          handleNext();
+          break;
+        case "Escape":
+          onClose();
+          break;
+        case "f":
+          e.preventDefault();
+          handleFullscreenToggle();
+          break;
+      }
+    },
+    [handlePrevious, handleNext, onClose, handleFullscreenToggle],
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    setSlideSteps((prev) => {
+      if (prev[currentIndex] === undefined) {
+        return { ...prev, [currentIndex]: 0 };
+      }
+      return prev;
+    });
+  }, [currentIndex]);
 
   const renderNode = (node: ContentNode): React.ReactNode => {
     if (node.type === "paragraph") {
@@ -198,6 +220,11 @@ export function PresentationMode({
             <div className="flex items-center gap-3">
               <div className="text-sm text-muted-foreground">
                 {currentIndex + 1} / {slides.length}
+                {totalSteps > 0 && (
+                  <span className="ml-2">
+                    ({currentStep}/{totalSteps})
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -277,9 +304,18 @@ export function PresentationMode({
                           transition={{ duration: 0.6, delay: 0.4 }}
                           className="space-y-8"
                         >
-                          {currentSlide.content.map((node, idx) => (
-                            <div key={idx}>{renderNode(node)}</div>
-                          ))}
+                          {currentSlide.content
+                            .slice(0, currentStep)
+                            .map((node, idx) => (
+                              <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4, delay: 0.2 }}
+                              >
+                                {renderNode(node)}
+                              </motion.div>
+                            ))}
                         </motion.div>
                       )}
                   </motion.div>
@@ -293,7 +329,7 @@ export function PresentationMode({
               variant="ghost"
               size="icon"
               onClick={handlePrevious}
-              disabled={currentIndex === 0}
+              disabled={currentIndex === 0 && currentStep === 0}
               className="w-12 h-12 rounded-full"
             >
               <ChevronLeft className="w-6 h-6" />
@@ -316,7 +352,9 @@ export function PresentationMode({
               variant="ghost"
               size="icon"
               onClick={handleNext}
-              disabled={currentIndex === slides.length - 1}
+              disabled={
+                currentIndex === slides.length - 1 && currentStep >= totalSteps
+              }
               className="w-12 h-12 rounded-full"
             >
               <ChevronRight className="w-6 h-6" />
