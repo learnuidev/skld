@@ -32,6 +32,11 @@ export function PresentationMode({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [slideSteps, setSlideSteps] = useState<Record<number, number>>({});
 
+  console.log(
+    "parseContentToSlides(content.content || [])",
+    parseContentToSlides(content.content || [])
+  );
+
   const slides = useState<ParsedSlide[]>(() => {
     if (!isStructuredContent(content)) return [];
     return parseContentToSlides(content.content || []);
@@ -41,6 +46,10 @@ export function PresentationMode({
   const currentStep = slideSteps[currentIndex] || 0;
   const hasIntro = !!currentSlide.intro;
   const hasHeading = !!currentSlide.heading;
+  const isIntroOnly =
+    hasIntro &&
+    !hasHeading &&
+    (!currentSlide.content || currentSlide.content.length === 0);
 
   const countContentSteps = (nodes: ContentNode[]): number => {
     return nodes.reduce((acc, node) => {
@@ -51,7 +60,16 @@ export function PresentationMode({
     }, 0);
   };
 
-  const contentOffset = (hasIntro ? 1 : 0) + (hasHeading ? 1 : 0);
+  const countIntroSentences = (intro: string): number => {
+    const sentences = intro.match(/[^.!?]+[.!?]+/g);
+    return sentences ? sentences.length : 1;
+  };
+
+  const introSentenceCount = hasIntro
+    ? countIntroSentences(currentSlide.intro || "")
+    : 0;
+  const introSteps = isIntroOnly ? introSentenceCount : hasIntro ? 1 : 0;
+  const contentOffset = introSteps + (hasHeading ? 1 : 0);
   const contentSteps = currentSlide?.content
     ? countContentSteps(currentSlide.content)
     : 0;
@@ -347,20 +365,42 @@ export function PresentationMode({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
-                    className="max-w-4xl mx-auto"
+                    className={`max-w-4xl mx-auto`}
                   >
-                    {hasIntro && currentStep >= 1 && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5 }}
-                        className="mb-16"
-                      >
-                        <p className="text-xl leading-relaxed text-foreground/70 font-light">
-                          {currentSlide.intro}
-                        </p>
-                      </motion.div>
-                    )}
+                    {hasIntro &&
+                      currentStep >= 1 &&
+                      (isIntroOnly ? (
+                        <div className="space-y-6">
+                          {(
+                            (currentSlide.intro || "").match(
+                              /[^.!?]+[.!?]+/g
+                            ) || [currentSlide.intro || ""]
+                          )
+                            .slice(0, currentStep)
+                            .map((sentence, idx) => (
+                              <motion.p
+                                key={idx}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4 }}
+                                className="text-xl leading-relaxed text-foreground/70 font-light"
+                              >
+                                {sentence}
+                              </motion.p>
+                            ))}
+                        </div>
+                      ) : (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.5 }}
+                          className="mb-16"
+                        >
+                          <p className="text-xl leading-relaxed text-foreground/70 font-light">
+                            {currentSlide.intro}
+                          </p>
+                        </motion.div>
+                      ))}
 
                     {hasHeading && currentStep >= (hasIntro ? 2 : 1) && (
                       <motion.div
