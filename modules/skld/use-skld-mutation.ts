@@ -1,11 +1,12 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchAuthSession } from "@aws-amplify/auth";
 import { appConfig } from "@/lib/app-config";
 import { SkldRequest, SkldResponse } from "./skld.types";
 
 export function useSkldMutation() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (params: SkldRequest): Promise<SkldResponse> => {
       const session = await fetchAuthSession();
@@ -24,7 +25,7 @@ export function useSkldMutation() {
             Authorization: token,
           },
           body: JSON.stringify(params),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -32,7 +33,13 @@ export function useSkldMutation() {
         throw new Error(error.error || "Failed to submit skld request");
       }
 
-      return response.json();
+      const resp = (await response.json()) as SkldResponse;
+
+      queryClient.refetchQueries({
+        queryKey: ["userContentStats", params?.contentId],
+      });
+
+      return resp;
     },
   });
 }

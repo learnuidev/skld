@@ -15,11 +15,19 @@ import { useRetryKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-re
 import { useSkldMutation } from "@/modules/skld/use-skld-mutation";
 import { ContentRecommendation } from "@/modules/skld/skld.types";
 import { fetchAuthSession } from "aws-amplify/auth";
-import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Eye,
+  Save,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useGetUserContentStatsQuery } from "@/modules/user-content-stats/use-get-user-content-stats-query";
 
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
@@ -40,6 +48,11 @@ export default function ContentPage() {
     useGetKnowledgeGraphQuery({ contentId: params.contentId });
   const createKnowledgeGraphMutation = useCreateKnowledgeGraphMutation();
   const retryKnowledgeGraphMutation = useRetryKnowledgeGraphMutation();
+
+  const { data: userContentStats } = useGetUserContentStatsQuery(
+    params.courseId,
+    params.contentId
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [editorContent, setEditorContent] = useState(content?.content || "");
@@ -184,10 +197,19 @@ export default function ContentPage() {
     <div className="min-h-screen bg-background mt-24">
       {showTimeSpent && (
         <div className="fixed top-0 left-0 right-0 z-50 py-4 bg-background/95 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto sm:px-6 px-4 py-2">
+          <div className="max-w-4xl mx-auto sm:px-6 px-4 py-2 flex justify-between">
             <div className="text-sm text-muted-foreground flex gap-2 items-end">
               <Clock />{" "}
               <span>{Math.floor((currentTime - startTime) / 1000)}s</span>
+            </div>
+
+            <div>
+              <div className="text-sm text-muted-foreground flex gap-2 items-end">
+                <Eye />
+                <span>
+                  {userContentStats?.userContentStat?.metadata?.timesRead}
+                </span>
+              </div>
             </div>
           </div>
         </div>
