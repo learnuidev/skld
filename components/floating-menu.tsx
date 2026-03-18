@@ -18,16 +18,19 @@ import {
   BrainCircuit,
   BrainIcon,
   LightbulbIcon,
+  Presentation,
 } from "lucide-react";
 import Link from "next/link";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
 import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
 import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import { isStructuredContent } from "@/lib/content-parser";
 
 interface FloatingMenuProps {
   courseId: string;
   contentId: string;
   contents: CourseContent[];
+  content?: CourseContent;
   isEditing: boolean;
   onEdit: () => void;
   onCancel: () => void;
@@ -37,12 +40,14 @@ interface FloatingMenuProps {
   onRetryKnowledgeGraph?: () => void;
   isRetryingKnowledgeGraph?: boolean;
   onStartQuiz?: () => void;
+  onPresentation?: () => void;
 }
 
 export function FloatingMenu({
   courseId,
   contentId,
   contents,
+  content,
   isEditing,
   onEdit,
   onCancel,
@@ -52,6 +57,7 @@ export function FloatingMenu({
   onRetryKnowledgeGraph,
   isRetryingKnowledgeGraph = false,
   onStartQuiz,
+  onPresentation,
 }: FloatingMenuProps) {
   const isAuthor = useIsUserCourseAuthor(courseId);
 
@@ -182,6 +188,19 @@ export function FloatingMenu({
               <LightbulbIcon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
             </Button>
           )}
+
+          {!isEditing &&
+            content &&
+            isStructuredContent(content?.content) &&
+            onPresentation && (
+              <Button
+                size="icon-lg"
+                onClick={onPresentation}
+                className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
+              >
+                <Presentation className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </Button>
+            )}
 
           {isAuthor && (
             <Button

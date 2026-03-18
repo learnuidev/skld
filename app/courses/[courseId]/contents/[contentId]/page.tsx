@@ -3,6 +3,7 @@
 import { TiptapEditor } from "@/components/editor/tiptap-editor";
 import { FloatingMenu } from "@/components/floating-menu";
 import { KnowledgeGraphStatus } from "@/components/knowledge-graph/knowledge-graph-status";
+import { PresentationMode } from "@/components/presentation-mode";
 import { useAutoSizeTextarea } from "@/hooks/ui/use-auto-size-textarea";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
@@ -44,16 +45,16 @@ export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const router = useRouter();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId
+    params.courseId,
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
   const { data: contents } = useListCourseContentsQuery(params.courseId);
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const { data: knowledgeGraph, isLoading: kgLoading } =
@@ -63,7 +64,7 @@ export default function ContentPage() {
 
   const { data: userContentStats } = useGetUserContentStatsQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const createContentQuizMutation = useCreateContentQuizMutation();
@@ -73,7 +74,7 @@ export default function ContentPage() {
   const ongoingContentQuiz = mockExams?.find(
     (exam) =>
       exam.status === "in_progress" &&
-      exam.selectedContentIds?.includes(params.contentId)
+      exam.selectedContentIds?.includes(params.contentId),
   );
 
   const [isEditing, setIsEditing] = useState(false);
@@ -88,6 +89,7 @@ export default function ContentPage() {
     ContentRecommendation[] | null
   >(null);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [showPresentation, setShowPresentation] = useState(false);
 
   const skldMutation = useSkldMutation();
 
@@ -206,7 +208,7 @@ export default function ContentPage() {
         contentId: params.contentId,
       });
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`,
       );
     } catch (error) {
       console.error("Failed to start quiz:", error);
@@ -235,7 +237,7 @@ export default function ContentPage() {
     <div
       className={cn(
         "min-h-screen bg-background",
-        ongoingContentQuiz ? "mt-24" : "mt-8"
+        ongoingContentQuiz ? "mt-24" : "mt-8",
       )}
     >
       {ongoingContentQuiz && (
@@ -360,7 +362,7 @@ export default function ContentPage() {
                       chapters.length > 0 &&
                       (() => {
                         const chapter = chapters.find(
-                          (ch) => ch.id === content.chapterId
+                          (ch) => ch.id === content.chapterId,
                         );
                         return chapter ? (
                           <div className="text-xs font-medium text-gray-500 mb-2">
@@ -430,10 +432,11 @@ export default function ContentPage() {
 
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60">
         <div className="max-w-4xl mx-auto sm:px-6 px-4 py-3 relative">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-3">
             <FloatingMenu
               courseId={params.courseId}
               contentId={params.contentId}
+              content={content}
               contents={contents || []}
               isEditing={isEditing}
               onEdit={handleEdit}
@@ -444,6 +447,7 @@ export default function ContentPage() {
               onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
               isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
               onStartQuiz={handleStartQuiz}
+              onPresentation={() => setShowPresentation(true)}
             />
 
             {isEditing ? (
@@ -469,6 +473,14 @@ export default function ContentPage() {
           </div>
         </div>
       </div>
+
+      {showPresentation && content && (
+        <PresentationMode
+          content={content.content}
+          title={content.title}
+          onClose={() => setShowPresentation(false)}
+        />
+      )}
     </div>
   );
 }
