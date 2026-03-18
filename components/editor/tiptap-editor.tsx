@@ -29,7 +29,7 @@ import {
 interface TiptapEditorProps {
   content: string;
   editable: boolean;
-  onUpdate: (content: string) => void;
+  onUpdate: (content: any) => void;
 }
 
 export function TiptapEditor({
@@ -108,7 +108,7 @@ export function TiptapEditor({
     content,
     editable,
     onUpdate: ({ editor }) => {
-      onUpdate(editor.getHTML());
+      onUpdate(editor.getJSON());
     },
     immediatelyRender: false,
     editorProps: {

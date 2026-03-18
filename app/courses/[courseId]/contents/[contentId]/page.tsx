@@ -35,7 +35,7 @@ import { UserContentStatsResponse } from "@/modules/user-content-stats/user-cont
 import { TimePresent } from "./time-present";
 
 function estimateReadTime(text = "", wordsPerMinute: number = 225): number {
-  const words: number = text.trim().split(/\s+/).length;
+  const words: number = JSON.stringify(text).trim().split(/\s+/).length;
   const minutes: number = words / wordsPerMinute;
   return Math.ceil(minutes * 60); // Returns seconds, rounded up
 }
