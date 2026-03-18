@@ -15,6 +15,7 @@ import { useRetryKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-re
 import { useSkldMutation } from "@/modules/skld/use-skld-mutation";
 import { ContentRecommendation } from "@/modules/skld/skld.types";
 import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
+import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
 import { fetchAuthSession } from "aws-amplify/auth";
 import {
   ArrowLeft,
@@ -29,6 +30,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useGetUserContentStatsQuery } from "@/modules/user-content-stats/use-get-user-content-stats-query";
+import { cn } from "@/lib/utils";
+import { UserContentStatsResponse } from "@/modules/user-content-stats/user-content-stats.types";
+import { TimePresent } from "./time-present";
 
 function estimateReadTime(text = "", wordsPerMinute: number = 225): number {
   const words: number = text.trim().split(/\s+/).length;
@@ -63,6 +67,14 @@ export default function ContentPage() {
   );
 
   const createContentQuizMutation = useCreateContentQuizMutation();
+
+  const { data: mockExams } = useGetMockExamsQuery(params.courseId);
+
+  const ongoingContentQuiz = mockExams?.find(
+    (exam) =>
+      exam.status === "in_progress" &&
+      exam.selectedContentIds?.includes(params.contentId)
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [editorContent, setEditorContent] = useState(content?.content || "");
@@ -220,28 +232,36 @@ export default function ContentPage() {
   const estimatedReadTime = estimateReadTime(content?.content);
 
   return (
-    <div className="min-h-screen bg-background mt-24">
-      {showTimeSpent && (
-        <div className="fixed top-0 left-0 right-0 z-50 py-4 bg-background/95 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto sm:px-6 px-4 py-2 flex justify-between">
-            <div className="text-sm text-muted-foreground flex gap-2 items-end">
-              <Clock />{" "}
-              <span>{Math.floor((currentTime - startTime) / 1000)}s</span>
-            </div>
-
-            {userContentStats?.userContentStat?.metadata?.timesRead && (
-              <div>
-                <div className="text-sm text-muted-foreground flex gap-2 items-end">
-                  <Eye />
-                  <span>
-                    {userContentStats?.userContentStat?.metadata?.timesRead}
-                  </span>
-                </div>
-              </div>
-            )}
+    <div
+      className={cn(
+        "min-h-screen bg-background",
+        ongoingContentQuiz ? "mt-24" : "mt-8"
+      )}
+    >
+      {ongoingContentQuiz && (
+        <div className="fixed top-17.5 left-0 right-0 z-40 bg-primary text-primary-foreground dark:bg-[rgb(24,25,26)] dark:text-white py-6 px-4 shadow-lg">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <p className="text-sm font-medium">
+              You have an ongoing quiz for this content
+            </p>
+            <Link
+              href={`/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${ongoingContentQuiz.id}`}
+              className="text-sm font-medium hover:underline"
+            >
+              Continue Quiz →
+            </Link>
           </div>
         </div>
       )}
+
+      {/* {userContentStats !== undefined && (
+        <TimePresent
+          showTimeSpent={showTimeSpent}
+          currentTime={currentTime}
+          startTime={startTime}
+          userContentStats={userContentStats}
+        />
+      )} */}
 
       <div className="max-w-4xl mx-auto sm:px-6 px-0 pb-24 lg:pb-32 pt-6">
         <div className="mb-16 flex items-center justify-between">
@@ -446,7 +466,7 @@ export default function ContentPage() {
 
               <Button
                 onClick={handleNext}
-                disabled={skldMutation.isPending}
+                disabled={skldMutation.isPending || !!ongoingContentQuiz}
                 variant={"outline"}
                 className="rounded-full"
               >

@@ -23,6 +23,8 @@ import Link from "next/link";
 import { ContentHistoryDialog } from "@/components/content-history-dialog";
 import { useState } from "react";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
+import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
+import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 
 interface FloatingMenuProps {
   courseId: string;
@@ -56,6 +58,22 @@ export function FloatingMenu({
   const [showHistory, setShowHistory] = useState(false);
 
   const isAuthor = useIsUserCourseAuthor(courseId);
+
+  const { data: mockExams } = useGetMockExamsQuery(courseId);
+
+  const { data: examBanks } = useGetExamBanksQuery(courseId);
+
+  const containQuestions =
+    examBanks
+      ?.map((exam) => exam?.questions)
+      ?.flat()
+      ?.filter((question) => question?.contentId === contentId) || [];
+
+  const ongoingContentQuiz = mockExams?.find(
+    (exam) =>
+      exam.status === "in_progress" &&
+      exam.selectedContentIds?.includes(contentId)
+  );
 
   return (
     <>
@@ -158,7 +176,7 @@ export function FloatingMenu({
             </Button>
           )}
 
-          {onStartQuiz && (
+          {containQuestions?.length > 0 && onStartQuiz && (
             <Button
               size="icon-lg"
               onClick={onStartQuiz}
