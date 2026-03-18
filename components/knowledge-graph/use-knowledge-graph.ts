@@ -25,17 +25,29 @@ const getNodeRadius = (nodeId: string, graphData: GraphData): number => {
   return 6 * Math.pow(relationshipCount, 0.95);
 };
 
-export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
+export function useKnowledgeGraph(
+  graphData: GraphData,
+  isDark = true,
+  selectedGroup: string | null = null
+) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isClient, setIsClient] = useState(false);
   const [activeNode, setActiveNode] = useState<Node | null>(null);
   const [selectedLink, setSelectedLink] = useState<Link | null>(null);
+  const [localSelectedGroup, setLocalSelectedGroup] = useState<string | null>(
+    null
+  );
 
   const [, startTransition] = useTransition();
   const deferredActiveNodeRef = useRef<Node | null>(null);
   const isDarkRef = useRef(isDark);
 
   const deferredActiveNode = useDeferredValue(activeNode);
+  const deferredSelectedGroup = useDeferredValue(localSelectedGroup);
+
+  useEffect(() => {
+    setLocalSelectedGroup(selectedGroup);
+  }, [selectedGroup]);
 
   useEffect(() => {
     deferredActiveNodeRef.current = deferredActiveNode;
@@ -51,6 +63,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
 
   const handleNodeClick = useCallback((node: Node) => {
     startTransition(() => {
+      setLocalSelectedGroup(null);
       setActiveNode((prev) => (prev?.id === node.id ? null : node));
       setSelectedLink(null);
     });
@@ -66,6 +79,31 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
     startTransition(() => {
       setActiveNode(null);
       setSelectedLink(null);
+      setLocalSelectedGroup(null);
+    });
+  }, []);
+
+  const handleGroupClick = useCallback(
+    (group: string | null) => {
+      startTransition(() => {
+        if (localSelectedGroup === group) {
+          setLocalSelectedGroup(null);
+        } else {
+          setLocalSelectedGroup(group);
+        }
+
+        setActiveNode(null);
+        setSelectedLink(null);
+      });
+    },
+    [localSelectedGroup]
+  );
+
+  const handleBackgroundClick = useCallback(() => {
+    startTransition(() => {
+      setActiveNode(null);
+      setSelectedLink(null);
+      setLocalSelectedGroup(null);
     });
   }, []);
 
@@ -80,6 +118,12 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
     const height = container?.clientHeight || window.innerHeight;
 
     svg.attr("viewBox", [0, 0, width, height]);
+
+    svg.on("click", (event) => {
+      if (event.target === svgRef.current || event.target.tagName === "svg") {
+        handleBackgroundClick();
+      }
+    });
 
     const g = svg.append("g");
 
@@ -198,7 +242,13 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
     return () => {
       simulation.stop();
     };
-  }, [isClient, handleNodeClick, handleLinkClick, graphData]);
+  }, [
+    isClient,
+    handleNodeClick,
+    handleLinkClick,
+    handleBackgroundClick,
+    graphData,
+  ]);
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -206,7 +256,31 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
     const svg = d3.select(svgRef.current);
     const g = svg.select("g");
 
-    if (deferredActiveNode) {
+    if (deferredSelectedGroup) {
+      const groupNodeIds = new Set(
+        graphData.nodes
+          .filter((node) => node.group === deferredSelectedGroup)
+          .map((node) => node.id)
+      );
+
+      g.selectAll<SVGCircleElement, D3Node>("circle")
+        .transition()
+        .duration(500)
+        .attr("opacity", (d) => (groupNodeIds.has(d.id) ? 1 : 0.15));
+
+      g.selectAll<SVGLineElement, D3Link>("line")
+        .transition()
+        .duration(500)
+        .attr("stroke-opacity", (d) => {
+          const sourceId =
+            typeof d.source === "object" ? d.source.id : d.source;
+          const targetId =
+            typeof d.target === "object" ? d.target.id : d.target;
+          return groupNodeIds.has(sourceId) && groupNodeIds.has(targetId)
+            ? 1
+            : 0.1;
+        });
+    } else if (deferredActiveNode) {
       const connectedNodeIds = new Set([deferredActiveNode.id]);
       graphData.links.forEach((link) => {
         const sourceId =
@@ -245,7 +319,7 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
         .duration(500)
         .attr("stroke-opacity", 0.5);
     }
-  }, [deferredActiveNode, graphData]);
+  }, [deferredActiveNode, deferredSelectedGroup, graphData]);
 
   useEffect(() => {
     if (!svgRef.current) return;
@@ -307,6 +381,8 @@ export function useKnowledgeGraph(graphData: GraphData, isDark = true) {
     deferredActiveNode,
     selectedLink,
     handleReset,
+    handleGroupClick,
+    handleBackgroundClick,
     setSelectedLink,
   };
 }

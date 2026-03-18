@@ -50,6 +50,7 @@ export function KnowledgeGraph({
   const [linkEditorOpen, setLinkEditorOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<Node | null>(null);
   const [editingLink, setEditingLink] = useState<Link | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
   const isUpdatingGraphRef = useRef(false);
 
@@ -60,9 +61,14 @@ export function KnowledgeGraph({
     selectedLink,
 
     handleReset,
+    handleGroupClick,
 
     setSelectedLink,
-  } = useKnowledgeGraph(isEditing ? editedGraphData : graphData, isDark);
+  } = useKnowledgeGraph(
+    isEditing ? editedGraphData : graphData,
+    isDark,
+    selectedGroup,
+  );
 
   const hasChanges =
     JSON.stringify(editedGraphData) !== JSON.stringify(graphData);
@@ -384,6 +390,8 @@ export function KnowledgeGraph({
         isEditing={isEditing}
         onEditNode={handleEditNode}
         onEditLink={handleEditLink}
+        selectedGroup={selectedGroup}
+        onGroupClick={handleGroupClick}
       />
       <RelationshipPanel
         link={selectedLink}
@@ -393,7 +401,7 @@ export function KnowledgeGraph({
       />
       <ControlButtons
         onResetFilter={handleReset}
-        hasFilter={!!deferredActiveNode}
+        hasFilter={!!deferredActiveNode || !!selectedGroup}
       />
       <EditControls
         isEditing={isEditing}

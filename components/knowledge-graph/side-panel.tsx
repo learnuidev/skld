@@ -24,20 +24,51 @@ const LegendItem = ({
   label,
   count,
   isDark,
+  isSelected,
+  onClick,
+  isGroupSelected,
 }: {
   color: string;
   label: string;
   count: number;
   isDark: boolean;
+  isSelected: boolean;
+  onClick: () => void;
+  isGroupSelected: boolean;
 }) => (
-  <div className="flex items-center gap-2 py-1">
+  <div
+    onClick={onClick}
+    className={`flex items-center gap-2 py-1 px-2 rounded cursor-pointer transition-all ${
+      isSelected
+        ? `${isDark ? "bg-slate-700/50" : "bg-slate-200/50"} opacity-100`
+        : isGroupSelected
+          ? "hover:opacity-50 opacity-30"
+          : "hover:opacity-80 opacity-100"
+    }`}
+  >
     <div
-      className={`w-2 h-2 rounded-full ring-2 ${isDark ? "ring-white/5" : "ring-black/5"}`}
+      className={`w-2 h-2 rounded-full ring-2 ${
+        isDark ? "ring-white/5" : "ring-black/5"
+      } ${isSelected ? "scale-125" : ""}`}
       style={{ backgroundColor: color }}
     />
-    <span className={`text-xs ${isDark ? "text-slate-200" : "text-slate-700"}`}>
+    <span
+      className={`text-xs ${
+        isSelected
+          ? "font-semibold"
+          : isGroupSelected
+            ? `${isDark ? "text-slate-400" : "text-slate-500"}`
+            : `${isDark ? "text-slate-200" : "text-slate-700"}`
+      } ${isDark ? "text-white" : "text-slate-900"}`}
+    >
       {label}
-      <span className={`ml-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+      <span
+        className={`ml-1 ${
+          isGroupSelected && !isSelected
+            ? "opacity-50"
+            : `${isDark ? "text-slate-500" : "text-slate-400"}`
+        }`}
+      >
         ({count})
       </span>
     </span>
@@ -61,6 +92,8 @@ export const SidePanel = ({
   isEditing = false,
   onEditNode,
   onEditLink,
+  selectedGroup,
+  onGroupClick,
 }: {
   totalNodes: number;
   actorCount: number;
@@ -78,6 +111,8 @@ export const SidePanel = ({
   isEditing?: boolean;
   onEditNode?: (node: Node) => void;
   onEditLink?: (link: Link) => void;
+  selectedGroup?: string | null;
+  onGroupClick?: (group: string | null) => void;
 }) => {
   const { theme, resolvedTheme } = useTheme();
   const isDark = theme === "dark" || resolvedTheme === "dark";
@@ -103,17 +138,17 @@ export const SidePanel = ({
           <div
             className={cn(
               "flex items-center justify-between",
-              isMinimized ? "" : "mb-4",
+              isMinimized ? "" : "mb-4"
             )}
           >
             <h3
               className={`font-medium text-sm flex items-center gap-2 ${isDark ? "text-white" : "text-slate-900"}`}
             >
               <Network className="w-3 h-3" />
-              {activeNode ? "Filtered" : "Overview"}
+              {selectedGroup || activeNode ? "Filtered" : "Overview"}
             </h3>
             <div className="flex items-center gap-1">
-              {activeNode && (
+              {(activeNode || selectedGroup) && (
                 <button
                   onClick={onReset}
                   className={`hover:${isDark ? "bg-slate-700/50" : "bg-slate-200/50"} rounded p-1 transition-colors`}
@@ -272,7 +307,7 @@ export const SidePanel = ({
                                 </div>
                               </motion.div>
                             );
-                          },
+                          }
                         )}
                       </div>
                     </div>
@@ -314,6 +349,15 @@ export const SidePanel = ({
                             label={statItem.id}
                             count={statItem.count}
                             isDark={isDark}
+                            isSelected={selectedGroup === statItem.id}
+                            isGroupSelected={!!selectedGroup}
+                            onClick={() =>
+                              onGroupClick?.(
+                                selectedGroup === statItem.id
+                                  ? null
+                                  : statItem.id
+                              )
+                            }
                           />
                         );
                       })}
