@@ -39,7 +39,10 @@ export function PresentationMode({
 
   const currentSlide = slides[currentIndex];
   const currentStep = slideSteps[currentIndex] || 0;
-  const totalSteps = currentSlide?.content?.length || 0;
+  const hasIntro = !!currentSlide.intro;
+  const hasHeading = !!currentSlide.heading;
+  const contentOffset = (hasIntro ? 1 : 0) + (hasHeading ? 1 : 0);
+  const totalSteps = contentOffset + (currentSlide?.content?.length || 0);
 
   const enterFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -270,11 +273,11 @@ export function PresentationMode({
                     transition={{ duration: 0.5, delay: 0.1 }}
                     className="max-w-4xl mx-auto"
                   >
-                    {currentSlide.intro && (
+                    {hasIntro && currentStep >= 1 && (
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
+                        transition={{ duration: 0.5 }}
                         className="mb-16"
                       >
                         <p className="text-xl leading-relaxed text-foreground/70 font-light">
@@ -283,11 +286,11 @@ export function PresentationMode({
                       </motion.div>
                     )}
 
-                    {currentSlide.heading && (
+                    {hasHeading && currentStep >= (hasIntro ? 2 : 1) && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.3 }}
+                        transition={{ duration: 0.5 }}
                         className="mb-16"
                       >
                         <h1 className="text-4xl font-semibold text-foreground tracking-tight leading-[1.1]">
@@ -301,17 +304,17 @@ export function PresentationMode({
                         <motion.div
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          transition={{ duration: 0.6, delay: 0.4 }}
+                          transition={{ duration: 0.5 }}
                           className="space-y-8"
                         >
                           {currentSlide.content
-                            .slice(0, currentStep)
+                            .slice(0, Math.max(0, currentStep - contentOffset))
                             .map((node, idx) => (
                               <motion.div
                                 key={idx}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4, delay: 0.2 }}
+                                transition={{ duration: 0.4 }}
                               >
                                 {renderNode(node)}
                               </motion.div>
