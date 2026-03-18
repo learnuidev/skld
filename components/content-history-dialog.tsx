@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useGetUserContentHistoriesQuery } from "@/modules/user-content-histories/use-get-user-content-histories-query";
+import { useListUserContentHistoriesQuery } from "@/modules/user-content-histories/use-list-user-content-histories-query";
 import { Clock, Calendar, Eye } from "lucide-react";
 
 interface ContentHistoryDialogProps {
@@ -23,7 +23,7 @@ export function ContentHistoryDialog({
   courseId,
   contentId,
 }: ContentHistoryDialogProps) {
-  const { data: historiesData, isLoading } = useGetUserContentHistoriesQuery(
+  const { data: historiesData, isLoading } = useListUserContentHistoriesQuery(
     courseId,
     contentId
   );
@@ -39,7 +39,9 @@ export function ContentHistoryDialog({
         </DialogHeader>
 
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading...</div>
+          <div className="text-center py-8 text-muted-foreground">
+            Loading...
+          </div>
         ) : !historiesData?.userContentHistories ||
           historiesData.userContentHistories.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">

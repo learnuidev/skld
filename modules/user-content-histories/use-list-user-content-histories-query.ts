@@ -5,7 +5,7 @@ import { fetchAuthSession } from "@aws-amplify/auth";
 import { appConfig } from "@/lib/app-config";
 import { UserContentHistoriesResponse } from "./user-content-histories.types";
 
-export function useGetUserContentHistoriesQuery(
+export function useListUserContentHistoriesQuery(
   courseId: string,
   contentId: string
 ) {
@@ -30,7 +30,9 @@ export function useGetUserContentHistoriesQuery(
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to fetch user content histories");
+        throw new Error(
+          error.error || "Failed to fetch user content histories"
+        );
       }
 
       return response.json();
