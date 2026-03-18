@@ -41,8 +41,21 @@ export function PresentationMode({
   const currentStep = slideSteps[currentIndex] || 0;
   const hasIntro = !!currentSlide.intro;
   const hasHeading = !!currentSlide.heading;
+
+  const countContentSteps = (nodes: ContentNode[]): number => {
+    return nodes.reduce((acc, node) => {
+      if (node.type === "bulletList" && node.content) {
+        return acc + node.content.length;
+      }
+      return acc + 1;
+    }, 0);
+  };
+
   const contentOffset = (hasIntro ? 1 : 0) + (hasHeading ? 1 : 0);
-  const totalSteps = contentOffset + (currentSlide?.content?.length || 0);
+  const contentSteps = currentSlide?.content
+    ? countContentSteps(currentSlide.content)
+    : 0;
+  const totalSteps = contentOffset + contentSteps;
 
   const enterFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -140,7 +153,10 @@ export function PresentationMode({
     });
   }, [currentIndex]);
 
-  const renderNode = (node: ContentNode): React.ReactNode => {
+  const renderNode = (
+    node: ContentNode,
+    maxItems?: number,
+  ): React.ReactNode => {
     if (node.type === "paragraph") {
       const text = node.content?.map((c) => c.text).join("") || node.text || "";
       if (!text.trim()) return null;
@@ -166,9 +182,14 @@ export function PresentationMode({
     }
 
     if (node.type === "bulletList") {
+      const itemsToShow =
+        maxItems !== undefined
+          ? Math.min(maxItems, node.content?.length || 0)
+          : node.content?.length || 0;
+
       return (
         <ul className="space-y-6 mb-12">
-          {node.content?.map((item, idx) => (
+          {node.content?.slice(0, itemsToShow).map((item, idx) => (
             <li
               key={idx}
               className="text-lg text-foreground/90 leading-relaxed flex items-start gap-4"
@@ -192,6 +213,63 @@ export function PresentationMode({
     }
 
     return null;
+  };
+
+  const renderContentWithSteps = (
+    nodes: ContentNode[],
+    remainingSteps: number,
+  ) => {
+    let stepsUsed = 0;
+    const renderedNodes = [];
+
+    for (const node of nodes) {
+      if (stepsUsed >= remainingSteps) break;
+
+      const nodeSteps =
+        node.type === "bulletList" ? node.content?.length || 1 : 1;
+
+      if (stepsUsed + nodeSteps <= remainingSteps) {
+        if (node.type === "bulletList") {
+          renderedNodes.push(
+            <motion.div
+              key={renderedNodes.length}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              {renderNode(node, node.content?.length)}
+            </motion.div>,
+          );
+        } else {
+          renderedNodes.push(
+            <motion.div
+              key={renderedNodes.length}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              {renderNode(node)}
+            </motion.div>,
+          );
+        }
+        stepsUsed += nodeSteps;
+      } else if (node.type === "bulletList") {
+        const partialItems = remainingSteps - stepsUsed;
+        renderedNodes.push(
+          <motion.div
+            key={renderedNodes.length}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            {renderNode(node, partialItems)}
+          </motion.div>,
+        );
+        stepsUsed = remainingSteps;
+      }
+    }
+
+    return renderedNodes;
   };
 
   if (slides.length === 0) {
@@ -307,18 +385,10 @@ export function PresentationMode({
                           transition={{ duration: 0.5 }}
                           className="space-y-8"
                         >
-                          {currentSlide.content
-                            .slice(0, Math.max(0, currentStep - contentOffset))
-                            .map((node, idx) => (
-                              <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4 }}
-                              >
-                                {renderNode(node)}
-                              </motion.div>
-                            ))}
+                          {renderContentWithSteps(
+                            currentSlide.content,
+                            Math.max(0, currentStep - contentOffset),
+                          )}
                         </motion.div>
                       )}
                   </motion.div>
