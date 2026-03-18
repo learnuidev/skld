@@ -245,7 +245,7 @@ export function LoginForm({
                   !formData[currentStepData.id as keyof typeof formData] ||
                   isLoading
                 }
-                className="w-full bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gray-900 text-black dark:text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 size="lg"
               >
                 {isLoading

@@ -12,25 +12,28 @@ import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-autho
 import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
 import { useRetryKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-retry-knowledge-graph-mutation";
+import { useSkldMutation } from "@/modules/skld/use-skld-mutation";
+import { ContentRecommendation } from "@/modules/skld/skld.types";
 import { fetchAuthSession } from "aws-amplify/auth";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Save } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId,
+    params.courseId
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
   const { data: contents } = useListCourseContentsQuery(params.courseId);
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
 
   const { data: knowledgeGraph, isLoading: kgLoading } =
@@ -43,6 +46,15 @@ export default function ContentPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editChapterId, setEditChapterId] = useState<string>("");
+  const [startTime, setStartTime] = useState<number>(Date.now());
+  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+  const [showTimeSpent, setShowTimeSpent] = useState(false);
+  const [recommendations, setRecommendations] = useState<
+    ContentRecommendation[] | null
+  >(null);
+  const [showRecommendations, setShowRecommendations] = useState(false);
+
+  const skldMutation = useSkldMutation();
 
   const textareaRef = useAutoSizeTextarea(editDescription);
 
@@ -69,6 +81,38 @@ export default function ContentPage() {
       setEditorContent(content?.content);
     }
   }, [content?.content]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    setStartTime(Date.now());
+    setShowTimeSpent(false);
+    setTimeout(() => setShowTimeSpent(true), 2000);
+  }, [params.contentId]);
+
+  const handleNext = async () => {
+    try {
+      const timespent = Math.floor((Date.now() - startTime) / 1000);
+
+      const result = await skldMutation.mutateAsync({
+        contentId: params.contentId,
+        enrollmentId: params.courseId,
+        metadata: { timespent },
+      });
+
+      setRecommendations(result.recommendations);
+      setShowRecommendations(true);
+      setStartTime(Date.now());
+    } catch (error) {
+      console.error("Failed to submit skld request:", error);
+    }
+  };
 
   const handleEdit = () => {
     setEditorContent(content?.content || "");
@@ -137,8 +181,19 @@ export default function ContentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto sm:px-6 px-0 pb-16 lg:pb-24">
+    <div className="min-h-screen bg-background mt-24">
+      {showTimeSpent && (
+        <div className="fixed top-0 left-0 right-0 z-50 py-4 bg-background/95 backdrop-blur-sm">
+          <div className="max-w-4xl mx-auto sm:px-6 px-4 py-2">
+            <div className="text-sm text-muted-foreground flex gap-2 items-end">
+              <Clock />{" "}
+              <span>{Math.floor((currentTime - startTime) / 1000)}s</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-4xl mx-auto sm:px-6 px-0 pb-24 lg:pb-32 pt-6">
         <div className="mb-16 flex items-center justify-between">
           <Link
             href={`/courses/${params.courseId}`}
@@ -189,7 +244,7 @@ export default function ContentPage() {
                   chapters.length > 0 &&
                   (() => {
                     const chapter = chapters.find(
-                      (ch) => ch.id === content.chapterId,
+                      (ch) => ch.id === content.chapterId
                     );
                     return chapter ? (
                       <div className="text-xs font-medium text-primary">
@@ -209,6 +264,52 @@ export default function ContentPage() {
               </>
             )}
           </header>
+
+          {showRecommendations && recommendations && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Recommended Content</h2>
+              <div className="grid gap-3">
+                {recommendations.map((rec) => (
+                  <Link
+                    key={rec.contentId}
+                    href={`/courses/${params.courseId}/contents/${rec.contentId}`}
+                    onClick={() => {
+                      setShowRecommendations(false);
+                    }}
+                    className="flex items-start gap-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-medium text-foreground">
+                        {rec.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                        {rec.description}
+                      </p>
+                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                        <span>
+                          Read {rec.timesRead} time
+                          {rec.timesRead !== 1 ? "s" : ""}
+                        </span>
+                        <span>{rec.totalTimeSpent}s total</span>
+                        <span>
+                          Last read{" "}
+                          {rec.contentLastReviewed === 0
+                            ? "never"
+                            : `${rec.contentLastReviewed} day${rec.contentLastReviewed !== 1 ? "s" : ""} ago`}
+                        </span>
+                      </div>
+                    </div>
+                    {rec.isRecommended && (
+                      <div className="flex items-center gap-1 text-xs font-medium text-primary">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Recommended</span>
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           <KnowledgeGraphStatus
             knowledgeGraph={knowledgeGraph}
@@ -264,20 +365,42 @@ export default function ContentPage() {
         </div>
       </div>
 
-      {isAuthor && (
-        <FloatingMenu
-          courseId={params.courseId}
-          contentId={params.contentId}
-          contents={contents || []}
-          isEditing={isEditing}
-          onEdit={handleEdit}
-          onCancel={handleCancel}
-          knowledgeGraph={knowledgeGraph || undefined}
-          onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
-          isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
-          onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
-          isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
-        />
+      {showTimeSpent && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border/60">
+          <div className="max-w-4xl mx-auto sm:px-6 px-4 py-3 relative">
+            <div className="flex justify-between items-center">
+              {isAuthor && (
+                <FloatingMenu
+                  courseId={params.courseId}
+                  contentId={params.contentId}
+                  contents={contents || []}
+                  isEditing={isEditing}
+                  onEdit={handleEdit}
+                  onCancel={handleCancel}
+                  knowledgeGraph={knowledgeGraph || undefined}
+                  onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
+                  isCreatingKnowledgeGraph={
+                    createKnowledgeGraphMutation.isPending
+                  }
+                  onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
+                  isRetryingKnowledgeGraph={
+                    retryKnowledgeGraphMutation.isPending
+                  }
+                />
+              )}
+
+              <Button
+                onClick={handleNext}
+                disabled={skldMutation.isPending}
+                variant={"outline"}
+                className="rounded-full"
+              >
+                {skldMutation.isPending ? "Processing..." : "Next"}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

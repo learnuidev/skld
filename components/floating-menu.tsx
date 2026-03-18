@@ -39,7 +39,7 @@ export function FloatingMenu({
   isRetryingKnowledgeGraph = false,
 }: FloatingMenuProps) {
   return (
-    <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
+    <div className="flex flex-col gap-2 z-50">
       <div className="flex items-center gap-2">
         <Popover>
           <PopoverTrigger asChild>

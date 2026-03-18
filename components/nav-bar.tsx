@@ -14,13 +14,16 @@ import {
 import { SkldLogo } from "./skld-logo";
 import { usePathname } from "next/navigation";
 
+const contentPathRegex = /courses\/[A-Z0-9]+\/contents\/[A-Z0-9]+/;
+
 export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const pathName = usePathname();
   const containsKnowledgeGraph = pathName.includes("knowledge-graph");
+  const isContentPage = contentPathRegex.test(pathName);
 
-  if (containsKnowledgeGraph) {
+  if (containsKnowledgeGraph || isContentPage) {
     return null;
   }
 
