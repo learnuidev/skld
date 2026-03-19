@@ -12,17 +12,21 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   CourseContent,
+  CourseContentVariants,
   CreateCourseContentParams,
 } from "@/modules/course-content/course-content.types";
 import { useBulkCreateCourseContentsMutation } from "@/modules/course-content/use-bulk-create-course-contents-mutation";
 import { useCreateCourseContentMutation } from "@/modules/course-content/use-create-course-content-mutation";
 import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
+import { UserContentStat } from "@/modules/skld/skld.types";
+import { useListUserEnrollmentStatsQuery } from "@/modules/enrollment/use-list-user-enrollment-stats-query";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   CheckCircle2,
+  Clock,
   Download,
+  Eye,
   FileText,
   Plus,
   Upload,
@@ -37,16 +41,45 @@ interface ContentTabProps {
 
 interface ParsedContent extends CreateCourseContentParams {
   chapter?: string;
-  chapterNumber?: number;
+  chapterNumber?: string;
   error?: string;
 }
 
-export function ContentTab({ courseId, chapters }: ContentTabProps) {
-  const queryClient = useQueryClient();
+interface CSVItem {
+  title?: string;
+  description?: string;
+  content?: string;
+  chapter?: string;
+  chaptername?: string;
+  chapterNumber?: string;
+  chapternumber?: string;
+  chapter_number?: string;
+  contentvariants?: string;
+  content_variants?: string;
+  order?: string;
+  [key: string]: string | number | undefined;
+}
 
+interface JSONItem {
+  title?: string;
+  description?: string;
+  content?: string;
+  chapter?: string;
+  chapterName?: string;
+  chapter_name?: string;
+  chapterNumber?: string;
+  chapter_number?: string;
+  contentVariants?: string | string[];
+  content_variants?: string | string[];
+  order?: number;
+  [key: string]: unknown;
+}
+
+export function ContentTab({ courseId, chapters }: ContentTabProps) {
   const isAuthor = useIsUserCourseAuthor(courseId);
 
   const { data: contents, isLoading } = useListCourseContentsQuery(courseId);
+  const { data: enrollmentStats } = useListUserEnrollmentStatsQuery(courseId);
   const createContentMutation = useCreateCourseContentMutation();
   const bulkCreateContentMutation = useBulkCreateCourseContentsMutation();
 
@@ -112,6 +145,19 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
     return undefined;
   };
 
+  const validateContentVariants = (
+    variants: string | string[] | undefined
+  ): CourseContentVariants[] => {
+    const validVariants: CourseContentVariants[] = ["text", "video", "audio", "interactive"];
+
+    if (!variants) {
+      return ["text"];
+    }
+
+    const variantArray = Array.isArray(variants) ? variants : variants.split("|").map((v) => v.trim());
+    return variantArray.filter((v): v is CourseContentVariants => validVariants.includes(v as CourseContentVariants));
+  };
+
   const validateParsedContents = (
     items: ParsedContent[],
   ): { valid: ParsedContent[]; errors: string[] } => {
@@ -157,7 +203,7 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
       const values = lines[i]
         .split(",")
         .map((v) => v.trim().replace(/^['"]|['"]$/g, ""));
-      const item: any = {};
+      const item: CSVItem = {};
 
       headers.forEach((header, index) => {
         item[header] = values[index] || "";
@@ -170,11 +216,10 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
         content: item.content || "",
         chapter: item.chapter || item.chaptername || "",
         chapterNumber: item.chapternumber || item.chapter_number || "",
-        contentVaraints:
+        contentVaraints: validateContentVariants(
           item.contentvariants || item.content_variants
-            ? item.contentvariants.split("|").map((v: string) => v.trim())
-            : ["text"],
-        order: item.order ? parseInt(item.order, 10) : i,
+        ),
+        order: item.order ? parseInt(item.order as string, 10) : i,
       });
     }
 
@@ -186,19 +231,16 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
       const data = JSON.parse(text);
       const items = Array.isArray(data) ? data : data.contents || [];
 
-      return items.map((item: any, index: number) => ({
+      return items.map((item: JSONItem, index: number) => ({
         courseId,
         title: item.title || "",
         description: item.description || "",
         content: item.content || "",
         chapter: item.chapter || item.chapterName || item.chapter_name || "",
         chapterNumber: item.chapterNumber || item.chapter_number || "",
-        contentVaraints:
+        contentVaraints: validateContentVariants(
           item.contentVariants || item.content_variants
-            ? Array.isArray(item.contentVariants)
-              ? item.contentVariants
-              : item.contentVariants.split("|")
-            : ["text"],
+        ),
         order: item.order || index,
       }));
     } catch {
@@ -344,7 +386,11 @@ export function ContentTab({ courseId, chapters }: ContentTabProps) {
         />
       ) : (
         <>
-          <ContentList contents={contents} chapters={chapters} />
+          <ContentList
+            contents={contents}
+            chapters={chapters}
+            enrollmentStats={enrollmentStats}
+          />
           {isAuthor && (
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-8">
               <Button
@@ -435,10 +481,16 @@ function EmptyState({
 function ContentList({
   contents,
   chapters,
+  enrollmentStats,
 }: {
   contents: CourseContent[];
   chapters: Array<{ id: string; name: string; number?: number }>;
+  enrollmentStats?: { enrollmentStats: UserContentStat[] };
 }) {
+  const statsMap = new Map<string, UserContentStat>(
+    enrollmentStats?.enrollmentStats.map((stat) => [stat.contentId, stat]) || []
+  );
+
   return (
     <div className="space-y-4">
       {contents.map((content) => (
@@ -447,6 +499,7 @@ function ContentList({
           content={content}
           courseId={content.courseId}
           chapters={chapters}
+          stats={statsMap.get(content.id)}
         />
       ))}
     </div>
@@ -457,12 +510,33 @@ function ContentCard({
   content,
   courseId,
   chapters,
+  stats,
 }: {
   content: CourseContent;
   courseId: string;
   chapters: Array<{ id: string; name: string; number?: number }>;
+  stats?: UserContentStat;
 }) {
   const chapter = chapters.find((ch) => ch.id === content.chapterId);
+
+  const formatTime = (seconds: number) => {
+    if (seconds < 60) return `${Math.round(seconds)}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60);
+    return `${mins}m ${secs}s`;
+  };
+
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
 
   return (
     <div className="p-6 bg-card border border-border rounded-2xl hover:border-border/80 transition-all">
@@ -505,6 +579,30 @@ function ContentCard({
             </div>
           </Link>
         </div>
+        {stats && stats.metadata && (
+          <div className="flex flex-col items-end gap-2 text-xs text-muted-foreground">
+            {stats.metadata.timesRead > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Eye className="w-3.5 h-3.5" />
+                <span className="font-medium text-foreground">
+                  {stats.metadata.timesRead}
+                </span>
+                <span>view{stats.metadata.timesRead !== 1 ? "s" : ""}</span>
+              </div>
+            )}
+            {stats.metadata.totalTimeSpent > 0 && (
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                <span>{formatTime(stats.metadata.totalTimeSpent)}</span>
+              </div>
+            )}
+            {stats.metadata.lastReviewedAt > 0 && (
+              <div className="text-muted-foreground">
+                {formatDate(stats.metadata.lastReviewedAt)}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

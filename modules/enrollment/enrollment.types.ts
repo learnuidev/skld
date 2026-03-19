@@ -1,3 +1,5 @@
+import { UserContentStat } from "../skld/skld.types";
+
 export interface Enrollment {
   id: string;
   userId: string;
@@ -17,4 +19,8 @@ export interface EnrollmentWithCourse extends Enrollment {
     courseType?: string;
     hasCertification?: boolean;
   };
+}
+
+export interface EnrollmentStatsResponse {
+  enrollmentStats: UserContentStat[];
 }

@@ -7,7 +7,6 @@ export interface UserContentStat {
   id: string;
   userId: string;
   enrollmentId: string;
-  variant: "content" | "question";
   sk: string;
   contentId: string;
   metadata: {

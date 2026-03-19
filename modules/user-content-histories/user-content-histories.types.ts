@@ -22,6 +22,22 @@ export type QuizData = {
   isCorrect: boolean;
 };
 
+interface NodesData {
+  nodeId: string;
+  totalClicked: number;
+}
+
+interface LinksData {
+  nodeId: string;
+  totalClicked: number;
+}
+
+interface GraphData {
+  timeSpent: number;
+  nodes?: NodesData[];
+  links?: LinksData[];
+}
+
 export type UserContentHistory = {
   id: string;
   createdAt: number;
@@ -32,6 +48,8 @@ export type UserContentHistory = {
   userId: string;
   totalTimeSpent?: number;
   quizData?: QuizData;
+
+  graphData?: GraphData;
 };
 
 export type UserContentHistoriesResponse = {
