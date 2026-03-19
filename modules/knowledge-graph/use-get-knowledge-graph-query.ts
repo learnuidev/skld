@@ -30,10 +30,6 @@ export function useGetKnowledgeGraphQuery(params: {
         throw new Error("No authentication token");
       }
 
-      const url = `${appConfig.NEXT_PUBLIC_API_BASE_URL}/v2/knowledge-graphs/${sk}`;
-
-      console.log("URL", url);
-
       const response = await fetch(
         `${appConfig.NEXT_PUBLIC_API_BASE_URL}/v2/knowledge-graphs/${sk}`,
         {

@@ -494,7 +494,6 @@ export function LinkEditor({
           },
         })
         .then((result) => {
-          console.log("RESULT", result);
           setRecommendations(result);
           setShowRecommendations(true);
         });

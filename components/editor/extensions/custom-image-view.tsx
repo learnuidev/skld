@@ -20,7 +20,6 @@ export function CustomImageNodeView({
   node,
   updateAttributes,
 }: CustomImageNodeViewProps) {
-  console.log("YOOO", node);
   const { data: asset, isLoading } = useGetAssetQuery(node.attrs.assetId);
 
   if (isLoading || !asset) {

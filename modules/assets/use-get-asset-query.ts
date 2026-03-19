@@ -24,8 +24,6 @@ export const getAssetUrlApi = async (assetId: string): Promise<Asset> => {
     throw new Error("No authentication token");
   }
 
-  console.log("ASSET", appConfig);
-
   const response = await fetch(
     `${appConfig.NEXT_PUBLIC_API_BASE_URL}/assets/${assetId}`,
     {
@@ -54,8 +52,6 @@ export function useGetAssetQuery(assetId: string, enabled = true) {
       if (!token) {
         throw new Error("No authentication token");
       }
-
-      console.log("ASSET", appConfig);
 
       const response = await fetch(
         `${appConfig.NEXT_PUBLIC_API_BASE_URL}/assets/${assetId}`,

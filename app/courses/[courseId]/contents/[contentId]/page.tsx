@@ -404,7 +404,7 @@ export default function ContentPage() {
 
               <div>
                 <TiptapEditor
-                  content={editorContent}
+                  content={content?.content || ""}
                   editable={isAuthor && isEditing}
                   onUpdate={setEditorContent}
                 />

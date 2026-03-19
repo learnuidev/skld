@@ -32,11 +32,6 @@ export function PresentationMode({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [slideSteps, setSlideSteps] = useState<Record<number, number>>({});
 
-  console.log(
-    "parseContentToSlides(content.content || [])",
-    parseContentToSlides(content.content || [])
-  );
-
   const slides = useState<ParsedSlide[]>(() => {
     if (!isStructuredContent(content)) return [];
     return parseContentToSlides(content.content || []);
