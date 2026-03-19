@@ -45,16 +45,16 @@ export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const router = useRouter();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId,
+    params.courseId
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
   const { data: contents } = useListCourseContentsQuery(params.courseId);
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
 
   const { data: knowledgeGraph, isLoading: kgLoading } =
@@ -64,7 +64,7 @@ export default function ContentPage() {
 
   const { data: userContentStats } = useGetUserContentStatsQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
 
   const createContentQuizMutation = useCreateContentQuizMutation();
@@ -74,7 +74,7 @@ export default function ContentPage() {
   const ongoingContentQuiz = mockExams?.find(
     (exam) =>
       exam.status === "in_progress" &&
-      exam.selectedContentIds?.includes(params.contentId),
+      exam.selectedContentIds?.includes(params.contentId)
   );
 
   const [isEditing, setIsEditing] = useState(false);
@@ -208,7 +208,7 @@ export default function ContentPage() {
         contentId: params.contentId,
       });
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`,
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`
       );
     } catch (error) {
       console.error("Failed to start quiz:", error);
@@ -237,11 +237,11 @@ export default function ContentPage() {
     <div
       className={cn(
         "min-h-screen bg-background",
-        ongoingContentQuiz ? "mt-24" : "mt-8",
+        ongoingContentQuiz ? "mt-24" : "mt-8"
       )}
     >
       {ongoingContentQuiz && (
-        <div className="fixed top-17.5 left-0 right-0 z-40 bg-primary text-primary-foreground dark:bg-[rgb(24,25,26)] dark:text-white py-6 px-4 shadow-lg">
+        <div className="fixed top-0 left-0 right-0 z-40 bg-primary text-primary-foreground dark:bg-[rgb(24,25,26)] dark:text-white py-6 px-4 shadow-lg">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <p className="text-sm font-medium">
               You have an ongoing quiz for this content
@@ -362,7 +362,7 @@ export default function ContentPage() {
                       chapters.length > 0 &&
                       (() => {
                         const chapter = chapters.find(
-                          (ch) => ch.id === content.chapterId,
+                          (ch) => ch.id === content.chapterId
                         );
                         return chapter ? (
                           <div className="text-xs font-medium text-gray-500 mb-2">
@@ -448,6 +448,7 @@ export default function ContentPage() {
               isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
               onStartQuiz={handleStartQuiz}
               onPresentation={() => setShowPresentation(true)}
+              ongoingContentQuiz={!!ongoingContentQuiz}
             />
 
             {isEditing ? (

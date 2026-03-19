@@ -6,25 +6,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { isStructuredContent } from "@/lib/content-parser";
 import { CourseContent } from "@/modules/course-content/course-content.types";
+import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
+import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
+import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
 import {
+  BarChart3,
+  LightbulbIcon,
   List,
   Network,
   Pencil,
-  X,
-  RefreshCw,
-  BarChart3,
-  BrainCircuit,
-  BrainIcon,
-  LightbulbIcon,
   Presentation,
+  RefreshCw,
+  X,
 } from "lucide-react";
 import Link from "next/link";
-import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
-import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
-import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
-import { isStructuredContent } from "@/lib/content-parser";
 
 interface FloatingMenuProps {
   courseId: string;
@@ -41,6 +39,7 @@ interface FloatingMenuProps {
   isRetryingKnowledgeGraph?: boolean;
   onStartQuiz?: () => void;
   onPresentation?: () => void;
+  ongoingContentQuiz: boolean;
 }
 
 export function FloatingMenu({
@@ -58,6 +57,7 @@ export function FloatingMenu({
   isRetryingKnowledgeGraph = false,
   onStartQuiz,
   onPresentation,
+  ongoingContentQuiz,
 }: FloatingMenuProps) {
   const isAuthor = useIsUserCourseAuthor(courseId);
 
@@ -70,12 +70,6 @@ export function FloatingMenu({
       ?.map((exam) => exam?.questions)
       ?.flat()
       ?.filter((question) => question?.contentId === contentId) || [];
-
-  const ongoingContentQuiz = mockExams?.find(
-    (exam) =>
-      exam.status === "in_progress" &&
-      exam.selectedContentIds?.includes(contentId),
-  );
 
   return (
     <>
@@ -179,15 +173,17 @@ export function FloatingMenu({
             </Button>
           )}
 
-          {containQuestions?.length > 0 && onStartQuiz && (
-            <Button
-              size="icon-lg"
-              onClick={onStartQuiz}
-              className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
-            >
-              <LightbulbIcon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </Button>
-          )}
+          {!ongoingContentQuiz &&
+            containQuestions?.length > 0 &&
+            onStartQuiz && (
+              <Button
+                size="icon-lg"
+                onClick={onStartQuiz}
+                className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
+              >
+                <LightbulbIcon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </Button>
+            )}
 
           {!isEditing &&
             content &&

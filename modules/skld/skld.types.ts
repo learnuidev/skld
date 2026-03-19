@@ -10,7 +10,6 @@ export interface UserContentStat {
   sk: string;
   contentId: string;
   metadata: {
-    timespent: number;
     totalTimeSpent: number;
     timesRead: number;
     lastReviewedAt: number;

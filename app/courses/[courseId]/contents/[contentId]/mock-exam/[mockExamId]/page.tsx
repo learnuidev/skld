@@ -72,6 +72,14 @@ function ContentQuizPageInner({
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (mockExam?.status === "completed" && !showFeedback) {
+      router.push(
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
+      );
+    }
+  }, [mockExam?.status, showFeedback]);
+
   const currentQuestion = allQuestions[currentIndex];
   const currentQuestionNumber = currentIndex + 1;
 
@@ -156,11 +164,11 @@ function ContentQuizPageInner({
     setSelectedMultipleAnswers(new Set());
     setTrueFalseAnswer(null);
 
-    if (feedbackData && mockExam.currentQuestionIndex >= totalQuestions - 1) {
-      router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
-      );
-    }
+    // if (feedbackData && mockExam.currentQuestionIndex >= totalQuestions - 1) {
+    //   router.push(
+    //     `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
+    //   );
+    // }
   };
 
   const handleQuit = () => {
@@ -375,14 +383,6 @@ export default function ContentQuizPage() {
     mockExam?.examBankIds?.[0] || ""
   );
 
-  useEffect(() => {
-    if (mockExam?.status === "completed") {
-      router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
-      );
-    }
-  }, [mockExam?.status]);
-
   const isLoading = mockExamLoading || isExamBankLoading;
 
   if (isLoading) {
@@ -397,16 +397,6 @@ export default function ContentQuizPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-destructive">Quiz not found</div>
-      </div>
-    );
-  }
-
-  if (mockExam.status !== "in_progress") {
-    return (
-      <div className="min-h-screen flex justify-center bg-background lg:mt-32">
-        <div className="text-muted-foreground">
-          This quiz has been completed
-        </div>
       </div>
     );
   }
