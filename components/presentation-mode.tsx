@@ -32,11 +32,6 @@ export function PresentationMode({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [slideSteps, setSlideSteps] = useState<Record<number, number>>({});
 
-  console.log(
-    "parseContentToSlides(content.content || [])",
-    parseContentToSlides(content.content || [])
-  );
-
   const slides = useState<ParsedSlide[]>(() => {
     if (!isStructuredContent(content)) return [];
     return parseContentToSlides(content.content || []);
@@ -59,19 +54,25 @@ export function PresentationMode({
     }, 0);
   };
 
-  const countIntroSentences = (intro: string): number => {
-    const sentences = intro.match(/[^.!?]+[.!?]+/g);
-    return sentences ? sentences.length : 1;
+  const countIntroParagraphs = (intro: string): number => {
+    const paragraphs = intro.split(/\n\n+/).filter((p) => p.trim());
+
+    return paragraphs.length > 0 ? paragraphs.length : 1;
   };
 
-  const introSentenceCount = hasIntro
-    ? countIntroSentences(currentSlide.intro || "")
+  const introParagraphCount = hasIntro
+    ? countIntroParagraphs(currentSlide.intro || "")
     : 0;
-  const introSteps = isIntroOnly ? introSentenceCount : hasIntro ? 1 : 0;
-  const contentOffset = isHeadingFirst ? 2 : introSteps + (hasHeading ? 1 : 0);
+  const introSteps = isIntroOnly ? introParagraphCount : hasIntro ? 1 : 0;
+  const contentOffset = isIntroOnly
+    ? introParagraphCount
+    : isHeadingFirst
+      ? 2
+      : introSteps + (hasHeading ? 1 : 0);
   const contentSteps = currentSlide?.content
     ? countContentSteps(currentSlide.content)
     : 0;
+
   const totalSteps = contentOffset + contentSteps;
 
   const enterFullscreen = useCallback(() => {
@@ -382,38 +383,39 @@ export function PresentationMode({
                       )}
 
                     {hasIntro &&
-                      currentStep >= (isHeadingFirst ? 2 : 1) &&
                       (isIntroOnly ? (
                         <div className="space-y-6">
-                          {(
-                            (currentSlide.intro || "").match(
-                              /[^.!?]+[.!?]+/g
-                            ) || [currentSlide.intro || ""]
-                          )
+                          {(currentSlide.intro || "")
+                            .split(/\n\n+/)
+                            .filter((p) => p.trim())
                             .slice(0, currentStep)
-                            .map((sentence, idx) => (
-                              <motion.p
-                                key={idx}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4 }}
-                                className="text-xl leading-relaxed text-foreground/70 font-light"
-                              >
-                                {sentence}
-                              </motion.p>
-                            ))}
+                            .map((paragraph, idx, ctx) => {
+                              return (
+                                <motion.p
+                                  key={idx}
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.4 }}
+                                  className="text-xl leading-relaxed text-foreground/70 font-light"
+                                >
+                                  {paragraph}
+                                </motion.p>
+                              );
+                            })}
                         </div>
                       ) : (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.5 }}
-                          className="mb-16"
-                        >
-                          <p className="text-xl leading-relaxed text-foreground/70 font-light">
-                            {currentSlide.intro}
-                          </p>
-                        </motion.div>
+                        currentStep >= (isHeadingFirst ? 2 : 1) && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                            className="mb-16"
+                          >
+                            <p className="text-xl leading-relaxed text-foreground/70 font-light">
+                              {currentSlide.intro}
+                            </p>
+                          </motion.div>
+                        )
                       ))}
 
                     {currentSlide.content &&

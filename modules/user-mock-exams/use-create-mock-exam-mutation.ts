@@ -1,11 +1,12 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchAuthSession } from "@aws-amplify/auth";
 import { appConfig } from "@/lib/app-config";
 import { MockExam, CreateMockExamParams } from "./user-mock-exams.types";
 
 export function useCreateMockExamMutation() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (params: CreateMockExamParams): Promise<MockExam> => {
       const session = await fetchAuthSession();
@@ -24,7 +25,7 @@ export function useCreateMockExamMutation() {
             Authorization: token,
           },
           body: JSON.stringify(params),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -33,6 +34,11 @@ export function useCreateMockExamMutation() {
       }
 
       return response.json();
+    },
+    onSuccess: (params) => {
+      queryClient.invalidateQueries({
+        queryKey: ["mockExams", params.courseId],
+      });
     },
   });
 }

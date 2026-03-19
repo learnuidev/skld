@@ -223,8 +223,75 @@ function ContentQuizPageInner({
           />
         </div>
 
-        {showFeedback && feedbackData ? (
-          <div className="space-y-6">
+        <>
+          <div className="mb-16">
+            <p className="text-xl text-foreground leading-relaxed mb-16">
+              {currentQuestion.question}
+            </p>
+
+            <div className="space-y-4">
+              {currentQuestion.options.map((option: string, index: number) => {
+                const isSelected =
+                  currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
+                    ? selectedAnswer === index
+                    : currentQuestion.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE"
+                      ? selectedMultipleAnswers.has(index)
+                      : currentQuestion.type === "TRUE_FALSE"
+                        ? (index === 0 && trueFalseAnswer === true) ||
+                          (index === 1 && trueFalseAnswer === false)
+                        : false;
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleAnswerChange(index)}
+                    className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base ${
+                      isSelected
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border hover:border-foreground/20"
+                    }`}
+                  >
+                    <span className="flex items-center gap-4">
+                      <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
+                        {String.fromCharCode(65 + index)}
+                      </span>
+                      <span>{option}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {showFeedback && feedbackData ? null : (
+            <div className="flex items-center justify-between mt-12">
+              <button
+                onClick={handlePrevious}
+                disabled={currentIndex === 0}
+                className="flex items-center gap-2 px-6 py-3 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleNext}
+                  disabled={!canGoNext() || submitContentQuizMutation.isPending}
+                  className="flex items-center gap-2 px-8 py-3 bg-foreground text-background rounded-lg font-medium text-sm hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {submitContentQuizMutation.isPending
+                    ? "Checking..."
+                    : "Check"}
+                  <Check className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+
+        {showFeedback && feedbackData && (
+          <div className="space-y-6 mt-12">
             <div
               className={`p-6 rounded-lg border-2 ${
                 feedbackData.isCorrect
@@ -294,72 +361,6 @@ function ContentQuizPageInner({
               </button>
             </div>
           </div>
-        ) : (
-          <>
-            <div className="mb-16">
-              <p className="text-xl text-foreground leading-relaxed mb-16">
-                {currentQuestion.question}
-              </p>
-
-              <div className="space-y-4">
-                {currentQuestion.options.map(
-                  (option: string, index: number) => {
-                    const isSelected =
-                      currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
-                        ? selectedAnswer === index
-                        : currentQuestion.type ===
-                            "MULTIPLE_SELECT_MULTIPLE_CHOICE"
-                          ? selectedMultipleAnswers.has(index)
-                          : currentQuestion.type === "TRUE_FALSE"
-                            ? (index === 0 && trueFalseAnswer === true) ||
-                              (index === 1 && trueFalseAnswer === false)
-                            : false;
-
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => handleAnswerChange(index)}
-                        className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base ${
-                          isSelected
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border hover:border-foreground/20"
-                        }`}
-                      >
-                        <span className="flex items-center gap-4">
-                          <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
-                            {String.fromCharCode(65 + index)}
-                          </span>
-                          <span>{option}</span>
-                        </span>
-                      </button>
-                    );
-                  }
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between mt-12">
-              <button
-                onClick={handlePrevious}
-                disabled={currentIndex === 0}
-                className="flex items-center gap-2 px-6 py-3 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </button>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleNext}
-                  disabled={!canGoNext() || submitContentQuizMutation.isPending}
-                  className="flex items-center gap-2 px-8 py-3 bg-foreground text-background rounded-lg font-medium text-sm hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Check
-                  <Check className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </>
         )}
       </div>
     </div>
