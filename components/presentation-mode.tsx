@@ -32,6 +32,11 @@ export function PresentationMode({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [slideSteps, setSlideSteps] = useState<Record<number, number>>({});
 
+  console.log(
+    "parseContentToSlides(content.content || [])",
+    parseContentToSlides(content.content || [])
+  );
+
   const slides = useState<ParsedSlide[]>(() => {
     if (!isStructuredContent(content)) return [];
     return parseContentToSlides(content.content || []);
@@ -41,10 +46,9 @@ export function PresentationMode({
   const currentStep = slideSteps[currentIndex] || 0;
   const hasIntro = !!currentSlide.intro;
   const hasHeading = !!currentSlide.heading;
-  const isIntroOnly =
-    hasIntro &&
-    !hasHeading &&
-    (!currentSlide.content || currentSlide.content.length === 0);
+  const hasContent = currentSlide.content && currentSlide.content.length > 0;
+  const isIntroOnly = hasIntro && !hasHeading && !hasContent;
+  const isHeadingFirst = true;
 
   const countContentSteps = (nodes: ContentNode[]): number => {
     return nodes.reduce((acc, node) => {
@@ -64,7 +68,7 @@ export function PresentationMode({
     ? countIntroSentences(currentSlide.intro || "")
     : 0;
   const introSteps = isIntroOnly ? introSentenceCount : hasIntro ? 1 : 0;
-  const contentOffset = introSteps + (hasHeading ? 1 : 0);
+  const contentOffset = isHeadingFirst ? 2 : introSteps + (hasHeading ? 1 : 0);
   const contentSteps = currentSlide?.content
     ? countContentSteps(currentSlide.content)
     : 0;
@@ -362,8 +366,23 @@ export function PresentationMode({
                     transition={{ duration: 0.5, delay: 0.1 }}
                     className={`max-w-4xl mx-auto`}
                   >
+                    {hasHeading &&
+                      currentStep >=
+                        (isHeadingFirst ? 1 : hasIntro ? 2 : 1) && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5 }}
+                          className="mb-16"
+                        >
+                          <h1 className="text-4xl font-semibold text-foreground tracking-tight leading-[1.1]">
+                            {currentSlide.heading}
+                          </h1>
+                        </motion.div>
+                      )}
+
                     {hasIntro &&
-                      currentStep >= 1 &&
+                      currentStep >= (isHeadingFirst ? 2 : 1) &&
                       (isIntroOnly ? (
                         <div className="space-y-6">
                           {(
@@ -396,19 +415,6 @@ export function PresentationMode({
                           </p>
                         </motion.div>
                       ))}
-
-                    {hasHeading && currentStep >= (hasIntro ? 2 : 1) && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="mb-16"
-                      >
-                        <h1 className="text-4xl font-semibold text-foreground tracking-tight leading-[1.1]">
-                          {currentSlide.heading}
-                        </h1>
-                      </motion.div>
-                    )}
 
                     {currentSlide.content &&
                       currentSlide.content.length > 0 && (
