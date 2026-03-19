@@ -1,13 +1,12 @@
 "use client";
 
-import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Info, X, GripVertical, Edit } from "lucide-react";
+import { Edit, GripVertical, Info, Search, X } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "./knowledge-graph.types";
 import { PANEL_DARK_BACKGROUND } from "./knowledge-graph.constants";
+import { Link } from "./knowledge-graph.types";
 
 export const RelationshipPanel = ({
   link,
@@ -90,10 +89,31 @@ export const RelationshipPanel = ({
                   <div
                     className={`${isDark ? "bg-slate-800/30 " : "bg-slate-100/30 "} rounded-lg p-2`}
                   >
-                    <h4 className="text-emerald-400 font-medium mb-3 text-sm flex items-center gap-3">
-                      <Info className="w-4 h-4" />
-                      Real-World Example
-                    </h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-emerald-400 font-medium text-sm flex items-center gap-3">
+                        <Info className="w-4 h-4" />
+                        Real-World Example
+                      </h4>
+                      <button
+                        onClick={() =>
+                          window.open(
+                            `https://www.google.com/search?q=${encodeURIComponent(
+                              link.realExample
+                            )}`,
+                            "_blank"
+                          )
+                        }
+                        className={`flex items-center gap-1 text-xs font-medium ${
+                          isDark
+                            ? "text-emerald-400 hover:text-emerald-300"
+                            : "text-emerald-600 hover:text-emerald-500"
+                        } transition-colors`}
+                        title="Search on Google"
+                      >
+                        <Search className="w-3 h-3" />
+                        <span>Search</span>
+                      </button>
+                    </div>
                     <p
                       className={`${isDark ? "text-slate-300" : "text-slate-600"} text-xs`}
                     >
