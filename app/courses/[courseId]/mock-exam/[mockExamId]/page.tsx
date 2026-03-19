@@ -55,7 +55,7 @@ function MockExamPageInner({
 
   const { data: examBank } = useGetExamBankQuery(
     mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || ""
+    mockExam?.examBankIds?.[0] || "",
   );
 
   const allQuestions: Question[] = useMemo(() => {
@@ -72,7 +72,11 @@ function MockExamPageInner({
     return examBank?.questions;
   }, [examBank, mockExam?.selectedDomains]);
 
-  const currentIndex = mockExam?.currentQuestionIndex ?? 0;
+  const answeredQuestionIds = new Set(Object.keys(mockExam?.answers || {}));
+  const currentQuestionId = mockExam?.currentQuestionId || "";
+  const currentIndex = currentQuestionId
+    ? allQuestions.findIndex((q) => q.id === currentQuestionId)
+    : 0;
 
   const totalQuestions = allQuestions?.length || 0;
 
@@ -119,7 +123,7 @@ function MockExamPageInner({
   }, [initialTimeRemaining]);
 
   const answeredQuestions = allQuestions?.filter(
-    (question) => !mockExam?.answers?.[question?.id]
+    (question) => !mockExam?.answers?.[question?.id],
   );
 
   const currentQuestion = allQuestions[currentIndex];
@@ -186,8 +190,13 @@ function MockExamPageInner({
     const newTimeRemaining =
       isTimed && remainingTime !== null ? remainingTime : undefined;
 
+    const nextQuestion = allQuestions.find(
+      (q) => !answeredQuestionIds.has(q.id) && q.id !== questionId,
+    );
+    const nextQuestionId = nextQuestion ? nextQuestion.id : questionId;
+
     await updateMockExamMutation.mutateAsync({
-      currentQuestionIndex: currentIndex + 1,
+      currentQuestionId: nextQuestionId,
       answers: newAnswers,
       timeSpent: newTotalTimeSpent,
       timeRemaining: newTimeRemaining,
@@ -211,8 +220,14 @@ function MockExamPageInner({
     const newTimeRemaining =
       isTimed && remainingTime !== null ? remainingTime : undefined;
 
+    const questionId = currentQuestion.id || "";
+    const nextQuestion = allQuestions.find(
+      (q) => !answeredQuestionIds.has(q.id) && q.id !== questionId,
+    );
+    const nextQuestionId = nextQuestion ? nextQuestion.id : questionId;
+
     await updateMockExamMutation.mutateAsync({
-      currentQuestionIndex: currentIndex + 1,
+      currentQuestionId: nextQuestionId,
       timeSpent: newTotalTimeSpent,
       timeRemaining: newTimeRemaining,
     });
@@ -417,12 +432,12 @@ export default function MockExamPage() {
   const params = useParams<{ courseId: string; mockExamId: string }>();
   const { data: course } = useGetCourseQuery(params.courseId);
   const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
-    params.mockExamId
+    params.mockExamId,
   );
 
   const { data: examBank, isLoading: isExamBankLoading } = useGetExamBankQuery(
     mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || ""
+    mockExam?.examBankIds?.[0] || "",
   );
 
   const isLoading = mockExamLoading || isExamBankLoading;

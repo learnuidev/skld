@@ -353,9 +353,6 @@ function MyMockExamsTab({
                       </div>
                     </Link>
                     <div className="flex flex-col items-end gap-2">
-                      <div className="text-sm font-medium text-foreground mb-1">
-                        Question {exam.currentQuestionIndex + 1}
-                      </div>
                       <div className="text-xs text-muted-foreground">
                         {Object.keys(exam.answers).length} answered
                       </div>
@@ -393,16 +390,19 @@ function MyMockExamsTab({
                 let correct = 0;
                 let total = 0;
 
+                const allQuestions = getExamQuestions(
+                  exam,
+                  examBanks || [],
+                  course?.domains || [],
+                );
+
                 Object.entries(exam.answers || {}).forEach(
-                  ([questionIndex, answer]: [string, any]) => {
+                  ([questionId, answer]: [string, any]) => {
                     if (!answer) return;
 
-                    const allQuestions = getExamQuestions(
-                      exam,
-                      examBanks || [],
-                      course?.domains || [],
+                    const question = allQuestions.find(
+                      (q: any) => q.id === questionId,
                     );
-                    const question = allQuestions[parseInt(questionIndex) - 1];
                     if (!question) return;
 
                     total++;
@@ -589,7 +589,9 @@ function InProgressExamBanner({
   };
 
   const questionsCompleted = Object.keys(exam.answers || {}).length;
-  const totalQuestions = exam.currentQuestionIndex + 1;
+  const totalQuestions = course?.exam?.totalTimeMinutes
+    ? Math.floor(course.exam.totalTimeMinutes / 2)
+    : 0;
 
   const totalTimeInMilliSeconds = course?.exam?.totalTimeMinutes
     ? course.exam.totalTimeMinutes * 60 * 1000

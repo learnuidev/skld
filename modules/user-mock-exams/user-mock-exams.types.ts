@@ -19,7 +19,7 @@ export interface MockExam {
   examType: ExamType;
   selectedContentIds?: string[];
   selectedDomains: string[];
-  currentQuestionIndex: number;
+  currentQuestionId: string;
   answers: Record<string, Answer>;
   timeSpent: number;
   timeRemaining: number | null;
@@ -37,7 +37,7 @@ export interface CreateMockExamParams {
 }
 
 export interface UpdateMockExamParams {
-  currentQuestionIndex?: number;
+  currentQuestionId?: string;
   answers?: Record<string, unknown>;
   timeSpent?: number;
   timeRemaining?: number;

@@ -8,7 +8,7 @@ import { useSubmitContentQuizMutation } from "@/modules/content-quiz/use-submit-
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { Course } from "@/modules/course/course.types";
@@ -25,6 +25,7 @@ function ContentQuizPageInner({
     mockExamId: string;
   }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -40,12 +41,18 @@ function ContentQuizPageInner({
     correctAnswer: unknown;
     feedback: string;
   } | null>(null);
+  const [feedbackCache, setFeedbackCache] = useState<
+    Record<
+      string,
+      { isCorrect: boolean; correctAnswer: unknown; feedback: string }
+    >
+  >({});
 
   const submitContentQuizMutation = useSubmitContentQuizMutation();
 
   const { data: examBank } = useGetExamBankQuery(
     mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || ""
+    mockExam?.examBankIds?.[0] || "",
   );
 
   const selectedContentId = mockExam?.selectedContentIds?.[0];
@@ -60,9 +67,24 @@ function ContentQuizPageInner({
     });
   }, [examBank, selectedContentId]);
 
-  const currentIndex = mockExam?.currentQuestionIndex ?? 0;
+  const questionId =
+    searchParams.get("questionId") || mockExam?.currentQuestionId;
 
   const totalQuestions = allQuestions?.length || 0;
+
+  const currentQuestion = useMemo(() => {
+    if (!questionId || allQuestions.length === 0) {
+      return allQuestions[0];
+    }
+    return allQuestions.find((q) => q.id === questionId);
+  }, [questionId, allQuestions, mockExam?.currentQuestionId]);
+
+  const currentIndex = useMemo(() => {
+    if (!currentQuestion) return 0;
+    return allQuestions.findIndex((q) => q.id === currentQuestion.id);
+  }, [currentQuestion, allQuestions]);
+
+  const currentQuestionNumber = currentIndex + 1;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -75,13 +97,63 @@ function ContentQuizPageInner({
   useEffect(() => {
     if (mockExam?.status === "completed" && !showFeedback) {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`,
       );
     }
   }, [mockExam?.status, showFeedback]);
 
-  const currentQuestion = allQuestions[currentIndex];
-  const currentQuestionNumber = currentIndex + 1;
+  useEffect(() => {
+    if (allQuestions.length > 0 && !questionId) {
+      const firstQuestion = allQuestions[0];
+      if (firstQuestion?.id) {
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.set("questionId", firstQuestion.id);
+        router.replace(
+          `${window.location.pathname}?${newSearchParams.toString()}`,
+        );
+      }
+    }
+  }, [allQuestions, questionId, searchParams, router]);
+
+  useEffect(() => {
+    if (!currentQuestion) return;
+
+    const questionId = currentQuestion.id || "";
+    const existingAnswer = mockExam.answers[questionId];
+    const cachedFeedback = feedbackCache[questionId];
+
+    if (existingAnswer && cachedFeedback) {
+      if (currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedAnswer(existingAnswer.answer as number);
+      } else if (currentQuestion.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedMultipleAnswers(new Set(existingAnswer.answers as number[]));
+      } else if (currentQuestion.type === "TRUE_FALSE") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setTrueFalseAnswer(existingAnswer.answer as boolean);
+      }
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFeedbackData(cachedFeedback);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowFeedback(true);
+    } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedAnswer(null);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelectedMultipleAnswers(new Set());
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTrueFalseAnswer(null);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFeedbackData(null);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowFeedback(false);
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+
+    setElapsedTime(0);
+  }, [questionId, currentQuestion, mockExam.answers, feedbackCache]);
 
   if (!currentQuestion || totalQuestions === 0) {
     return (
@@ -143,11 +215,17 @@ function ContentQuizPageInner({
       answers: newAnswers,
     });
 
-    setFeedbackData({
+    const feedback = {
       isCorrect: result.isCorrect,
       correctAnswer: result.correctAnswer,
       feedback: result.questionFeedback,
-    });
+    };
+
+    setFeedbackData(feedback);
+    setFeedbackCache((prev) => ({
+      ...prev,
+      [questionId]: feedback,
+    }));
     setShowFeedback(true);
 
     await queryClient.invalidateQueries({
@@ -160,15 +238,23 @@ function ContentQuizPageInner({
 
   const handleContinue = () => {
     setShowFeedback(false);
-    setSelectedAnswer(null);
-    setSelectedMultipleAnswers(new Set());
-    setTrueFalseAnswer(null);
 
-    // if (feedbackData && mockExam.currentQuestionIndex >= totalQuestions - 1) {
-    //   router.push(
-    //     `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
-    //   );
-    // }
+    const nextIndex = currentIndex + 1;
+
+    if (nextIndex >= totalQuestions) {
+      router.push(
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`,
+      );
+    } else {
+      const nextQuestion = allQuestions[nextIndex];
+      if (nextQuestion) {
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.set("questionId", nextQuestion.id || "");
+        router.push(
+          `${window.location.pathname}?${newSearchParams.toString()}`,
+        );
+      }
+    }
   };
 
   const handleQuit = () => {
@@ -176,10 +262,18 @@ function ContentQuizPageInner({
   };
 
   const handlePrevious = () => {
-    setSelectedAnswer(null);
-    setSelectedMultipleAnswers(new Set());
-    setTrueFalseAnswer(null);
-    setElapsedTime(0);
+    const prevIndex = currentIndex - 1;
+
+    if (prevIndex >= 0) {
+      const prevQuestion = allQuestions[prevIndex];
+      if (prevQuestion) {
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.set("questionId", prevQuestion.id || "");
+        router.push(
+          `${window.location.pathname}?${newSearchParams.toString()}`,
+        );
+      }
+    }
   };
 
   const canGoNext = () => {
@@ -267,7 +361,7 @@ function ContentQuizPageInner({
             <div className="flex items-center justify-between mt-12">
               <button
                 onClick={handlePrevious}
-                disabled={currentIndex === 0}
+                disabled={currentIndex <= 0}
                 className="flex items-center gap-2 px-6 py-3 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -323,11 +417,11 @@ function ContentQuizPageInner({
                     {Array.isArray(feedbackData.correctAnswer)
                       ? feedbackData.correctAnswer
                           .map((i: number) =>
-                            String.fromCharCode(65 + (i as number))
+                            String.fromCharCode(65 + (i as number)),
                           )
                           .join(", ")
                       : String.fromCharCode(
-                          65 + (feedbackData.correctAnswer as number)
+                          65 + (feedbackData.correctAnswer as number),
                         )}
                   </p>
                 </div>
@@ -376,12 +470,12 @@ export default function ContentQuizPage() {
   const router = useRouter();
   const { data: course } = useGetCourseQuery(params.courseId);
   const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
-    params.mockExamId
+    params.mockExamId,
   );
 
   const { data: examBank, isLoading: isExamBankLoading } = useGetExamBankQuery(
     mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || ""
+    mockExam?.examBankIds?.[0] || "",
   );
 
   const isLoading = mockExamLoading || isExamBankLoading;
