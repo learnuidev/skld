@@ -183,14 +183,26 @@ export default function ContentHistoryPage() {
     const histories = historiesData.userContentHistories;
     const now = Date.now();
 
-    const timeRanges = {
-      "24h": 24 * 60 * 60 * 1000,
-      weekly: 7 * 24 * 60 * 60 * 1000,
-      monthly: 30 * 24 * 60 * 60 * 1000,
-    };
+    let currentStart: number;
+    let currentEnd: number;
 
-    const range = timeRanges[timeFilter];
-    const currentStart = now - range;
+    if (timeFilter === "monthly") {
+      const currentDate = new Date(now);
+      const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      firstDay.setHours(0, 0, 0, 0);
+      lastDay.setHours(23, 59, 59, 999);
+      currentStart = firstDay.getTime();
+      currentEnd = lastDay.getTime();
+    } else {
+      const timeRanges = {
+        "24h": 24 * 60 * 60 * 1000,
+        weekly: 7 * 24 * 60 * 60 * 1000,
+      };
+      const range = timeRanges[timeFilter];
+      currentStart = now - range;
+      currentEnd = now;
+    }
 
     const processData = (startTime: number, endTime: number) => {
       const buckets: {
@@ -209,6 +221,15 @@ export default function ContentHistoryPage() {
         dayNames.forEach((day) => {
           buckets[day] = { count: 0, correct: 0, totalQuestions: 0 };
         });
+      } else if (timeFilter === "monthly") {
+        const startDate = new Date(startTime);
+        const endDate = new Date(endTime);
+        const daysInMonth = endDate.getDate();
+        const monthName = startDate.toLocaleDateString("en-US", { month: "short" });
+        
+        for (let day = 1; day <= daysInMonth; day++) {
+          buckets[`${monthName} ${day}`] = { count: 0, correct: 0, totalQuestions: 0 };
+        }
       } else {
         for (let time = startTime; time < endTime; time += bucketSize) {
           const date = new Date(time);
@@ -241,6 +262,11 @@ export default function ContentHistoryPage() {
           const dayIndex = date.getDay();
           const adjustedDayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
           key = dayNames[adjustedDayIndex + 1];
+        } else if (timeFilter === "monthly") {
+          key = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
         } else {
           key = date.toLocaleDateString("en-US", {
             month: "short",
@@ -272,6 +298,25 @@ export default function ContentHistoryPage() {
         }));
       }
 
+      if (timeFilter === "monthly") {
+        const startDate = new Date(startTime);
+        const monthName = startDate.toLocaleDateString("en-US", { month: "short" });
+        const daysInMonth = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
+        
+        const chartData = [];
+        for (let day = 1; day <= daysInMonth; day++) {
+          const label = `${monthName} ${day}`;
+          chartData.push({
+            label,
+            value: buckets[label]?.count || 0,
+            performance: buckets[label]?.totalQuestions > 0
+              ? (buckets[label].correct / buckets[label].totalQuestions) * 100
+              : 0,
+          });
+        }
+        return chartData;
+      }
+
       return Object.entries(buckets).map(([label, data]) => ({
         label,
         value: data.count,
@@ -282,7 +327,7 @@ export default function ContentHistoryPage() {
       }));
     };
 
-    return processData(currentStart, now);
+    return processData(currentStart, currentEnd);
   }, [historiesData, timeFilter]);
 
   if (isLoading) {
