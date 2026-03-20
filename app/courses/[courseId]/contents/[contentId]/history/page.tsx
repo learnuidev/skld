@@ -200,30 +200,32 @@ export default function ContentHistoryPage() {
           totalQuestions: number;
         };
       } = {};
-      const bucketSize =
-        timeFilter === "24h"
-          ? 60 * 60 * 1000
-          : timeFilter === "weekly"
-            ? 24 * 60 * 60 * 1000
-            : 24 * 60 * 60 * 1000;
 
-      for (let time = startTime; time < endTime; time += bucketSize) {
-        const date = new Date(time);
-        let key: string;
-        if (timeFilter === "24h") {
-          key = date.toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            hour12: false,
-          });
-        } else if (timeFilter === "weekly") {
-          key = date.toLocaleDateString("en-US", { weekday: "short" });
-        } else {
-          key = date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          });
+      if (timeFilter === "weekly") {
+        const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        dayNames.forEach((day) => {
+          buckets[day] = { count: 0, correct: 0, totalQuestions: 0 };
+        });
+      } else {
+        const bucketSize =
+          timeFilter === "24h" ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+
+        for (let time = startTime; time < endTime; time += bucketSize) {
+          const date = new Date(time);
+          let key: string;
+          if (timeFilter === "24h") {
+            key = date.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              hour12: false,
+            });
+          } else {
+            key = date.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            });
+          }
+          buckets[key] = { count: 0, correct: 0, totalQuestions: 0 };
         }
-        buckets[key] = { count: 0, correct: 0, totalQuestions: 0 };
       }
 
       const filteredHistories = histories.filter(
@@ -238,7 +240,10 @@ export default function ContentHistoryPage() {
             hour12: false,
           });
         } else if (timeFilter === "weekly") {
-          key = date.toLocaleDateString("en-US", { weekday: "short" });
+          const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+          const dayIndex = date.getDay();
+          const adjustedDayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+          key = dayNames[adjustedDayIndex + 1];
         } else {
           key = date.toLocaleDateString("en-US", {
             month: "short",
@@ -255,6 +260,20 @@ export default function ContentHistoryPage() {
           }
         }
       });
+
+      if (timeFilter === "weekly") {
+        const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        return dayNames.map((label) => ({
+          label,
+          value: buckets[label].count,
+          performance: parseInt(
+            (buckets[label].totalQuestions > 0
+              ? (buckets[label].correct / buckets[label].totalQuestions) * 100
+              : 0
+            ).toFixed(0)
+          ),
+        }));
+      }
 
       return Object.entries(buckets).map(([label, data]) => ({
         label,
