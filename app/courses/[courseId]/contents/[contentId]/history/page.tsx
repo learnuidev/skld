@@ -214,7 +214,7 @@ export default function ContentHistoryPage() {
           const date = new Date(time);
           let key: string;
           if (timeFilter === "24h") {
-            const hours = Math.floor((time - startTime) / bucketSize);
+            const hours = Math.floor((time - startTime) / bucketSize) + 1;
             key = `${hours.toString().padStart(2, "0")}h`;
           } else {
             key = date.toLocaleDateString("en-US", {
@@ -233,9 +233,8 @@ export default function ContentHistoryPage() {
         const date = new Date(history.createdAt);
         let key: string;
         if (timeFilter === "24h") {
-          const hours = Math.floor(
-            (history.createdAt - startTime) / bucketSize
-          );
+          const hours =
+            Math.floor((history.createdAt - startTime) / bucketSize) + 1;
           key = `${hours.toString().padStart(2, "0")}h`;
         } else if (timeFilter === "weekly") {
           const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
