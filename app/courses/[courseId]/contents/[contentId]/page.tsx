@@ -505,10 +505,12 @@ export default function ContentPage() {
               Generating mini exam
             </DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-muted-foreground">
+          <div className="py-4 text-muted-foreground flex">
+            <span>Please wait or grab a </span>
+            <span className="px-2">
               <CoffeeIcon />
-            </p>
+            </span>
+            <span>at the meantime</span>
           </div>
         </DialogContent>
       </Dialog>
