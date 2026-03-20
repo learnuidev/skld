@@ -226,10 +226,6 @@ function ContentQuizPageInner({
     }));
     setShowFeedback(true);
 
-    await queryClient.invalidateQueries({
-      queryKey: ["mockExam", params.mockExamId],
-    });
-
     setTotalTimeSpent(newTotalTimeSpent);
     setElapsedTime(0);
   };
@@ -318,7 +314,7 @@ function ContentQuizPageInner({
         </div>
 
         <>
-          <div className="mb-16">
+          <div className="mb-8">
             <p className="text-xl text-foreground leading-relaxed mb-16">
               {currentQuestion.question}
             </p>
@@ -359,7 +355,7 @@ function ContentQuizPageInner({
         </>
 
         {showFeedback && feedbackData && (
-          <div className="space-y-6 mt-12">
+          <div className="space-y-6">
             <div
               className={`p-6 rounded-lg border-2 ${
                 feedbackData.isCorrect
@@ -414,7 +410,7 @@ function ContentQuizPageInner({
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-50">
+      <div className="fixed bottom-4 left-0 right-0 z-50">
         <div className="max-w-3xl mx-auto px-4 py-3">
           {showFeedback && feedbackData ? (
             <div className="flex items-center justify-between gap-3">
