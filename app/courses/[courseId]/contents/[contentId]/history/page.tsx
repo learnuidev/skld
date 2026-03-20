@@ -188,8 +188,16 @@ export default function ContentHistoryPage() {
 
     if (timeFilter === "monthly") {
       const currentDate = new Date(now);
-      const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      const firstDay = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      const lastDay = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
       firstDay.setHours(0, 0, 0, 0);
       lastDay.setHours(23, 59, 59, 999);
       currentStart = firstDay.getTime();
@@ -225,10 +233,16 @@ export default function ContentHistoryPage() {
         const startDate = new Date(startTime);
         const endDate = new Date(endTime);
         const daysInMonth = endDate.getDate();
-        const monthName = startDate.toLocaleDateString("en-US", { month: "short" });
-        
+        const monthName = startDate.toLocaleDateString("en-US", {
+          month: "short",
+        });
+
         for (let day = 1; day <= daysInMonth; day++) {
-          buckets[`${monthName} ${day}`] = { count: 0, correct: 0, totalQuestions: 0 };
+          buckets[`${monthName} ${day}`] = {
+            count: 0,
+            correct: 0,
+            totalQuestions: 0,
+          };
         }
       } else {
         for (let time = startTime; time < endTime; time += bucketSize) {
@@ -300,18 +314,27 @@ export default function ContentHistoryPage() {
 
       if (timeFilter === "monthly") {
         const startDate = new Date(startTime);
-        const monthName = startDate.toLocaleDateString("en-US", { month: "short" });
-        const daysInMonth = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
-        
+        const monthName = startDate.toLocaleDateString("en-US", {
+          month: "short",
+        });
+        const daysInMonth = new Date(
+          startDate.getFullYear(),
+          startDate.getMonth() + 1,
+          0
+        ).getDate();
+
         const chartData = [];
         for (let day = 1; day <= daysInMonth; day++) {
           const label = `${monthName} ${day}`;
           chartData.push({
             label,
             value: buckets[label]?.count || 0,
-            performance: buckets[label]?.totalQuestions > 0
-              ? (buckets[label].correct / buckets[label].totalQuestions) * 100
-              : 0,
+            performance: parseInt(
+              (buckets[label]?.totalQuestions > 0
+                ? (buckets[label].correct / buckets[label].totalQuestions) * 100
+                : 0
+              ).toFixed(0)
+            ),
           });
         }
         return chartData;
@@ -320,15 +343,19 @@ export default function ContentHistoryPage() {
       return Object.entries(buckets).map(([label, data]) => ({
         label,
         value: data.count,
-        performance:
-          data.totalQuestions > 0
+        performance: parseInt(
+          (data.totalQuestions > 0
             ? (data.correct / data.totalQuestions) * 100
-            : 0,
+            : 0
+          ).toFixed(0)
+        ),
       }));
     };
 
     return processData(currentStart, currentEnd);
   }, [historiesData, timeFilter]);
+
+  console.log("chart data", chartData);
 
   if (isLoading) {
     return (
