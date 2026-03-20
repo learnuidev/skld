@@ -226,6 +226,10 @@ function ContentQuizPageInner({
     }));
     setShowFeedback(true);
 
+    await queryClient.invalidateQueries({
+      queryKey: ["mockExam", params.mockExamId],
+    });
+
     setTotalTimeSpent(newTotalTimeSpent);
     setElapsedTime(0);
   };
