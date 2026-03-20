@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { Course } from "@/modules/course/course.types";
 
@@ -115,63 +115,6 @@ function ContentQuizPageInner({
     }
   }, [allQuestions, questionId, searchParams, router]);
 
-  useEffect(() => {
-    if (!currentQuestion) return;
-
-    const questionId = currentQuestion.id || "";
-    const existingAnswer = mockExam.answers[questionId];
-    const cachedFeedback = feedbackCache[questionId];
-
-    if (existingAnswer && cachedFeedback) {
-      if (currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedAnswer(existingAnswer.answer as number);
-      } else if (currentQuestion.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedMultipleAnswers(new Set(existingAnswer.answers as number[]));
-      } else if (currentQuestion.type === "TRUE_FALSE") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setTrueFalseAnswer(existingAnswer.answer as boolean);
-      }
-
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFeedbackData(cachedFeedback);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowFeedback(true);
-    } else if (existingAnswer && !cachedFeedback && !feedbackData) {
-      if (currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedAnswer(existingAnswer.answer as number);
-      } else if (currentQuestion.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedMultipleAnswers(new Set(existingAnswer.answers as number[]));
-      } else if (currentQuestion.type === "TRUE_FALSE") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setTrueFalseAnswer(existingAnswer.answer as boolean);
-      }
-    } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedAnswer(null);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedMultipleAnswers(new Set());
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTrueFalseAnswer(null);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFeedbackData(null);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowFeedback(false);
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-
-    setElapsedTime(0);
-  }, [
-    questionId,
-    currentQuestion,
-    mockExam.answers,
-    feedbackCache,
-    feedbackData,
-  ]);
-
   if (!currentQuestion || totalQuestions === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -196,7 +139,45 @@ function ContentQuizPageInner({
     }
   };
 
-  const handleNext = async () => {
+  const restoreQuestionState = useCallback(() => {
+    const questionId = currentQuestion?.id || "";
+    const existingAnswer = mockExam.answers[questionId];
+    const cachedFeedback = feedbackCache[questionId];
+
+    if (!existingAnswer) {
+      setSelectedAnswer(null);
+      setSelectedMultipleAnswers(new Set());
+      setTrueFalseAnswer(null);
+      setFeedbackData(null);
+      setShowFeedback(false);
+      setElapsedTime(0);
+      return;
+    }
+
+    if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
+      setSelectedAnswer(existingAnswer.answer as number);
+    } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
+      setSelectedMultipleAnswers(new Set(existingAnswer.answers as number[]));
+    } else if (currentQuestion?.type === "TRUE_FALSE") {
+      setTrueFalseAnswer(existingAnswer.answer as boolean);
+    }
+
+    if (cachedFeedback) {
+      setFeedbackData(cachedFeedback);
+      setShowFeedback(true);
+    } else {
+      setFeedbackData(null);
+      setShowFeedback(false);
+    }
+
+    setElapsedTime(0);
+  }, [currentQuestion, mockExam.answers, feedbackCache]);
+
+  useEffect(() => {
+    restoreQuestionState();
+  }, [currentQuestion, restoreQuestionState]);
+
+  const checkAnswer = async () => {
     const newAnswers = { ...mockExam.answers };
     const questionId = currentQuestion.id || "";
 
@@ -265,8 +246,9 @@ function ContentQuizPageInner({
     } else {
       const nextQuestion = allQuestions[nextIndex];
       if (nextQuestion) {
+        const nextQuestionId = nextQuestion.id || "";
         const newSearchParams = new URLSearchParams(searchParams.toString());
-        newSearchParams.set("questionId", nextQuestion.id || "");
+        newSearchParams.set("questionId", nextQuestionId);
         router.push(
           `${window.location.pathname}?${newSearchParams.toString()}`
         );
@@ -284,8 +266,9 @@ function ContentQuizPageInner({
     if (prevIndex >= 0) {
       const prevQuestion = allQuestions[prevIndex];
       if (prevQuestion) {
+        const prevQuestionId = prevQuestion.id || "";
         const newSearchParams = new URLSearchParams(searchParams.toString());
-        newSearchParams.set("questionId", prevQuestion.id || "");
+        newSearchParams.set("questionId", prevQuestionId);
         router.push(
           `${window.location.pathname}?${newSearchParams.toString()}`
         );
@@ -306,7 +289,7 @@ function ContentQuizPageInner({
 
   return (
     <div className="min-h-screen bg-background flex flex-col max-w-3xl mx-auto">
-      <div className="mx-auto w-full py-12 flex-1">
+      <div className="mx-auto w-full py-12 flex-1 pb-32">
         <header className="mb-12">
           <div className="flex items-baseline gap-4 justify-between mb-4">
             <Link
@@ -373,32 +356,6 @@ function ContentQuizPageInner({
               })}
             </div>
           </div>
-
-          {showFeedback && feedbackData ? null : (
-            <div className="flex items-center justify-between mt-12">
-              <button
-                onClick={handlePrevious}
-                disabled={currentIndex <= 0}
-                className="flex items-center gap-2 px-6 py-3 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </button>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleNext}
-                  disabled={!canGoNext() || submitContentQuizMutation.isPending}
-                  className="flex items-center gap-2 px-8 py-3 bg-foreground text-background rounded-lg font-medium text-sm hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {submitContentQuizMutation.isPending
-                    ? "Checking..."
-                    : "Check"}
-                  <Check className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
         </>
 
         {showFeedback && feedbackData && (
@@ -453,8 +410,14 @@ function ContentQuizPageInner({
                 </div>
               )}
             </div>
+          </div>
+        )}
+      </div>
 
-            <div className="flex items-center justify-between gap-3 mt-8">
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="max-w-3xl mx-auto px-4 py-3">
+          {showFeedback && feedbackData ? (
+            <div className="flex items-center justify-between gap-3">
               <button
                 onClick={handleQuit}
                 className="flex items-center gap-2 px-6 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -471,8 +434,51 @@ function ContentQuizPageInner({
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center justify-between">
+              <button
+                onClick={handlePrevious}
+                disabled={currentIndex <= 0}
+                className="flex items-center gap-2 px-6 py-3 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    const existingAnswer =
+                      mockExam.answers[currentQuestion?.id];
+                    if (existingAnswer) {
+                      handleContinue();
+                    } else {
+                      checkAnswer();
+                    }
+                  }}
+                  disabled={!canGoNext() || submitContentQuizMutation.isPending}
+                  className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors ${
+                    mockExam.answers[currentQuestion?.id]
+                      ? "text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                      : "bg-foreground text-background rounded-lg hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  }`}
+                >
+                  {submitContentQuizMutation.isPending
+                    ? "Checking..."
+                    : mockExam.answers[currentQuestion?.id]
+                      ? "Next"
+                      : "Check"}
+                  {!mockExam.answers[currentQuestion?.id] && (
+                    <Check className="w-4 h-4" />
+                  )}
+                  {mockExam.answers[currentQuestion?.id] && (
+                    <ChevronRight className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
