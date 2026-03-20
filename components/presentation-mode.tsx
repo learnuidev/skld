@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Maximize2,
   Minimize2,
+  LayoutGrid,
 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,6 +36,7 @@ export function PresentationMode({
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [slideSteps, setSlideSteps] = useState<Record<number, number>>({});
+  const [showSlideNavigator, setShowSlideNavigator] = useState(false);
 
   const slides = useState<ParsedSlide[]>(() => {
     if (!isStructuredContent(content)) return [];
@@ -150,15 +152,29 @@ export function PresentationMode({
           handleNext();
           break;
         case "Escape":
-          onClose();
+          if (showSlideNavigator) {
+            setShowSlideNavigator(false);
+          } else {
+            onClose();
+          }
           break;
         case "f":
           e.preventDefault();
           handleFullscreenToggle();
           break;
+        case "n":
+          e.preventDefault();
+          setShowSlideNavigator((prev) => !prev);
+          break;
       }
     },
-    [handlePrevious, handleNext, onClose, handleFullscreenToggle]
+    [
+      handlePrevious,
+      handleNext,
+      onClose,
+      handleFullscreenToggle,
+      showSlideNavigator,
+    ],
   );
 
   useEffect(() => {
@@ -190,7 +206,7 @@ export function PresentationMode({
 
   const renderNode = (
     node: ContentNode,
-    maxItems?: number
+    maxItems?: number,
   ): React.ReactNode => {
     if (node.type === "paragraph") {
       const text = node.content?.map((c) => c.text).join("") || node.text || "";
@@ -266,7 +282,7 @@ export function PresentationMode({
 
   const renderContentWithSteps = (
     nodes: ContentNode[],
-    remainingSteps: number
+    remainingSteps: number,
   ) => {
     let stepsUsed = 0;
     const renderedNodes = [];
@@ -287,7 +303,7 @@ export function PresentationMode({
               transition={{ duration: 0.4 }}
             >
               {renderNode(node, node.content?.length)}
-            </motion.div>
+            </motion.div>,
           );
         } else {
           renderedNodes.push(
@@ -298,7 +314,7 @@ export function PresentationMode({
               transition={{ duration: 0.4 }}
             >
               {renderNode(node)}
-            </motion.div>
+            </motion.div>,
           );
         }
         stepsUsed += nodeSteps;
@@ -312,7 +328,7 @@ export function PresentationMode({
             transition={{ duration: 0.4 }}
           >
             {renderNode(node, partialItems)}
-          </motion.div>
+          </motion.div>,
         );
         stepsUsed = remainingSteps;
       }
@@ -364,6 +380,16 @@ export function PresentationMode({
               </div>
 
               <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowSlideNavigator(!showSlideNavigator)}
+                  className="w-10 h-10 rounded-full"
+                  title="Slide Navigator (N)"
+                >
+                  <LayoutGrid className="w-5 h-5 text-muted-foreground" />
+                </Button>
+
                 <Button
                   variant="ghost"
                   size="icon"
@@ -443,7 +469,7 @@ export function PresentationMode({
                                 typeof updatedAt === "string" ||
                                 updatedAt instanceof Date
                                   ? updatedAt
-                                  : Number(updatedAt)
+                                  : Number(updatedAt),
                               ).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
@@ -622,7 +648,7 @@ export function PresentationMode({
                           >
                             {renderContentWithSteps(
                               currentSlide.content,
-                              Math.max(0, currentStep - contentOffset)
+                              Math.max(0, currentStep - contentOffset),
                             )}
                           </motion.div>
                         )}
@@ -631,6 +657,141 @@ export function PresentationMode({
               </motion.div>
             </AnimatePresence>
           </main>
+
+          <AnimatePresence>
+            {showSlideNavigator && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 z-[200] bg-background/95 backdrop-blur-sm"
+                onClick={() => setShowSlideNavigator(false)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full max-w-5xl mx-auto px-12 py-16 flex flex-col"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+                      Slides
+                    </h2>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowSlideNavigator(false)}
+                      className="w-10 h-10 rounded-full"
+                    >
+                      <X className="w-5 h-5 text-muted-foreground" />
+                    </Button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <motion.button
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.05 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentIndex(-1);
+                          setShowSlideNavigator(false);
+                        }}
+                        className={`p-6 rounded-lg border text-left transition-all hover:border-primary/50 ${
+                          currentIndex === -1
+                            ? "border-primary bg-primary/5"
+                            : "border-border bg-background"
+                        }`}
+                      >
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                          Intro
+                        </div>
+                        <div className="text-lg font-semibold text-foreground truncate">
+                          {title}
+                        </div>
+                      </motion.button>
+
+                      {slides.map((slide, idx) => (
+                        <motion.button
+                          key={idx}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            duration: 0.3,
+                            delay: (idx + 1) * 0.03,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentIndex(idx);
+                            setShowSlideNavigator(false);
+                          }}
+                          className={`p-6 rounded-lg border text-left transition-all hover:border-primary/50 ${
+                            currentIndex === idx
+                              ? "border-primary bg-primary/5"
+                              : "border-border bg-background"
+                          }`}
+                        >
+                          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                            Slide {idx + 1}
+                          </div>
+                          <div className="text-lg font-semibold text-foreground truncate">
+                            {slide.heading || "Untitled"}
+                          </div>
+                          {slide.intro && (
+                            <div className="text-sm text-muted-foreground/70 mt-2 line-clamp-2">
+                              {slide.intro}
+                            </div>
+                          )}
+                        </motion.button>
+                      ))}
+
+                      <motion.button
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          duration: 0.3,
+                          delay: (slides.length + 1) * 0.03,
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentIndex(slides.length);
+                          setShowSlideNavigator(false);
+                        }}
+                        className={`p-6 rounded-lg border text-left transition-all hover:border-primary/50 ${
+                          currentIndex === slides.length
+                            ? "border-primary bg-primary/5"
+                            : "border-border bg-background"
+                        }`}
+                      >
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                          End
+                        </div>
+                        <div className="text-lg font-semibold text-foreground">
+                          Complete
+                        </div>
+                      </motion.button>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 text-center text-sm text-muted-foreground/60">
+                    Press{" "}
+                    <kbd className="px-2 py-1 bg-muted rounded text-foreground text-xs">
+                      N
+                    </kbd>{" "}
+                    or{" "}
+                    <kbd className="px-2 py-1 bg-muted rounded text-foreground text-xs">
+                      Esc
+                    </kbd>{" "}
+                    to close
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <footer className="flex items-center justify-between px-12 py-6">
             <Button
@@ -681,6 +842,10 @@ export function PresentationMode({
               ←
             </kbd>{" "}
             for previous,{" "}
+            <kbd className="px-1.5 py-0.5 bg-muted rounded text-foreground">
+              N
+            </kbd>{" "}
+            for navigator,{" "}
             <kbd className="px-1.5 py-0.5 bg-muted rounded text-foreground">
               Esc
             </kbd>{" "}
