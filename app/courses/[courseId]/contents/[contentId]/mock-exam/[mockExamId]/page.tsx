@@ -6,12 +6,20 @@ import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { useSubmitContentQuizMutation } from "@/modules/content-quiz/use-submit-content-quiz-mutation";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  Ban,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { Course } from "@/modules/course/course.types";
+import { Button } from "@/components/ui/button";
 
 function ContentQuizPageInner({
   mockExam,
@@ -33,6 +41,9 @@ function ContentQuizPageInner({
     Set<number>
   >(new Set());
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<boolean | null>(null);
+  const [eliminatedOptions, setEliminatedOptions] = useState<Set<number>>(
+    new Set()
+  );
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalTimeSpent, setTotalTimeSpent] = useState(0);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -95,14 +106,6 @@ function ContentQuizPageInner({
   }, []);
 
   useEffect(() => {
-    if (mockExam?.status === "completed" && !showFeedback) {
-      router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
-      );
-    }
-  }, [mockExam?.status, showFeedback]);
-
-  useEffect(() => {
     if (allQuestions.length > 0 && !questionId) {
       const firstQuestion = allQuestions[0];
       if (firstQuestion?.id) {
@@ -139,6 +142,17 @@ function ContentQuizPageInner({
     }
   };
 
+  const toggleEliminateOption = (e: React.MouseEvent, optionIndex: number) => {
+    e.stopPropagation();
+    const newEliminated = new Set(eliminatedOptions);
+    if (newEliminated.has(optionIndex)) {
+      newEliminated.delete(optionIndex);
+    } else {
+      newEliminated.add(optionIndex);
+    }
+    setEliminatedOptions(newEliminated);
+  };
+
   const restoreQuestionState = useCallback(() => {
     const questionId = currentQuestion?.id || "";
     const existingAnswer = mockExam.answers[questionId];
@@ -148,6 +162,7 @@ function ContentQuizPageInner({
       setSelectedAnswer(null);
       setSelectedMultipleAnswers(new Set());
       setTrueFalseAnswer(null);
+      setEliminatedOptions(new Set());
       setFeedbackData(null);
       setShowFeedback(false);
       setElapsedTime(0);
@@ -170,6 +185,7 @@ function ContentQuizPageInner({
       setShowFeedback(false);
     }
 
+    setEliminatedOptions(new Set());
     setElapsedTime(0);
   }, [currentQuestion, mockExam.answers, feedbackCache]);
 
@@ -238,6 +254,12 @@ function ContentQuizPageInner({
     setShowFeedback(false);
 
     const nextIndex = currentIndex + 1;
+
+    if (mockExam?.status === "completed") {
+      router.push(
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
+      );
+    }
 
     if (nextIndex >= totalQuestions) {
       router.push(
@@ -335,14 +357,18 @@ function ContentQuizPageInner({
                           (index === 1 && trueFalseAnswer === false)
                         : false;
 
+                const isEliminated = eliminatedOptions.has(index);
+
                 return (
                   <button
                     key={index}
-                    onClick={() => handleAnswerChange(index)}
-                    className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base ${
+                    onClick={() => !isEliminated && handleAnswerChange(index)}
+                    className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base relative ${
                       isSelected
                         ? "border-foreground bg-foreground text-background"
-                        : "border-border hover:border-foreground/20"
+                        : isEliminated
+                          ? "border-border/50 opacity-50 hover:border-border/50"
+                          : "border-border hover:border-foreground/20"
                     }`}
                   >
                     <span className="flex items-center gap-4">
@@ -350,6 +376,21 @@ function ContentQuizPageInner({
                         {String.fromCharCode(65 + index)}
                       </span>
                       <span>{option}</span>
+                      {
+                        <Button
+                          disabled={isSelected}
+                          onClick={(e) => toggleEliminateOption(e, index)}
+                          title={
+                            isEliminated
+                              ? "Un-eliminate option"
+                              : "Eliminate option"
+                          }
+                          className={`ml-auto w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 text-gray-400 `}
+                          variant="ghost"
+                        >
+                          {isSelected ? null : <Ban className="w-4 h-4" />}
+                        </Button>
+                      }
                     </span>
                   </button>
                 );
