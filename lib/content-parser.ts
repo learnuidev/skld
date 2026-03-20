@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface ContentNode {
   type: string;
   content?: ContentNode[];
@@ -53,6 +54,21 @@ export function parseContentToSlides(content: ContentNode[]): ParsedSlide[] {
         currentSlide.heading = extractText(node);
       }
     } else if (node.type === "bulletList") {
+      if (!currentSlide.heading && intro.length > 0) {
+        currentSlide.heading = "Introduction";
+        slides.push({
+          intro: intro.join("\n\n"),
+          heading: currentSlide.heading,
+          content: currentSlide.content,
+        });
+        intro = [];
+        currentSlide = {
+          heading: "Key Points",
+          content: [],
+        };
+      }
+      currentSlide.content.push(node);
+    } else if (node.type === "blockquote") {
       if (!currentSlide.heading && intro.length > 0) {
         currentSlide.heading = "Introduction";
         slides.push({

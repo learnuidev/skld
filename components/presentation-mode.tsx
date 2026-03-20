@@ -228,6 +228,22 @@ export function PresentationMode({
       );
     }
 
+    if (node.type === "blockquote") {
+      return (
+        <blockquote className="border-l-4 border-foreground/30 pl-6 my-8 italic text-foreground/70 text-xl">
+          {node.content?.map((child, idx) => {
+            if (child.type === "paragraph" && child.content) {
+              const text = child.content.map((c) => c.text).join("");
+              if (text.trim()) {
+                return <p key={idx}>{text}</p>;
+              }
+            }
+            return <div key={idx}>{renderNode(child)}</div>;
+          })}
+        </blockquote>
+      );
+    }
+
     return null;
   };
 
