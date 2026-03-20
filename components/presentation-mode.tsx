@@ -21,14 +21,18 @@ interface PresentationModeProps {
   content: any;
   title: string;
   onClose: () => void;
+  updatedAt?: string | Date | number;
+  estimatedReadTime?: number;
 }
 
 export function PresentationMode({
   content,
   title,
   onClose,
+  updatedAt,
+  estimatedReadTime,
 }: PresentationModeProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(-1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [slideSteps, setSlideSteps] = useState<Record<number, number>>({});
 
@@ -39,9 +43,9 @@ export function PresentationMode({
 
   const currentSlide = slides[currentIndex];
   const currentStep = slideSteps[currentIndex] || 0;
-  const hasIntro = !!currentSlide.intro;
-  const hasHeading = !!currentSlide.heading;
-  const hasContent = currentSlide.content && currentSlide.content.length > 0;
+  const hasIntro = !!currentSlide?.intro;
+  const hasHeading = !!currentSlide?.heading;
+  const hasContent = currentSlide?.content && currentSlide?.content?.length > 0;
   const isIntroOnly = hasIntro && !hasHeading && !hasContent;
   const isHeadingFirst = true;
 
@@ -96,6 +100,10 @@ export function PresentationMode({
   }, [isFullscreen, enterFullscreen, exitFullscreen]);
 
   const handlePrevious = useCallback(() => {
+    if (currentIndex === -1) {
+      return;
+    }
+
     const currentSlideStep = slideSteps[currentIndex] || 0;
     if (currentSlideStep > 0) {
       setSlideSteps((prev) => ({
@@ -103,11 +111,20 @@ export function PresentationMode({
         [currentIndex]: currentSlideStep - 1,
       }));
     } else {
-      setCurrentIndex((prev) => Math.max(0, prev - 1));
+      setCurrentIndex((prev) => Math.max(-1, prev - 1));
     }
   }, [currentIndex, slideSteps]);
 
   const handleNext = useCallback(() => {
+    if (currentIndex === -1) {
+      setCurrentIndex(0);
+      return;
+    }
+
+    if (currentIndex === slides.length) {
+      return;
+    }
+
     const currentSlideStep = slideSteps[currentIndex] || 0;
     if (currentSlideStep < totalSteps) {
       setSlideSteps((prev) => ({
@@ -115,7 +132,7 @@ export function PresentationMode({
         [currentIndex]: currentSlideStep + 1,
       }));
     } else {
-      setCurrentIndex((prev) => Math.min(slides.length - 1, prev + 1));
+      setCurrentIndex((prev) => Math.min(slides.length, prev + 1));
     }
   }, [slides.length, currentIndex, totalSteps, slideSteps]);
 
@@ -332,12 +349,18 @@ export function PresentationMode({
 
             <div className="flex items-center gap-3">
               <div className="text-sm text-muted-foreground">
-                {currentIndex + 1} / {slides.length}
-                {totalSteps > 0 && (
-                  <span className="ml-2">
-                    ({currentStep}/{totalSteps})
-                  </span>
-                )}
+                {currentIndex === -1
+                  ? "Intro"
+                  : currentIndex === slides.length
+                    ? "End"
+                    : `${currentIndex + 1} / ${slides.length}`}
+                {currentIndex >= 0 &&
+                  currentIndex < slides.length &&
+                  totalSteps > 0 && (
+                    <span className="ml-2">
+                      ({currentStep}/{totalSteps})
+                    </span>
+                  )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -376,80 +399,235 @@ export function PresentationMode({
                 transition={{ duration: 0.4, ease: "easeInOut" }}
                 className="h-full overflow-y-auto px-16 py-16"
               >
-                {currentSlide && (
+                {currentIndex === -1 && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
-                    className={`max-w-4xl mx-auto`}
+                    className="max-w-3xl mx-auto flex flex-col  h-full text-center space-y-12"
                   >
-                    {hasHeading &&
-                      currentStep >=
-                        (isHeadingFirst ? 1 : hasIntro ? 2 : 1) && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5 }}
-                          className="mb-16"
-                        >
-                          <h1 className="text-4xl font-semibold text-foreground tracking-tight leading-[1.1]">
-                            {currentSlide.heading}
-                          </h1>
-                        </motion.div>
-                      )}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                      className="space-y-4"
+                    >
+                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-8">
+                        Presentation
+                      </div>
+                      <h1 className="text-6xl font-semibold text-foreground tracking-tight leading-[1.1]">
+                        {title}
+                      </h1>
+                    </motion.div>
 
-                    {hasIntro &&
-                      (isIntroOnly ? (
-                        <div className="space-y-6">
-                          {(currentSlide.intro || "")
-                            .split(/\n\n+/)
-                            .filter((p) => p.trim())
-                            .slice(0, currentStep)
-                            .map((paragraph, idx, ctx) => {
-                              return (
-                                <motion.p
-                                  key={idx}
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ duration: 0.4 }}
-                                  className="text-xl leading-relaxed text-foreground/70 font-light"
-                                >
-                                  {paragraph}
-                                </motion.p>
-                              );
-                            })}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                      className="space-y-6 text-muted-foreground"
+                    >
+                      <div className="flex items-center justify-center gap-8 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-foreground/40" />
+                          <span>
+                            {slides.length} slide
+                            {slides.length !== 1 ? "s" : ""}
+                          </span>
                         </div>
-                      ) : (
-                        currentStep >= (isHeadingFirst ? 2 : 1) && (
+                        {updatedAt && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-foreground/40" />
+                            <span>
+                              Updated{" "}
+                              {new Date(
+                                typeof updatedAt === "string" ||
+                                updatedAt instanceof Date
+                                  ? updatedAt
+                                  : Number(updatedAt)
+                              ).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </div>
+                        )}
+                        {estimatedReadTime && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-foreground/40" />
+                            <span>
+                              {estimatedReadTime < 60
+                                ? `${estimatedReadTime} sec`
+                                : estimatedReadTime < 3600
+                                  ? `${Math.floor(estimatedReadTime / 60)} min`
+                                  : `${Math.floor(estimatedReadTime / 3600)} hr`}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 0.6 }}
+                      className="text-sm text-muted-foreground/60"
+                    >
+                      Press{" "}
+                      <kbd className="px-2 py-1 bg-muted rounded text-foreground text-xs">
+                        →
+                      </kbd>{" "}
+                      or{" "}
+                      <kbd className="px-2 py-1 bg-muted rounded text-foreground text-xs">
+                        Space
+                      </kbd>{" "}
+                      to begin
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                {currentIndex === slides.length && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="max-w-3xl mx-auto flex flex-col h-full text-center space-y-16"
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                      className="space-y-6"
+                    >
+                      <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <svg
+                          className="w-10 h-10 text-primary"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                      <h2 className="text-5xl font-semibold text-foreground tracking-tight leading-[1.1]">
+                        Presentation Complete
+                      </h2>
+                    </motion.div>
+
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                      className="text-xl text-muted-foreground/70 max-w-md mx-auto text-center"
+                    >
+                      You've reached the end of this presentation
+                    </motion.p>
+
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 0.6 }}
+                      className="flex flex-row justify-center items-center gap-3 w-full mx-auto"
+                    >
+                      <Button
+                        variant={"outline"}
+                        onClick={() => setCurrentIndex(0)}
+                        className="rounded-full text-base font-medium"
+                      >
+                        Restart
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={onClose}
+                        className="rounded-full text-base font-medium"
+                      >
+                        Exit
+                      </Button>
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                {currentIndex >= 0 &&
+                  currentIndex < slides.length &&
+                  currentSlide && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.1 }}
+                      className={`max-w-4xl mx-auto`}
+                    >
+                      {hasHeading &&
+                        currentStep >=
+                          (isHeadingFirst ? 1 : hasIntro ? 2 : 1) && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="mb-16"
+                          >
+                            <h1 className="text-4xl font-semibold text-foreground tracking-tight leading-[1.1]">
+                              {currentSlide.heading}
+                            </h1>
+                          </motion.div>
+                        )}
+
+                      {hasIntro &&
+                        (isIntroOnly ? (
+                          <div className="space-y-6">
+                            {(currentSlide.intro || "")
+                              .split(/\n\n+/)
+                              .filter((p) => p.trim())
+                              .slice(0, currentStep)
+                              .map((paragraph, idx, ctx) => {
+                                return (
+                                  <motion.p
+                                    key={idx}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.4 }}
+                                    className="text-xl leading-relaxed text-foreground/70 font-light"
+                                  >
+                                    {paragraph}
+                                  </motion.p>
+                                );
+                              })}
+                          </div>
+                        ) : (
+                          currentStep >= (isHeadingFirst ? 2 : 1) && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.5 }}
+                              className="mb-16"
+                            >
+                              <p className="text-xl leading-relaxed text-foreground/70 font-light">
+                                {currentSlide.intro}
+                              </p>
+                            </motion.div>
+                          )
+                        ))}
+
+                      {currentSlide.content &&
+                        currentSlide.content.length > 0 && (
                           <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.5 }}
-                            className="mb-16"
+                            className="space-y-8"
                           >
-                            <p className="text-xl leading-relaxed text-foreground/70 font-light">
-                              {currentSlide.intro}
-                            </p>
+                            {renderContentWithSteps(
+                              currentSlide.content,
+                              Math.max(0, currentStep - contentOffset)
+                            )}
                           </motion.div>
-                        )
-                      ))}
-
-                    {currentSlide.content &&
-                      currentSlide.content.length > 0 && (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.5 }}
-                          className="space-y-8"
-                        >
-                          {renderContentWithSteps(
-                            currentSlide.content,
-                            Math.max(0, currentStep - contentOffset)
-                          )}
-                        </motion.div>
-                      )}
-                  </motion.div>
-                )}
+                        )}
+                    </motion.div>
+                  )}
               </motion.div>
             </AnimatePresence>
           </main>
@@ -459,7 +637,7 @@ export function PresentationMode({
               variant="ghost"
               size="icon"
               onClick={handlePrevious}
-              disabled={currentIndex === 0 && currentStep === 0}
+              disabled={currentIndex === -1}
               className="w-12 h-12 rounded-full"
             >
               <ChevronLeft className="w-6 h-6" />
@@ -470,7 +648,7 @@ export function PresentationMode({
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{
-                    width: `${((currentIndex + 1) / slides.length) * 100}%`,
+                    width: `${Math.min(1, Math.max(0, (currentIndex + 1) / (slides.length + 2))) * 100}%`,
                   }}
                   transition={{ duration: 0.3 }}
                   className="h-full bg-foreground/60 rounded-full"
@@ -482,9 +660,7 @@ export function PresentationMode({
               variant="ghost"
               size="icon"
               onClick={handleNext}
-              disabled={
-                currentIndex === slides.length - 1 && currentStep >= totalSteps
-              }
+              disabled={currentIndex === slides.length}
               className="w-12 h-12 rounded-full"
             >
               <ChevronRight className="w-6 h-6" />

@@ -45,16 +45,16 @@ export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const router = useRouter();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId
+    params.courseId,
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
   const { data: contents } = useListCourseContentsQuery(params.courseId);
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const { data: knowledgeGraph, isLoading: kgLoading } =
@@ -64,7 +64,7 @@ export default function ContentPage() {
 
   const { data: userContentStats } = useGetUserContentStatsQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const createContentQuizMutation = useCreateContentQuizMutation();
@@ -74,7 +74,7 @@ export default function ContentPage() {
   const ongoingContentQuiz = mockExams?.find(
     (exam) =>
       exam.status === "in_progress" &&
-      exam.selectedContentIds?.includes(params.contentId)
+      exam.selectedContentIds?.includes(params.contentId),
   );
 
   const [isEditing, setIsEditing] = useState(false);
@@ -208,7 +208,7 @@ export default function ContentPage() {
         contentId: params.contentId,
       });
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`,
       );
     } catch (error) {
       console.error("Failed to start quiz:", error);
@@ -237,7 +237,7 @@ export default function ContentPage() {
     <div
       className={cn(
         "min-h-screen bg-background",
-        ongoingContentQuiz ? "mt-24" : "mt-8"
+        ongoingContentQuiz ? "mt-24" : "mt-8",
       )}
     >
       {ongoingContentQuiz && (
@@ -362,7 +362,7 @@ export default function ContentPage() {
                       chapters.length > 0 &&
                       (() => {
                         const chapter = chapters.find(
-                          (ch) => ch.id === content.chapterId
+                          (ch) => ch.id === content.chapterId,
                         );
                         return chapter ? (
                           <div className="text-xs font-medium text-gray-500 mb-2">
@@ -480,6 +480,8 @@ export default function ContentPage() {
           content={content.content}
           title={content.title}
           onClose={() => setShowPresentation(false)}
+          updatedAt={content.updatedAt}
+          estimatedReadTime={estimatedReadTime}
         />
       )}
     </div>
