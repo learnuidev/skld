@@ -138,6 +138,17 @@ function ContentQuizPageInner({
       setFeedbackData(cachedFeedback);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowFeedback(true);
+    } else if (existingAnswer && !cachedFeedback && !feedbackData) {
+      if (currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedAnswer(existingAnswer.answer as number);
+      } else if (currentQuestion.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedMultipleAnswers(new Set(existingAnswer.answers as number[]));
+      } else if (currentQuestion.type === "TRUE_FALSE") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setTrueFalseAnswer(existingAnswer.answer as boolean);
+      }
     } else {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedAnswer(null);
@@ -153,7 +164,13 @@ function ContentQuizPageInner({
     // eslint-disable-next-line react-hooks/set-state-in-effect
 
     setElapsedTime(0);
-  }, [questionId, currentQuestion, mockExam.answers, feedbackCache]);
+  }, [
+    questionId,
+    currentQuestion,
+    mockExam.answers,
+    feedbackCache,
+    feedbackData,
+  ]);
 
   if (!currentQuestion || totalQuestions === 0) {
     return (
