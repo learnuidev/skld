@@ -28,14 +28,14 @@ const getNodeRadius = (nodeId: string, graphData: GraphData): number => {
 export function useKnowledgeGraph(
   graphData: GraphData,
   isDark = true,
-  selectedGroup: string | null = null
+  selectedGroup: string | null = null,
 ) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [isClient, setIsClient] = useState(false);
   const [activeNode, setActiveNode] = useState<Node | null>(null);
   const [selectedLink, setSelectedLink] = useState<Link | null>(null);
   const [localSelectedGroup, setLocalSelectedGroup] = useState<string | null>(
-    null
+    null,
   );
 
   const [, startTransition] = useTransition();
@@ -96,7 +96,7 @@ export function useKnowledgeGraph(
         setSelectedLink(null);
       });
     },
-    [localSelectedGroup]
+    [localSelectedGroup],
   );
 
   const handleBackgroundClick = useCallback(() => {
@@ -143,13 +143,13 @@ export function useKnowledgeGraph(
         d3
           .forceLink<D3Node, D3Link>(graphData.links as D3Link[])
           .id((d) => d.id)
-          .distance((d) => 200 + (d.value || 0) * 20)
+          .distance((d) => 200 + (d.value || 0) * 20),
       )
       .force("charge", d3.forceManyBody().strength(-500))
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force(
         "collision",
-        d3.forceCollide<D3Node>().radius((d) => getNodeRadius(d.id, graphData))
+        d3.forceCollide<D3Node>().radius((d) => getNodeRadius(d.id, graphData)),
       )
       .force("x", d3.forceX(width / 2).strength(0.05))
       .force("y", d3.forceY(height / 2).strength(0.05));
@@ -204,7 +204,7 @@ export function useKnowledgeGraph(
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
-          })
+          }),
       )
       .on("click", (event, d) => {
         event.stopPropagation();
@@ -260,10 +260,15 @@ export function useKnowledgeGraph(
       const groupNodeIds = new Set(
         graphData.nodes
           .filter((node) => node.group === deferredSelectedGroup)
-          .map((node) => node.id)
+          .map((node) => node.id),
       );
 
       g.selectAll<SVGCircleElement, D3Node>("circle")
+        .transition()
+        .duration(500)
+        .attr("opacity", (d) => (groupNodeIds.has(d.id) ? 1 : 0.15));
+
+      g.selectAll<SVGTextElement, D3Node>("text")
         .transition()
         .duration(500)
         .attr("opacity", (d) => (groupNodeIds.has(d.id) ? 1 : 0.15));
@@ -296,6 +301,11 @@ export function useKnowledgeGraph(
         .duration(500)
         .attr("opacity", (d) => (connectedNodeIds.has(d.id) ? 1 : 0.15));
 
+      g.selectAll<SVGTextElement, D3Node>("text")
+        .transition()
+        .duration(500)
+        .attr("opacity", (d) => (connectedNodeIds.has(d.id) ? 1 : 0.15));
+
       g.selectAll<SVGLineElement, D3Link>("line")
         .transition()
         .duration(500)
@@ -311,6 +321,10 @@ export function useKnowledgeGraph(
         });
     } else {
       g.selectAll<SVGCircleElement, D3Node>("circle")
+        .transition()
+        .duration(500)
+        .attr("opacity", 1);
+      g.selectAll<SVGTextElement, D3Node>("text")
         .transition()
         .duration(500)
         .attr("opacity", 1);

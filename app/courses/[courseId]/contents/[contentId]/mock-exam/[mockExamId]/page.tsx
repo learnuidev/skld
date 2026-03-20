@@ -52,7 +52,7 @@ function ContentQuizPageInner({
 
   const { data: examBank } = useGetExamBankQuery(
     mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || "",
+    mockExam?.examBankIds?.[0] || ""
   );
 
   const selectedContentId = mockExam?.selectedContentIds?.[0];
@@ -97,7 +97,7 @@ function ContentQuizPageInner({
   useEffect(() => {
     if (mockExam?.status === "completed" && !showFeedback) {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`,
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
       );
     }
   }, [mockExam?.status, showFeedback]);
@@ -109,7 +109,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", firstQuestion.id);
         router.replace(
-          `${window.location.pathname}?${newSearchParams.toString()}`,
+          `${window.location.pathname}?${newSearchParams.toString()}`
         );
       }
     }
@@ -243,7 +243,7 @@ function ContentQuizPageInner({
 
     if (nextIndex >= totalQuestions) {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`,
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
       );
     } else {
       const nextQuestion = allQuestions[nextIndex];
@@ -251,7 +251,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", nextQuestion.id || "");
         router.push(
-          `${window.location.pathname}?${newSearchParams.toString()}`,
+          `${window.location.pathname}?${newSearchParams.toString()}`
         );
       }
     }
@@ -270,7 +270,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", prevQuestion.id || "");
         router.push(
-          `${window.location.pathname}?${newSearchParams.toString()}`,
+          `${window.location.pathname}?${newSearchParams.toString()}`
         );
       }
     }
@@ -417,11 +417,11 @@ function ContentQuizPageInner({
                     {Array.isArray(feedbackData.correctAnswer)
                       ? feedbackData.correctAnswer
                           .map((i: number) =>
-                            String.fromCharCode(65 + (i as number)),
+                            String.fromCharCode(65 + (i as number))
                           )
                           .join(", ")
                       : String.fromCharCode(
-                          65 + (feedbackData.correctAnswer as number),
+                          65 + (feedbackData.correctAnswer as number)
                         )}
                   </p>
                 </div>
@@ -470,12 +470,12 @@ export default function ContentQuizPage() {
   const router = useRouter();
   const { data: course } = useGetCourseQuery(params.courseId);
   const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
-    params.mockExamId,
+    params.mockExamId
   );
 
   const { data: examBank, isLoading: isExamBankLoading } = useGetExamBankQuery(
     mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || "",
+    mockExam?.examBankIds?.[0] || ""
   );
 
   const isLoading = mockExamLoading || isExamBankLoading;
