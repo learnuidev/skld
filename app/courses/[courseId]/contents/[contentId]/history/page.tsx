@@ -418,11 +418,6 @@ export default function ContentHistoryPage() {
                     data={chartData}
                     margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                   >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="currentColor"
-                      opacity={0.1}
-                    />
                     <XAxis
                       dataKey="label"
                       stroke="currentColor"
@@ -471,7 +466,7 @@ export default function ContentHistoryPage() {
                       dataKey="value"
                       stroke="#6A7A8E"
                       strokeWidth={3}
-                      activeDot={{ r: 6 }}
+                      dot={false}
                       name="Activity"
                     />
                     <Line
@@ -480,7 +475,7 @@ export default function ContentHistoryPage() {
                       dataKey="performance"
                       stroke="#C97C5D"
                       strokeWidth={2}
-                      activeDot={{ r: 5 }}
+                      dot={false}
                       name="Performance %"
                     />
                   </LineChart>
