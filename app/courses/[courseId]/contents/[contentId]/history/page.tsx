@@ -429,24 +429,12 @@ export default function ContentHistoryPage() {
   }, [historiesData]);
 
   const mockExamChartData = useMemo(() => {
-    return mockExamsData
-      .map((exam) => ({
-        date: new Date(exam.date).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
-        grade: Math.round(exam.avgAccuracy),
-        examId: exam.examId,
-      }))
-      .sort((a, b) => {
-        const dateA = new Date(
-          mockExamsData.find((e) => e.examId === a.examId)?.date || 0
-        );
-        const dateB = new Date(
-          mockExamsData.find((e) => e.examId === b.examId)?.date || 0
-        );
-        return dateA.getTime() - dateB.getTime();
-      });
+    const sortedByDate = [...mockExamsData].sort((a, b) => a.date - b.date);
+    return sortedByDate.map((exam, index) => ({
+      attempt: `Attempt #${index + 1}`,
+      grade: Math.round(exam.avgAccuracy),
+      examId: exam.examId,
+    }));
   }, [mockExamsData]);
 
   if (isLoading) {
@@ -892,7 +880,7 @@ export default function ContentHistoryPage() {
                             opacity={0.05}
                           />
                           <XAxis
-                            dataKey="date"
+                            dataKey="attempt"
                             stroke="currentColor"
                             opacity={0.5}
                             fontSize={12}
