@@ -174,7 +174,7 @@ export function PresentationMode({
       onClose,
       handleFullscreenToggle,
       showSlideNavigator,
-    ],
+    ]
   );
 
   useEffect(() => {
@@ -206,7 +206,7 @@ export function PresentationMode({
 
   const renderNode = (
     node: ContentNode,
-    maxItems?: number,
+    maxItems?: number
   ): React.ReactNode => {
     if (node.type === "paragraph") {
       const text = node.content?.map((c) => c.text).join("") || node.text || "";
@@ -282,7 +282,7 @@ export function PresentationMode({
 
   const renderContentWithSteps = (
     nodes: ContentNode[],
-    remainingSteps: number,
+    remainingSteps: number
   ) => {
     let stepsUsed = 0;
     const renderedNodes = [];
@@ -303,7 +303,7 @@ export function PresentationMode({
               transition={{ duration: 0.4 }}
             >
               {renderNode(node, node.content?.length)}
-            </motion.div>,
+            </motion.div>
           );
         } else {
           renderedNodes.push(
@@ -314,7 +314,7 @@ export function PresentationMode({
               transition={{ duration: 0.4 }}
             >
               {renderNode(node)}
-            </motion.div>,
+            </motion.div>
           );
         }
         stepsUsed += nodeSteps;
@@ -328,7 +328,7 @@ export function PresentationMode({
             transition={{ duration: 0.4 }}
           >
             {renderNode(node, partialItems)}
-          </motion.div>,
+          </motion.div>
         );
         stepsUsed = remainingSteps;
       }
@@ -469,7 +469,7 @@ export function PresentationMode({
                                 typeof updatedAt === "string" ||
                                 updatedAt instanceof Date
                                   ? updatedAt
-                                  : Number(updatedAt),
+                                  : Number(updatedAt)
                               ).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
@@ -648,7 +648,7 @@ export function PresentationMode({
                           >
                             {renderContentWithSteps(
                               currentSlide.content,
-                              Math.max(0, currentStep - contentOffset),
+                              Math.max(0, currentStep - contentOffset)
                             )}
                           </motion.div>
                         )}
@@ -777,7 +777,7 @@ export function PresentationMode({
                     </div>
                   </div>
 
-                  <div className="mt-8 text-center text-sm text-muted-foreground/60">
+                  <div className="mt-8 text-center text-sm text-muted-foreground/80">
                     Press{" "}
                     <kbd className="px-2 py-1 bg-muted rounded text-foreground text-xs">
                       N
@@ -828,7 +828,7 @@ export function PresentationMode({
             </Button>
           </footer>
 
-          <div className="fixed bottom-16 opacity-30 left-1/2 -translate-x-1/2 text-xs text-muted-foreground/60">
+          <div className="fixed bottom-16 left-1/2 -translate-x-1/2 text-xs text-muted-foreground/60 bg-gray-50 dark:bg-black p-2">
             Press{" "}
             <kbd className="px-1.5 py-0.5 bg-muted rounded text-foreground">
               →
