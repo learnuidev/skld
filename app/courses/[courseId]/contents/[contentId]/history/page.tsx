@@ -14,6 +14,7 @@ import {
   Filter,
   BarChart3,
   TrendingUp,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -35,8 +36,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Bar,
-  BarChart,
 } from "recharts";
 
 type FilterType = "all" | "content" | "quiz";
@@ -355,7 +354,100 @@ export default function ContentHistoryPage() {
     return processData(currentStart, currentEnd);
   }, [historiesData, timeFilter]);
 
-  console.log("chart data", chartData);
+  const mockExamsData = useMemo(() => {
+    if (
+      !historiesData?.userContentHistories ||
+      historiesData.userContentHistories.length === 0
+    ) {
+      return [];
+    }
+
+    const quizHistories = historiesData.userContentHistories.filter(
+      (h) => h.quizData?.mockExamId
+    );
+
+    const examMap = new Map<
+      string,
+      {
+        examId: string;
+        date: number;
+        attempts: Array<{
+          accuracy: number;
+          correct: number;
+          incorrect: number;
+          total: number;
+          timeSpent: number;
+          submittedAt: number;
+        }>;
+      }
+    >();
+
+    quizHistories.forEach((history) => {
+      const examId = history.quizData?.mockExamId;
+      if (!examId) return;
+
+      if (!examMap.has(examId)) {
+        examMap.set(examId, {
+          examId,
+          date: history.quizData?.submittedAt || history.createdAt,
+          attempts: [],
+        });
+      }
+
+      const exam = examMap.get(examId);
+      if (exam && history.quizData) {
+        exam.attempts.push({
+          accuracy: history.quizData.overallAccuracy,
+          correct: history.quizData.totalCorrect,
+          incorrect: history.quizData.totalIncorrect,
+          total: history.quizData.totalQuestions,
+          timeSpent: history.quizData.timeSpent,
+          submittedAt: history.quizData.submittedAt,
+        });
+      }
+    });
+
+    const exams = Array.from(examMap.values()).sort((a, b) => b.date - a.date);
+
+    return exams.map((exam) => {
+      const avgAccuracy =
+        exam.attempts.reduce((sum, a) => sum + a.accuracy, 0) /
+        exam.attempts.length;
+      const avgTimeSpent =
+        exam.attempts.reduce((sum, a) => sum + a.timeSpent, 0) /
+        exam.attempts.length;
+
+      return {
+        examId: exam.examId,
+        date: exam.date,
+        avgAccuracy,
+        avgTimeSpent,
+        attempts: exam.attempts.length,
+        details: exam.attempts,
+      };
+    });
+  }, [historiesData]);
+
+  const mockExamChartData = useMemo(() => {
+    return mockExamsData
+      .map((exam) => ({
+        date: new Date(exam.date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+        grade: Math.round(exam.avgAccuracy),
+        examId: exam.examId,
+      }))
+      .sort((a, b) => {
+        const dateA = new Date(
+          mockExamsData.find((e) => e.examId === a.examId)?.date || 0
+        );
+        const dateB = new Date(
+          mockExamsData.find((e) => e.examId === b.examId)?.date || 0
+        );
+        return dateA.getTime() - dateB.getTime();
+      });
+  }, [mockExamsData]);
 
   if (isLoading) {
     return (
@@ -443,6 +535,10 @@ export default function ContentHistoryPage() {
             <TabsTrigger value="timeline" className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Content Timeline
+            </TabsTrigger>
+            <TabsTrigger value="mock-exams" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Mock Exams
             </TabsTrigger>
           </TabsList>
 
@@ -756,6 +852,174 @@ export default function ContentHistoryPage() {
                     ? "entry"
                     : "entries"}
                 </div>
+              )}
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="mock-exams" className="mt-0">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-12"
+            >
+              {mockExamsData.length === 0 ? (
+                <div className="text-center py-32">
+                  <FileText className="w-16 h-16 text-muted-foreground/20 mx-auto mb-6" />
+                  <p className="text-muted-foreground">
+                    No mock exams taken yet
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <div className="flex items-center gap-2 mb-8">
+                      <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        Performance Overview
+                      </span>
+                    </div>
+
+                    <div className="border border-border rounded-xl p-8 bg-background/50 backdrop-blur-sm">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart
+                          data={mockExamChartData}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="currentColor"
+                            opacity={0.05}
+                          />
+                          <XAxis
+                            dataKey="date"
+                            stroke="currentColor"
+                            opacity={0.5}
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                          />
+                          <YAxis
+                            stroke="currentColor"
+                            opacity={0.5}
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            domain={[0, 100]}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "hsl(var(--background))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
+                              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                              padding: "12px",
+                            }}
+                            formatter={(value) => [
+                              `${value}%`,
+                              "Average Grade",
+                            ]}
+                          />
+                          <Line
+                            type="monotone"
+                            dot={false}
+                            dataKey="grade"
+                            stroke="#C97C5D"
+                            strokeWidth={3}
+                            activeDot={{ fill: "#C97C5D", r: 8 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-8">
+                      <FileText className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        Detailed Results
+                      </span>
+                    </div>
+
+                    <div className="border border-border rounded-xl overflow-hidden bg-background/50 backdrop-blur-sm">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-border/50">
+                            <th className="text-left text-xs text-muted-foreground uppercase tracking-wider px-8 py-5 font-medium">
+                              Exam ID
+                            </th>
+                            <th className="text-left text-xs text-muted-foreground uppercase tracking-wider px-8 py-5 font-medium">
+                              Date
+                            </th>
+                            <th className="text-center text-xs text-muted-foreground uppercase tracking-wider px-8 py-5 font-medium">
+                              Average Grade
+                            </th>
+                            <th className="text-center text-xs text-muted-foreground uppercase tracking-wider px-8 py-5 font-medium">
+                              Attempts
+                            </th>
+                            <th className="text-right text-xs text-muted-foreground uppercase tracking-wider px-8 py-5 font-medium">
+                              Avg Time
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {mockExamsData.map((exam, index) => (
+                            <motion.tr
+                              key={exam.examId}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{
+                                duration: 0.3,
+                                delay: index * 0.05,
+                              }}
+                              className="border-b border-border/30 last:border-0 hover:bg-foreground/5 transition-colors"
+                            >
+                              <td className="px-8 py-6">
+                                <span className="text-sm text-foreground font-medium">
+                                  {exam.examId.split("_").pop() || exam.examId}
+                                </span>
+                              </td>
+                              <td className="px-8 py-6">
+                                <span className="text-sm text-muted-foreground">
+                                  {formatDate(exam.date)}
+                                </span>
+                              </td>
+                              <td className="px-8 py-6 text-center">
+                                <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium bg-foreground/10 text-foreground">
+                                  {Math.round(exam.avgAccuracy)}%
+                                </span>
+                              </td>
+                              <td className="px-8 py-6 text-center">
+                                <span className="text-sm text-muted-foreground">
+                                  {exam.attempts}
+                                </span>
+                              </td>
+                              <td className="px-8 py-6 text-right">
+                                <span className="text-sm text-muted-foreground">
+                                  {formatDuration(
+                                    Math.round(exam.avgTimeSpent)
+                                  )}
+                                </span>
+                              </td>
+                            </motion.tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {mockExamsData.length > 0 && (
+                      <div className="mt-8 text-center text-xs text-muted-foreground">
+                        Showing {mockExamsData.length}{" "}
+                        {mockExamsData.length === 1
+                          ? "mock exam"
+                          : "mock exams"}
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </motion.div>
           </TabsContent>
