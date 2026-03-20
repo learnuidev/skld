@@ -35,6 +35,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Bar,
+  BarChart,
 } from "recharts";
 
 type FilterType = "all" | "content" | "quiz";
@@ -171,63 +173,100 @@ export default function ContentHistoryPage() {
   }, [historiesData, filter, sort]);
 
   const chartData = useMemo(() => {
-    if (!historiesData?.userContentHistories || historiesData.userContentHistories.length === 0) {
-      return { current: [], previous: [] };
+    if (
+      !historiesData?.userContentHistories ||
+      historiesData.userContentHistories.length === 0
+    ) {
+      return [];
     }
 
     const histories = historiesData.userContentHistories;
     const now = Date.now();
 
     const timeRanges = {
-      "24h": { current: 24 * 60 * 60 * 1000, previous: 24 * 60 * 60 * 1000 },
-      weekly: { current: 7 * 24 * 60 * 60 * 1000, previous: 7 * 24 * 60 * 60 * 1000 },
-      monthly: { current: 30 * 24 * 60 * 60 * 1000, previous: 30 * 24 * 60 * 60 * 1000 },
+      "24h": 24 * 60 * 60 * 1000,
+      weekly: 7 * 24 * 60 * 60 * 1000,
+      monthly: 30 * 24 * 60 * 60 * 1000,
     };
 
     const range = timeRanges[timeFilter];
-    const currentStart = now - range.current;
-    const previousStart = currentStart - range.previous;
+    const currentStart = now - range;
 
     const processData = (startTime: number, endTime: number) => {
-      const buckets: { [key: string]: number } = {};
-      const bucketSize = timeFilter === "24h" ? 60 * 60 * 1000 : timeFilter === "weekly" ? 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+      const buckets: {
+        [key: string]: {
+          count: number;
+          correct: number;
+          totalQuestions: number;
+        };
+      } = {};
+      const bucketSize =
+        timeFilter === "24h"
+          ? 60 * 60 * 1000
+          : timeFilter === "weekly"
+            ? 24 * 60 * 60 * 1000
+            : 24 * 60 * 60 * 1000;
 
       for (let time = startTime; time < endTime; time += bucketSize) {
         const date = new Date(time);
         let key: string;
         if (timeFilter === "24h") {
-          key = date.toLocaleTimeString("en-US", { hour: "2-digit", hour12: false });
+          key = date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            hour12: false,
+          });
         } else if (timeFilter === "weekly") {
           key = date.toLocaleDateString("en-US", { weekday: "short" });
         } else {
-          key = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          key = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
         }
-        buckets[key] = 0;
+        buckets[key] = { count: 0, correct: 0, totalQuestions: 0 };
       }
 
-      const filteredHistories = histories.filter((h) => h.createdAt >= startTime && h.createdAt < endTime);
+      const filteredHistories = histories.filter(
+        (h) => h.createdAt >= startTime && h.createdAt < endTime
+      );
       filteredHistories.forEach((history) => {
         const date = new Date(history.createdAt);
         let key: string;
         if (timeFilter === "24h") {
-          key = date.toLocaleTimeString("en-US", { hour: "2-digit", hour12: false });
+          key = date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            hour12: false,
+          });
         } else if (timeFilter === "weekly") {
           key = date.toLocaleDateString("en-US", { weekday: "short" });
         } else {
-          key = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          key = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
         }
         if (buckets[key] !== undefined) {
-          buckets[key]++;
+          buckets[key].count++;
+          if (history.quizData) {
+            buckets[key].correct += history.quizData.totalCorrect || 0;
+            buckets[key].totalQuestions +=
+              (history.quizData.totalCorrect || 0) +
+              (history.quizData.totalIncorrect || 0);
+          }
         }
       });
 
-      return Object.entries(buckets).map(([label, value]) => ({ label, value }));
+      return Object.entries(buckets).map(([label, data]) => ({
+        label,
+        value: data.count,
+        performance:
+          data.totalQuestions > 0
+            ? (data.correct / data.totalQuestions) * 100
+            : 0,
+      }));
     };
 
-    return {
-      current: processData(currentStart, now),
-      previous: processData(previousStart, currentStart),
-    };
+    return processData(currentStart, now);
   }, [historiesData, timeFilter]);
 
   if (isLoading) {
@@ -259,20 +298,6 @@ export default function ContentHistoryPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Content
         </Link>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-12"
-        >
-          <h1 className="text-3xl font-semibold text-foreground mb-2">
-            Activity History
-          </h1>
-          <p className="text-muted-foreground">
-            Track your learning progress and performance
-          </p>
-        </motion.div>
 
         {stats.totalTimeSpent > 0 && (
           <motion.div
@@ -359,7 +384,11 @@ export default function ContentHistoryPage() {
                             : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
-                        {filterType === "24h" ? "24 Hours" : filterType === "weekly" ? "Weekly" : "Monthly"}
+                        {filterType === "24h"
+                          ? "24 Hours"
+                          : filterType === "weekly"
+                            ? "Weekly"
+                            : "Monthly"}
                       </button>
                     )
                   )}
@@ -369,13 +398,14 @@ export default function ContentHistoryPage() {
               <div className="border border-border rounded-xl p-6 bg-background/50 backdrop-blur-sm">
                 <ResponsiveContainer width="100%" height={350}>
                   <LineChart
-                    data={chartData.current.map((item, index) => ({
-                      ...item,
-                      previous: chartData.previous[index]?.value || 0,
-                    }))}
+                    data={chartData}
                     margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="currentColor"
+                      opacity={0.1}
+                    />
                     <XAxis
                       dataKey="label"
                       stroke="currentColor"
@@ -388,12 +418,23 @@ export default function ContentHistoryPage() {
                       height={60}
                     />
                     <YAxis
+                      yAxisId="left"
                       stroke="currentColor"
                       opacity={0.5}
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
                       allowDecimals={false}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      stroke="currentColor"
+                      opacity={0.5}
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      domain={[0, 100]}
                     />
                     <Tooltip
                       contentStyle={{
@@ -408,35 +449,44 @@ export default function ContentHistoryPage() {
                       iconType="circle"
                     />
                     <Line
-                      type="monotone"
-                      dataKey="previous"
-                      stroke="hsl(var(--muted-foreground))"
-                      strokeDasharray="5 5"
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={false}
-                      name="Previous"
-                    />
-                    <Line
+                      yAxisId="left"
                       type="monotone"
                       dataKey="value"
-                      stroke="hsl(var(--foreground))"
+                      stroke="#6A7A8E"
                       strokeWidth={3}
-                      dot={{ fill: "hsl(var(--foreground))", strokeWidth: 2, r: 4 }}
                       activeDot={{ r: 6 }}
-                      name="Current"
+                      name="Activity"
+                    />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="performance"
+                      stroke="#C97C5D"
+                      strokeWidth={2}
+                      activeDot={{ r: 5 }}
+                      name="Performance %"
                     />
                   </LineChart>
                 </ResponsiveContainer>
 
                 <div className="flex items-center justify-center gap-8 mt-6 pt-6 border-t border-border/50">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-0.5 bg-foreground rounded" />
-                    <span className="text-sm text-muted-foreground">Current Period</span>
+                    <div
+                      className="w-8 h-0.5 rounded"
+                      style={{ backgroundColor: "#6A7A8E" }}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      Activity
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-0.5 bg-muted-foreground rounded" style={{ backgroundImage: "repeating-linear-gradient(to right, currentColor 0, currentColor 4px, transparent 4px, transparent 8px)" }} />
-                    <span className="text-sm text-muted-foreground">Previous Period</span>
+                    <div
+                      className="w-8 h-0.5 rounded"
+                      style={{ backgroundColor: "#C97C5D" }}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      Performance %
+                    </span>
                   </div>
                 </div>
               </div>
@@ -537,7 +587,9 @@ export default function ContentHistoryPage() {
                             {formatDate(history.createdAt).split(",")[0]}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {formatDate(history.createdAt).split(",")[1]?.trim()}
+                            {formatDate(history.createdAt)
+                              .split(",")[1]
+                              ?.trim()}
                           </div>
                         </div>
 
@@ -550,7 +602,9 @@ export default function ContentHistoryPage() {
                                 <BookOpen className="w-4 h-4 text-foreground/60" />
                               )}
                               <span className="text-sm text-foreground">
-                                {isQuiz(history) ? "Quiz Attempt" : "Content View"}
+                                {isQuiz(history)
+                                  ? "Quiz Attempt"
+                                  : "Content View"}
                               </span>
                             </div>
 
@@ -562,7 +616,9 @@ export default function ContentHistoryPage() {
                                     : "bg-red-500/10 text-red-500"
                                 }`}
                               >
-                                {history.quizData.isCorrect ? "Correct" : "Incorrect"}
+                                {history.quizData.isCorrect
+                                  ? "Correct"
+                                  : "Incorrect"}
                               </span>
                             )}
                           </div>
@@ -586,7 +642,10 @@ export default function ContentHistoryPage() {
                                     Accuracy:
                                   </span>
                                   <span className="text-foreground">
-                                    {Math.round(history.quizData.overallAccuracy)}%
+                                    {Math.round(
+                                      history.quizData.overallAccuracy
+                                    )}
+                                    %
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -610,7 +669,9 @@ export default function ContentHistoryPage() {
               {filteredAndSortedHistories.length > 0 && (
                 <div className="mt-12 pt-8 border-t border-border text-center text-xs text-muted-foreground">
                   Showing {filteredAndSortedHistories.length}{" "}
-                  {filteredAndSortedHistories.length === 1 ? "entry" : "entries"}
+                  {filteredAndSortedHistories.length === 1
+                    ? "entry"
+                    : "entries"}
                 </div>
               )}
             </motion.div>
