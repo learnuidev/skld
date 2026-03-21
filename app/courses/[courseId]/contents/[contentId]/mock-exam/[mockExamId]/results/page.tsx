@@ -1,13 +1,16 @@
 "use client";
 
-import type { Question, QuestionOption } from "@/modules/exam-bank/exam-bank.types";
-import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import type {
+  Question,
+  QuestionOption,
+} from "@/modules/exam-bank/exam-bank.types";
+import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
+import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { ArrowLeft, Check, Clock, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 
 type AnswerItem = number | string | boolean | null;
 
@@ -85,23 +88,23 @@ function ContentQuizResults({
 
     let isCorrect = false;
 
-      if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-        isCorrect = answer.answer === question.correctOptionId;
-      } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-        const userAnswers = answer.answers || [];
-        const correctAnswers = question.correctOptionIds || [];
-        if (
-          userAnswers.length === correctAnswers.length &&
-          userAnswers.every(
-            (ans: AnswerItem) =>
-              typeof ans === "string" && correctAnswers.includes(ans)
-          )
-        ) {
-          isCorrect = true;
-        }
-      } else if (question.type === "TRUE_FALSE") {
-        isCorrect = answer.answer === question.correctOptionId;
+    if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
+      isCorrect = answer.answer === question.correctOptionId;
+    } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
+      const userAnswers = answer.answers || [];
+      const correctAnswers = question.correctOptionIds || [];
+      if (
+        userAnswers.length === correctAnswers.length &&
+        userAnswers.every(
+          (ans: AnswerItem) =>
+            typeof ans === "string" && correctAnswers.includes(ans)
+        )
+      ) {
+        isCorrect = true;
       }
+    } else if (question.type === "TRUE_FALSE") {
+      isCorrect = answer.answer === question.correctOptionId;
+    }
 
     return isCorrect
       ? { status: "correct", icon: Check }
@@ -297,8 +300,7 @@ function ContentQuizResults({
                                   <XCircle className="w-4 h-4 text-rose-500" />
                                 );
                               } else {
-                                optionClass =
-                                  "bg-muted/30 border-transparent";
+                                optionClass = "bg-muted/30 border-transparent";
                               }
 
                               return (
@@ -351,21 +353,21 @@ export default function ContentQuizResultsPage() {
     params.mockExamId
   );
 
-  const { data: examBank, isLoading: isExamBankLoading } = useGetExamBankQuery(
-    mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || ""
-  );
+  const { data: examBanks, isLoading: isExamBanksLoading } =
+    useGetExamBanksQuery(params.courseId);
 
-  const contentQuestions = useMemo(() => {
-    if (!examBank?.questions) return [];
+  const selectedContentId = params.contentId;
 
-    const selectedContentId = mockExam?.selectedContentIds?.[0];
-    return examBank.questions.filter((question) => {
-      return question.contentId === selectedContentId;
-    });
-  }, [examBank, mockExam?.selectedContentIds]);
+  const contentQuestions: Question[] = useMemo(() => {
+    return (
+      examBanks
+        ?.map((exam) => exam?.questions)
+        ?.flat()
+        ?.filter((question) => question?.contentId === selectedContentId) || []
+    );
+  }, [examBanks, selectedContentId]);
 
-  const isLoading = mockExamLoading || isExamBankLoading;
+  const isLoading = isExamBanksLoading;
 
   if (isLoading) {
     return (
@@ -375,7 +377,7 @@ export default function ContentQuizResultsPage() {
     );
   }
 
-  if (!mockExam || !examBank) {
+  if (!mockExam || !examBanks) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-destructive">Results not found</div>

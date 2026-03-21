@@ -558,13 +558,10 @@ export default function ContentQuizPage() {
   const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
     params.mockExamId
   );
+  const { data: examBanks, isLoading: isExamBanksLoading } =
+    useGetExamBanksQuery(mockExam?.courseId || "");
 
-  const { data: examBank, isLoading: isExamBankLoading } = useGetExamBankQuery(
-    mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || ""
-  );
-
-  const isLoading = mockExamLoading || isExamBankLoading;
+  const isLoading = mockExamLoading || isExamBanksLoading;
 
   if (isLoading) {
     return (
@@ -574,7 +571,7 @@ export default function ContentQuizPage() {
     );
   }
 
-  if (!mockExam || !course || !examBank) {
+  if (!mockExam || !course || !examBanks) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-destructive">Quiz not found</div>
