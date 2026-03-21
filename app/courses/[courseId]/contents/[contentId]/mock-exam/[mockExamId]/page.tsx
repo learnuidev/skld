@@ -30,9 +30,11 @@ import { checkAnswerCorrectness } from "../utils/check-answer-correctness";
 
 function ContentQuizPageInner({
   mockExam,
+  questionId,
 }: {
   mockExam: MockExam;
   course?: Course;
+  questionId: string;
 }) {
   const params = useParams<{
     courseId: string;
@@ -75,9 +77,6 @@ function ContentQuizPageInner({
         ?.filter((question) => question?.contentId === selectedContentId) || []
     );
   }, [examBanks, selectedContentId]);
-
-  const questionId =
-    searchParams.get("questionId") || mockExam?.currentQuestionId;
 
   const totalQuestions = allQuestions?.length || 0;
 
@@ -234,9 +233,10 @@ function ContentQuizPageInner({
       [questionId]: feedback,
     }));
 
-    await queryClient.invalidateQueries({
-      queryKey: ["mockExam", params.mockExamId],
-    });
+    queryClient.setQueryData(
+      ["mockExam", params.mockExamId],
+      () => result.mockExam
+    );
 
     setTotalTimeSpent(newTotalTimeSpent);
     setElapsedTime(0);
@@ -502,6 +502,8 @@ function ContentQuizPageInner({
                   onClick={() => {
                     const existingAnswer =
                       mockExam.answers[currentQuestion?.id];
+
+                    console.log("YOOOOOO", existingAnswer);
                     if (existingAnswer) {
                       handleContinue();
                     } else {
@@ -543,9 +545,22 @@ export default function ContentQuizPage() {
     mockExamId: string;
   }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: course } = useGetCourseQuery(params.courseId);
   const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
-    params.mockExamId
+    params.mockExamId,
+    {
+      onSuccess: (mockExam) => {
+        const currentQuestionId = mockExam?.currentQuestionId;
+        if (currentQuestionId) {
+          const newSearchParams = new URLSearchParams(searchParams.toString());
+          newSearchParams.set("questionId", currentQuestionId);
+          router.replace(
+            `${window.location.pathname}?${newSearchParams.toString()}`
+          );
+        }
+      },
+    }
   );
   const { data: examBanks, isLoading: isExamBanksLoading } =
     useGetExamBanksQuery(mockExam?.courseId || "");
@@ -568,5 +583,11 @@ export default function ContentQuizPage() {
     );
   }
 
-  return <ContentQuizPageInner mockExam={mockExam} course={course} />;
+  return (
+    <ContentQuizPageInner
+      questionId={searchParams.get("questionId") || mockExam?.currentQuestionId}
+      mockExam={mockExam}
+      course={course}
+    />
+  );
 }

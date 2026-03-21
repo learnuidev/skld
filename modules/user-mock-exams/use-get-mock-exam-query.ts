@@ -1,11 +1,16 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { fetchAuthSession } from "@aws-amplify/auth";
 import { appConfig } from "@/lib/app-config";
+import { fetchAuthSession } from "@aws-amplify/auth";
+import { useQuery } from "@tanstack/react-query";
 import { MockExam } from "./user-mock-exams.types";
 
-export function useGetMockExamQuery(mockExamId: string) {
+export function useGetMockExamQuery(
+  mockExamId: string,
+  options?: {
+    onSuccess?: (data: MockExam) => void;
+  }
+) {
   return useQuery({
     queryKey: ["mockExam", mockExamId],
     queryFn: async (): Promise<MockExam> => {
@@ -22,7 +27,7 @@ export function useGetMockExamQuery(mockExamId: string) {
           headers: {
             Authorization: token,
           },
-        },
+        }
       );
 
       if (!response.ok) {
@@ -30,7 +35,13 @@ export function useGetMockExamQuery(mockExamId: string) {
         throw new Error(error.error || "Failed to fetch mock exam");
       }
 
-      return response.json();
+      const resp = await response.json();
+
+      if (options?.onSuccess) {
+        options?.onSuccess(resp);
+      }
+
+      return resp;
     },
     enabled: !!mockExamId,
   });
