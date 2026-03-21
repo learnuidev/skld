@@ -26,6 +26,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { Course } from "@/modules/course/course.types";
 import { Button } from "@/components/ui/button";
+import { checkAnswerCorrectness } from "../utils/check-answer-correctness";
 
 function ContentQuizPageInner({
   mockExam,
@@ -52,12 +53,7 @@ function ContentQuizPageInner({
   );
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalTimeSpent, setTotalTimeSpent] = useState(0);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackData, setFeedbackData] = useState<{
-    isCorrect: boolean;
-    correctAnswer: unknown;
-    feedback: string;
-  } | null>(null);
+
   const [feedbackCache, setFeedbackCache] = useState<
     Record<
       string,
@@ -169,8 +165,7 @@ function ContentQuizPageInner({
       setSelectedMultipleAnswers(new Set());
       setTrueFalseAnswer(null);
       setEliminatedOptions(new Set());
-      setFeedbackData(null);
-      setShowFeedback(false);
+
       setElapsedTime(0);
       return;
     }
@@ -181,14 +176,6 @@ function ContentQuizPageInner({
       setSelectedMultipleAnswers(new Set(existingAnswer.answers as string[]));
     } else if (currentQuestion?.type === "TRUE_FALSE") {
       setTrueFalseAnswer(existingAnswer.answer as boolean);
-    }
-
-    if (cachedFeedback) {
-      setFeedbackData(cachedFeedback);
-      setShowFeedback(true);
-    } else {
-      setFeedbackData(null);
-      setShowFeedback(false);
     }
 
     setEliminatedOptions(new Set());
@@ -241,12 +228,11 @@ function ContentQuizPageInner({
       feedback: result.questionFeedback,
     };
 
-    setFeedbackData(feedback);
+    // setFeedbackData(feedback);
     setFeedbackCache((prev) => ({
       ...prev,
       [questionId]: feedback,
     }));
-    setShowFeedback(true);
 
     await queryClient.invalidateQueries({
       queryKey: ["mockExam", params.mockExamId],
@@ -257,8 +243,6 @@ function ContentQuizPageInner({
   };
 
   const handleContinue = () => {
-    setShowFeedback(false);
-
     const nextIndex = currentIndex + 1;
 
     if (mockExam?.status === "completed") {
@@ -314,6 +298,11 @@ function ContentQuizPageInner({
     }
     return false;
   };
+
+  const feedbackData = checkAnswerCorrectness(
+    currentQuestion,
+    mockExam.answers[questionId]
+  );
 
   return (
     <div className="min-h-screen bg-background flex flex-col max-w-3xl mx-auto">
@@ -409,7 +398,7 @@ function ContentQuizPageInner({
           </div>
         </>
 
-        {showFeedback && feedbackData && (
+        {feedbackData && (
           <div className="space-y-6">
             <div
               className={`p-6 rounded-lg border-2 ${
@@ -479,7 +468,7 @@ function ContentQuizPageInner({
 
       <div className="fixed bottom-4 left-0 right-0 z-50">
         <div className="max-w-3xl mx-auto px-4 py-3">
-          {showFeedback && feedbackData ? (
+          {feedbackData ? (
             <div className="flex items-center justify-between gap-3">
               <button
                 onClick={handleQuit}

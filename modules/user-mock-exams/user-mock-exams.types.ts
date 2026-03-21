@@ -4,7 +4,7 @@ export type MockExamStatus = "in_progress" | "completed" | "abandoned";
 
 type AnswerItem = number | string | boolean | null;
 
-interface Answer {
+export interface Answer {
   questionId: string;
   answer?: AnswerItem;
   answers?: AnswerItem[];
