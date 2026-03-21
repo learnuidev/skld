@@ -27,18 +27,29 @@ export type QuestionTypeCategory =
   | "sequence"
   | "identification";
 
+export interface QuestionOption {
+  id: string;
+  text: string;
+}
+
 export interface Question {
   id: string;
   domainId: string;
   contentId?: string;
   question: string;
-  options: string[];
+  options: QuestionOption[];
   type: QuestionType;
   feedback: string;
   difficulty?: QuestionDifficulty;
   questionType?: QuestionTypeCategory;
+
+  // Deprecated, Please use correctOptionId
   correctOptionIndex?: number;
+  // Deprecated, Please use correctOptionIds
   correctOptionIndexes?: number[];
+
+  correctOptionId?: string;
+  correctOptionIds?: string[];
 }
 
 export interface ExamBank {

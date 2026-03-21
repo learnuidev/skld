@@ -408,7 +408,7 @@ function MyMockExamsTab({
                     total++;
 
                     if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-                      if (answer.answer === question.correctOptionIndex) {
+                      if (answer.answer === question.correctOptionId) {
                         correct++;
                       }
                     } else if (
@@ -416,17 +416,17 @@ function MyMockExamsTab({
                     ) {
                       const userAnswers = answer.answers || [];
                       const correctAnswers =
-                        question.correctOptionIndexes || [];
+                        question.correctOptionIds || [];
                       if (
                         userAnswers.length === correctAnswers.length &&
-                        userAnswers.every((ans: number) =>
+                        userAnswers.every((ans: string) =>
                           correctAnswers.includes(ans),
                         )
                       ) {
                         correct++;
                       }
                     } else if (question.type === "TRUE_FALSE") {
-                      if (answer.answer === question.correctOptionIndex) {
+                      if (answer.answer === question.correctOptionId) {
                         correct++;
                       }
                     }

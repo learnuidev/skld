@@ -1,7 +1,7 @@
 "use client";
 
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import type { Question } from "@/modules/exam-bank/exam-bank.types";
+import type { Question, QuestionOption } from "@/modules/exam-bank/exam-bank.types";
 import {
   useGetExamBankQuery,
   useGetExamBanksQuery,
@@ -34,9 +34,9 @@ function MockExamPageInner({
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [selectedMultipleAnswers, setSelectedMultipleAnswers] = useState<
-    Set<number>
+    Set<string>
   >(new Set());
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<boolean | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -144,14 +144,18 @@ function MockExamPageInner({
   }
 
   const handleAnswerChange = (answerIndex: number) => {
+    const optionId = currentQuestion?.options[answerIndex]?.id;
+
+    if (!optionId) return;
+
     if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-      setSelectedAnswer(answerIndex);
+      setSelectedAnswer(optionId);
     } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
       const newSelected = new Set(selectedMultipleAnswers);
-      if (newSelected.has(answerIndex)) {
-        newSelected.delete(answerIndex);
+      if (newSelected.has(optionId)) {
+        newSelected.delete(optionId);
       } else {
-        newSelected.add(answerIndex);
+        newSelected.add(optionId);
       }
       setSelectedMultipleAnswers(newSelected);
     } else if (currentQuestion?.type === "TRUE_FALSE") {
@@ -348,12 +352,13 @@ function MockExamPageInner({
           </p>
 
           <div className="space-y-4">
-            {currentQuestion.options.map((option: string, index: number) => {
+            {currentQuestion.options.map((option: QuestionOption, index: number) => {
+              const optionId = option.id;
               const isSelected =
                 currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
-                  ? selectedAnswer === index
+                  ? selectedAnswer === optionId
                   : currentQuestion.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE"
-                    ? selectedMultipleAnswers.has(index)
+                    ? selectedMultipleAnswers.has(optionId)
                     : currentQuestion.type === "TRUE_FALSE"
                       ? (index === 0 && trueFalseAnswer === true) ||
                         (index === 1 && trueFalseAnswer === false)
@@ -361,7 +366,7 @@ function MockExamPageInner({
 
               return (
                 <button
-                  key={index}
+                  key={optionId || index}
                   onClick={() => handleAnswerChange(index)}
                   className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base ${
                     isSelected
@@ -373,7 +378,7 @@ function MockExamPageInner({
                     <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
                       {String.fromCharCode(65 + index)}
                     </span>
-                    <span>{option}</span>
+                    <span>{option.text}</span>
                   </span>
                 </button>
               );

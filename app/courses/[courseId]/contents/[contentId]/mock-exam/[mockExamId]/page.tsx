@@ -1,8 +1,14 @@
 "use client";
 
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import type { Question } from "@/modules/exam-bank/exam-bank.types";
-import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import type {
+  Question,
+  QuestionOption,
+} from "@/modules/exam-bank/exam-bank.types";
+import {
+  useGetExamBankQuery,
+  useGetExamBanksQuery,
+} from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { useSubmitContentQuizMutation } from "@/modules/content-quiz/use-submit-content-quiz-mutation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -36,9 +42,9 @@ function ContentQuizPageInner({
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [selectedMultipleAnswers, setSelectedMultipleAnswers] = useState<
-    Set<number>
+    Set<string>
   >(new Set());
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<boolean | null>(null);
   const [eliminatedOptions, setEliminatedOptions] = useState<Set<number>>(
@@ -61,22 +67,18 @@ function ContentQuizPageInner({
 
   const submitContentQuizMutation = useSubmitContentQuizMutation();
 
-  const { data: examBank } = useGetExamBankQuery(
-    mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || ""
-  );
+  const { data: examBanks } = useGetExamBanksQuery(mockExam.courseId);
 
   const selectedContentId = mockExam?.selectedContentIds?.[0];
 
   const allQuestions: Question[] = useMemo(() => {
-    if (!examBank?.questions) {
-      return [];
-    }
-
-    return examBank?.questions?.filter((question) => {
-      return question.contentId === selectedContentId;
-    });
-  }, [examBank, selectedContentId]);
+    return (
+      examBanks
+        ?.map((exam) => exam?.questions)
+        ?.flat()
+        ?.filter((question) => question?.contentId === selectedContentId) || []
+    );
+  }, [examBanks, selectedContentId]);
 
   const questionId =
     searchParams.get("questionId") || mockExam?.currentQuestionId;
@@ -127,14 +129,18 @@ function ContentQuizPageInner({
   }
 
   const handleAnswerChange = (answerIndex: number) => {
+    const optionId = currentQuestion?.options[answerIndex]?.id;
+
+    if (!optionId) return;
+
     if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-      setSelectedAnswer(answerIndex);
+      setSelectedAnswer(optionId);
     } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
       const newSelected = new Set(selectedMultipleAnswers);
-      if (newSelected.has(answerIndex)) {
-        newSelected.delete(answerIndex);
+      if (newSelected.has(optionId)) {
+        newSelected.delete(optionId);
       } else {
-        newSelected.add(answerIndex);
+        newSelected.add(optionId);
       }
       setSelectedMultipleAnswers(newSelected);
     } else if (currentQuestion?.type === "TRUE_FALSE") {
@@ -170,9 +176,9 @@ function ContentQuizPageInner({
     }
 
     if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-      setSelectedAnswer(existingAnswer.answer as number);
+      setSelectedAnswer(existingAnswer.answer as string);
     } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-      setSelectedMultipleAnswers(new Set(existingAnswer.answers as number[]));
+      setSelectedMultipleAnswers(new Set(existingAnswer.answers as string[]));
     } else if (currentQuestion?.type === "TRUE_FALSE") {
       setTrueFalseAnswer(existingAnswer.answer as boolean);
     }
@@ -346,55 +352,59 @@ function ContentQuizPageInner({
             </p>
 
             <div className="space-y-4">
-              {currentQuestion.options.map((option: string, index: number) => {
-                const isSelected =
-                  currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
-                    ? selectedAnswer === index
-                    : currentQuestion.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE"
-                      ? selectedMultipleAnswers.has(index)
-                      : currentQuestion.type === "TRUE_FALSE"
-                        ? (index === 0 && trueFalseAnswer === true) ||
-                          (index === 1 && trueFalseAnswer === false)
-                        : false;
+              {currentQuestion.options.map(
+                (option: QuestionOption, index: number) => {
+                  const optionId = option.id;
+                  const isSelected =
+                    currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
+                      ? selectedAnswer === optionId
+                      : currentQuestion.type ===
+                          "MULTIPLE_SELECT_MULTIPLE_CHOICE"
+                        ? selectedMultipleAnswers.has(optionId)
+                        : currentQuestion.type === "TRUE_FALSE"
+                          ? (index === 0 && trueFalseAnswer === true) ||
+                            (index === 1 && trueFalseAnswer === false)
+                          : false;
 
-                const isEliminated = eliminatedOptions.has(index);
+                  const isEliminated = eliminatedOptions.has(index);
 
-                return (
-                  <button
-                    key={index}
-                    onClick={() => !isEliminated && handleAnswerChange(index)}
-                    className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base relative ${
-                      isSelected
-                        ? "border-foreground bg-foreground text-background"
-                        : isEliminated
-                          ? "border-border/50 opacity-50 hover:border-border/50"
-                          : "border-border hover:border-foreground/20"
-                    }`}
-                  >
-                    <span className="flex items-center gap-4">
-                      <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
-                        {String.fromCharCode(65 + index)}
+                  return (
+                    <button
+                      key={optionId || index}
+                      onClick={() => !isEliminated && handleAnswerChange(index)}
+                      className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base relative ${
+                        isSelected
+                          ? "border-foreground bg-foreground text-background"
+                          : isEliminated
+                            ? "border-border/50 opacity-50 hover:border-border/50"
+                            : "border-border hover:border-foreground/20"
+                      }`}
+                    >
+                      <span className="flex items-center gap-4">
+                        <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
+                          {String.fromCharCode(65 + index)}
+                        </span>
+                        <span>{option.text}</span>
+                        {
+                          <Button
+                            disabled={isSelected}
+                            onClick={(e) => toggleEliminateOption(e, index)}
+                            title={
+                              isEliminated
+                                ? "Un-eliminate option"
+                                : "Eliminate option"
+                            }
+                            className={`ml-auto w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 text-gray-400 `}
+                            variant="ghost"
+                          >
+                            {isSelected ? null : <Ban className="w-4 h-4" />}
+                          </Button>
+                        }
                       </span>
-                      <span>{option}</span>
-                      {
-                        <Button
-                          disabled={isSelected}
-                          onClick={(e) => toggleEliminateOption(e, index)}
-                          title={
-                            isEliminated
-                              ? "Un-eliminate option"
-                              : "Eliminate option"
-                          }
-                          className={`ml-auto w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 text-gray-400 `}
-                          variant="ghost"
-                        >
-                          {isSelected ? null : <Ban className="w-4 h-4" />}
-                        </Button>
-                      }
-                    </span>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                }
+              )}
             </div>
           </div>
         </>
@@ -431,13 +441,25 @@ function ContentQuizPageInner({
                   <p className="text-foreground font-medium">
                     {Array.isArray(feedbackData.correctAnswer)
                       ? feedbackData.correctAnswer
-                          .map((i: number) =>
-                            String.fromCharCode(65 + (i as number))
-                          )
+                          .map((optionId: string) => {
+                            const optionIndex =
+                              currentQuestion.options.findIndex(
+                                (opt: QuestionOption) => opt.id === optionId
+                              );
+                            return optionIndex >= 0
+                              ? String.fromCharCode(65 + optionIndex)
+                              : "";
+                          })
                           .join(", ")
-                      : String.fromCharCode(
-                          65 + (feedbackData.correctAnswer as number)
-                        )}
+                      : (() => {
+                          const optionIndex = currentQuestion.options.findIndex(
+                            (opt: QuestionOption) =>
+                              opt.id === (feedbackData.correctAnswer as string)
+                          );
+                          return optionIndex >= 0
+                            ? String.fromCharCode(65 + optionIndex)
+                            : "";
+                        })()}
                   </p>
                 </div>
               )}

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Question } from "@/modules/exam-bank/exam-bank.types";
+import type { Question, QuestionOption } from "@/modules/exam-bank/exam-bank.types";
 import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { ArrowLeft, Check, Clock, XCircle } from "lucide-react";
@@ -49,23 +49,23 @@ function ContentQuizResults({
       total++;
 
       if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-        if (answer.answer === question.correctOptionIndex) {
+        if (answer.answer === question.correctOptionId) {
           correct++;
         }
       } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
         const userAnswers = answer.answers || [];
-        const correctAnswers = question.correctOptionIndexes || [];
+        const correctAnswers = question.correctOptionIds || [];
         if (
           userAnswers.length === correctAnswers.length &&
           userAnswers.every(
             (ans: AnswerItem) =>
-              typeof ans === "number" && correctAnswers.includes(ans)
+              typeof ans === "string" && correctAnswers.includes(ans)
           )
         ) {
           correct++;
         }
       } else if (question.type === "TRUE_FALSE") {
-        if (answer.answer === (question.correctOptionIndex === 0)) {
+        if (answer.answer === question.correctOptionId) {
           correct++;
         }
       }
@@ -85,23 +85,23 @@ function ContentQuizResults({
 
     let isCorrect = false;
 
-    if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-      isCorrect = answer.answer === question.correctOptionIndex;
-    } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-      const userAnswers = answer.answers || [];
-      const correctAnswers = question.correctOptionIndexes || [];
-      if (
-        userAnswers.length === correctAnswers.length &&
-        userAnswers.every(
-          (ans: AnswerItem) =>
-            typeof ans === "number" && correctAnswers.includes(ans)
-        )
-      ) {
-        isCorrect = true;
+      if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
+        isCorrect = answer.answer === question.correctOptionId;
+      } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
+        const userAnswers = answer.answers || [];
+        const correctAnswers = question.correctOptionIds || [];
+        if (
+          userAnswers.length === correctAnswers.length &&
+          userAnswers.every(
+            (ans: AnswerItem) =>
+              typeof ans === "string" && correctAnswers.includes(ans)
+          )
+        ) {
+          isCorrect = true;
+        }
+      } else if (question.type === "TRUE_FALSE") {
+        isCorrect = answer.answer === question.correctOptionId;
       }
-    } else if (question.type === "TRUE_FALSE") {
-      isCorrect = answer.answer === (question.correctOptionIndex === 0);
-    }
 
     return isCorrect
       ? { status: "correct", icon: Check }
@@ -264,7 +264,7 @@ function ContentQuizResults({
                         </h4>
                         <div className="space-y-3">
                           {question.options.map(
-                            (option: string, idx: number) => {
+                            (option: QuestionOption, idx: number) => {
                               let optionClass = "";
                               let icon = null;
 
@@ -272,17 +272,17 @@ function ContentQuizResults({
                                 question.type ===
                                   "SINGLE_SELECT_MULTIPLE_CHOICE" ||
                                 question.type === "TRUE_FALSE"
-                                  ? idx === question.correctOptionIndex
-                                  : question.correctOptionIndexes?.includes(
-                                      idx
+                                  ? option.id === question.correctOptionId
+                                  : question.correctOptionIds?.includes(
+                                      option.id
                                     );
 
                               const isSelected =
                                 question.type ===
                                   "SINGLE_SELECT_MULTIPLE_CHOICE" ||
                                 question.type === "TRUE_FALSE"
-                                  ? answer?.answer === idx
-                                  : answer?.answers?.includes(idx);
+                                  ? answer?.answer === option.id
+                                  : answer?.answers?.includes(option.id);
 
                               if (isCorrect) {
                                 optionClass =
@@ -303,14 +303,14 @@ function ContentQuizResults({
 
                               return (
                                 <div
-                                  key={idx}
+                                  key={option.id || idx}
                                   className={`p-4 rounded-lg border flex items-start gap-3 ${optionClass}`}
                                 >
                                   <div className="flex-shrink-0 mt-0.5">
                                     {icon}
                                   </div>
                                   <p className="text-sm text-foreground font-light leading-relaxed">
-                                    {option}
+                                    {option.text}
                                   </p>
                                 </div>
                               );

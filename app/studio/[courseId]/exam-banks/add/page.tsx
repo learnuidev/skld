@@ -45,7 +45,33 @@ export default function AddExamBankPage() {
         parsedQuestions = jsonData.map((q: any) => {
           const domainId =
             q.domainId || parseDomainId(q.domain || q.domainNumber);
-          return { ...q, domainId };
+
+          const question = { ...q, domainId };
+
+          if (question.options && Array.isArray(question.options)) {
+            question.options = question.options.map((opt: any) =>
+              typeof opt === "string"
+                ? { id: crypto.randomUUID(), text: opt }
+                : opt,
+            );
+          }
+
+          if (question.correctOptionIndex !== undefined) {
+            const optionId = question.options[question.correctOptionIndex]?.id;
+            if (optionId) {
+              question.correctOptionId = optionId;
+              delete question.correctOptionIndex;
+            }
+          }
+
+          if (question.correctOptionIndexes) {
+            question.correctOptionIds = question.correctOptionIndexes
+              .map((idx: number) => question.options[idx]?.id)
+              .filter((id: string | undefined) => id !== undefined);
+            delete question.correctOptionIndexes;
+          }
+
+          return question;
         });
       } else if (fileExtension === "csv") {
         parsedQuestions = parseCSV(text);
@@ -110,7 +136,11 @@ export default function AddExamBankPage() {
         const value = values[index]?.trim().replace(/^"|"$/g, "");
 
         if (header === "options") {
-          question[header] = value.split("|").map((opt) => opt.trim());
+          const optionStrings = value.split("|").map((opt) => opt.trim());
+          question[header] = optionStrings.map((opt) => ({
+            id: crypto.randomUUID(),
+            text: opt,
+          }));
         } else if (header === "type" && value) {
           question[header] = value.toUpperCase().replace(/ /g, "_");
         } else {
@@ -123,6 +153,19 @@ export default function AddExamBankPage() {
         parseDomainId(question.domain || question.domainNumber);
 
       if (question.question && domainId && question.type) {
+        if (question.correctOptionIndex !== undefined) {
+          const optionId = question.options[question.correctOptionIndex]?.id;
+          if (optionId) {
+            question.correctOptionId = optionId;
+            delete question.correctOptionIndex;
+          }
+        }
+        if (question.correctOptionIndexes) {
+          question.correctOptionIds = question.correctOptionIndexes
+            .map((idx: number) => question.options[idx]?.id)
+            .filter((id: string | undefined) => id !== undefined);
+          delete question.correctOptionIndexes;
+        }
         questions.push({ ...question, domainId } as Question);
       }
     }
@@ -161,7 +204,33 @@ export default function AddExamBankPage() {
         const questionsWithDomainId = parsed.map((q: any) => {
           const domainId =
             q.domainId || parseDomainId(q.domain || q.domainNumber);
-          return { ...q, domainId };
+
+          const question = { ...q, domainId };
+
+          if (question.options && Array.isArray(question.options)) {
+            question.options = question.options.map((opt: any) =>
+              typeof opt === "string"
+                ? { id: crypto.randomUUID(), text: opt }
+                : opt,
+            );
+          }
+
+          if (question.correctOptionIndex !== undefined) {
+            const optionId = question.options[question.correctOptionIndex]?.id;
+            if (optionId) {
+              question.correctOptionId = optionId;
+              delete question.correctOptionIndex;
+            }
+          }
+
+          if (question.correctOptionIndexes) {
+            question.correctOptionIds = question.correctOptionIndexes
+              .map((idx: number) => question.options[idx]?.id)
+              .filter((id: string | undefined) => id !== undefined);
+            delete question.correctOptionIndexes;
+          }
+
+          return question;
         });
         setQuestions(questionsWithDomainId);
         setShowPreview(true);
@@ -212,7 +281,9 @@ export default function AddExamBankPage() {
           ? {
               ...q,
               options: q.options.map((opt, oi) =>
-                oi === optionIndex ? value : opt,
+                oi === optionIndex
+                  ? { ...opt, text: value }
+                  : opt,
               ),
             }
           : q,
@@ -223,7 +294,9 @@ export default function AddExamBankPage() {
   const addOption = (questionIndex: number) => {
     setQuestions((prev) =>
       prev.map((q, i) =>
-        i === questionIndex ? { ...q, options: [...q.options, ""] } : q,
+        i === questionIndex
+          ? { ...q, options: [...q.options, { id: crypto.randomUUID(), text: "" }] }
+          : q,
       ),
     );
   };
@@ -232,7 +305,10 @@ export default function AddExamBankPage() {
     setQuestions((prev) =>
       prev.map((q, i) =>
         i === questionIndex && q.options.length > 1
-          ? { ...q, options: q.options.filter((_, oi) => oi !== optionIndex) }
+          ? {
+              ...q,
+              options: q.options.filter((_, oi) => oi !== optionIndex),
+            }
           : q,
       ),
     );
@@ -260,12 +336,16 @@ export default function AddExamBankPage() {
         id: "",
         domainId: "",
         question: "",
-        options: ["", "", ""],
+        options: [
+          { id: crypto.randomUUID(), text: "" },
+          { id: crypto.randomUUID(), text: "" },
+          { id: crypto.randomUUID(), text: "" },
+        ],
         type: "SINGLE_SELECT_MULTIPLE_CHOICE",
         feedback: "",
         difficulty: "easy",
         questionType: "definition",
-        correctOptionIndex: 0,
+        correctOptionId: "",
       },
     ]);
   };
@@ -591,34 +671,46 @@ function QuestionEditorCard({
   domains?: Domain[];
 }) {
   const handleCorrectOptionChange = (optionIndex: number) => {
+    const optionId = typeof question.options[optionIndex] === "string"
+      ? undefined
+      : question.options[optionIndex].id;
+
+    if (!optionId) return;
+
     if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-      onUpdate("correctOptionIndex", optionIndex);
-      onUpdate("correctOptionIndexes", undefined);
+      onUpdate("correctOptionId", optionId);
+      onUpdate("correctOptionIds", undefined);
     } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-      const current = question.correctOptionIndexes || [];
-      const exists = current.includes(optionIndex);
-      const newIndexes = exists
-        ? current.filter((i) => i !== optionIndex)
-        : [...current, optionIndex];
+      const current = question.correctOptionIds || [];
+      const exists = current.includes(optionId);
+      const newIds = exists
+        ? current.filter((id) => id !== optionId)
+        : [...current, optionId];
       onUpdate(
-        "correctOptionIndexes",
-        newIndexes.length > 0 ? newIndexes : undefined,
+        "correctOptionIds",
+        newIds.length > 0 ? newIds : undefined,
       );
-      onUpdate("correctOptionIndex", undefined);
+      onUpdate("correctOptionId", undefined);
     } else if (question.type === "TRUE_FALSE") {
-      onUpdate("correctOptionIndex", optionIndex);
-      onUpdate("correctOptionIndexes", undefined);
+      onUpdate("correctOptionId", optionId);
+      onUpdate("correctOptionIds", undefined);
     }
   };
 
   const isOptionCorrect = (optionIndex: number) => {
+    const optionId = typeof question.options[optionIndex] === "string"
+      ? undefined
+      : question.options[optionIndex].id;
+
+    if (!optionId) return false;
+
     if (
       question.type === "SINGLE_SELECT_MULTIPLE_CHOICE" ||
       question.type === "TRUE_FALSE"
     ) {
-      return question.correctOptionIndex === optionIndex;
+      return question.correctOptionId === optionId;
     } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-      return question.correctOptionIndexes?.includes(optionIndex) || false;
+      return question.correctOptionIds?.includes(optionId) || false;
     }
     return false;
   };
@@ -776,7 +868,7 @@ function QuestionEditorCard({
               </label>
               <div className="space-y-3">
                 {question.options.map((option, oi) => (
-                  <div key={oi} className="flex gap-3 items-start">
+                  <div key={option.id || oi} className="flex gap-3 items-start">
                     <div className="pt-3">
                       {question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE" ? (
                         <input
@@ -802,7 +894,7 @@ function QuestionEditorCard({
                     </div>
                     <input
                       type="text"
-                      value={option}
+                      value={typeof option === "string" ? option : option.text}
                       onChange={(e) => onOptionUpdate(oi, e.target.value)}
                       className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400"
                       placeholder={`Option ${String.fromCharCode(65 + oi)}`}

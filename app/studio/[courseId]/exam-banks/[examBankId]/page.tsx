@@ -7,7 +7,7 @@ import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query
 import { useUpdateExamBankMutation } from "@/modules/exam-bank/use-exam-bank-mutations";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
-import { Question } from "@/modules/exam-bank/exam-bank.types";
+import { Question, type QuestionOption } from "@/modules/exam-bank/exam-bank.types";
 import { Chapter, Domain } from "@/modules/course/course.types";
 import { CourseContent } from "@/modules/course-content/course-content.types";
 import { Button } from "@/components/ui/button";
@@ -54,7 +54,7 @@ export default function ExamBankDetailPage() {
       !searchQuery ||
       question.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       question.options.some((opt) =>
-        opt.toLowerCase().includes(searchQuery.toLowerCase())
+        opt.text.toLowerCase().includes(searchQuery.toLowerCase())
       ) ||
       (question.feedback || "")
         .toLowerCase()
@@ -135,8 +135,8 @@ export default function ExamBankDetailPage() {
         i === questionIndex
           ? {
               ...q,
-              options: q.options.map((opt: string, oi: number) =>
-                oi === optionIndex ? value : opt
+              options: q.options.map((opt: QuestionOption, oi: number) =>
+                oi === optionIndex ? { ...opt, text: value } : opt
               ),
             }
           : q
@@ -148,7 +148,9 @@ export default function ExamBankDetailPage() {
   const addOption = (questionIndex: number) => {
     setQuestions((prev) =>
       prev.map((q, i) =>
-        i === questionIndex ? { ...q, options: [...q.options, ""] } : q
+        i === questionIndex
+          ? { ...q, options: [...q.options, { id: crypto.randomUUID(), text: "" }] }
+          : q
       )
     );
     setHasUnsavedChanges(true);
@@ -161,7 +163,7 @@ export default function ExamBankDetailPage() {
           ? {
               ...q,
               options: q.options.filter(
-                (_: string, oi: number) => oi !== optionIndex
+                (_: QuestionOption, oi: number) => oi !== optionIndex
               ),
             }
           : q
@@ -192,12 +194,16 @@ export default function ExamBankDetailPage() {
         id: "",
         domainId: "",
         question: "",
-        options: ["", "", ""],
+        options: [
+          { id: crypto.randomUUID(), text: "" },
+          { id: crypto.randomUUID(), text: "" },
+          { id: crypto.randomUUID(), text: "" },
+        ],
         type: "SINGLE_SELECT_MULTIPLE_CHOICE",
         feedback: "",
         difficulty: "easy",
         questionType: "definition",
-        correctOptionIndex: 0,
+        correctOptionId: "",
       },
     ]);
     setExpandedQuestionIndex(questions.length);
@@ -463,34 +469,42 @@ function QuestionEditorCard({
   courseContents?: CourseContent[];
 }) {
   const handleCorrectOptionChange = (optionIndex: number) => {
+    const optionId = question.options[optionIndex]?.id;
+
+    if (!optionId) return;
+
     if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-      onUpdate("correctOptionIndex", optionIndex);
-      onUpdate("correctOptionIndexes", undefined);
+      onUpdate("correctOptionId", optionId);
+      onUpdate("correctOptionIds", undefined);
     } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-      const current = question.correctOptionIndexes || [];
-      const exists = current.includes(optionIndex);
-      const newIndexes = exists
-        ? current.filter((i) => i !== optionIndex)
-        : [...current, optionIndex];
+      const current = question.correctOptionIds || [];
+      const exists = current.includes(optionId);
+      const newIds = exists
+        ? current.filter((id) => id !== optionId)
+        : [...current, optionId];
       onUpdate(
-        "correctOptionIndexes",
-        newIndexes.length > 0 ? newIndexes : undefined
+        "correctOptionIds",
+        newIds.length > 0 ? newIds : undefined
       );
-      onUpdate("correctOptionIndex", undefined);
+      onUpdate("correctOptionId", undefined);
     } else if (question.type === "TRUE_FALSE") {
-      onUpdate("correctOptionIndex", optionIndex);
-      onUpdate("correctOptionIndexes", undefined);
+      onUpdate("correctOptionId", optionId);
+      onUpdate("correctOptionIds", undefined);
     }
   };
 
   const isOptionCorrect = (optionIndex: number) => {
+    const optionId = question.options[optionIndex]?.id;
+
+    if (!optionId) return false;
+
     if (
       question.type === "SINGLE_SELECT_MULTIPLE_CHOICE" ||
       question.type === "TRUE_FALSE"
     ) {
-      return question.correctOptionIndex === optionIndex;
+      return question.correctOptionId === optionId;
     } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-      return question.correctOptionIndexes?.includes(optionIndex) || false;
+      return question.correctOptionIds?.includes(optionId) || false;
     }
     return false;
   };
@@ -651,8 +665,8 @@ function QuestionEditorCard({
                   Answer Options
                 </label>
                 <div className="space-y-3">
-                  {question.options.map((option: string, oi: number) => (
-                    <div key={oi} className="flex gap-4 items-center">
+                  {question.options.map((option: QuestionOption, oi: number) => (
+                    <div key={option.id || oi} className="flex gap-4 items-center">
                       <div className="pt-2">
                         {question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE" ? (
                           <input
@@ -676,7 +690,7 @@ function QuestionEditorCard({
                       </span>
                       <input
                         type="text"
-                        value={option}
+                        value={option.text}
                         onChange={(e) => onOptionUpdate(oi, e.target.value)}
                         className="flex-1 px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words"
                         placeholder={`Option ${String.fromCharCode(65 + oi)}`}
