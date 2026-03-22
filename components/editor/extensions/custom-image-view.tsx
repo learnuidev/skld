@@ -1,25 +1,10 @@
 "use client";
 
-import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
 import { useGetAssetQuery } from "@/modules/assets/use-get-asset-query";
+import { NodeViewWrapper, type ReactNodeViewProps } from "@tiptap/react";
 import { Image } from "lucide-react";
 
-interface CustomImageNodeViewProps {
-  node: {
-    attrs: {
-      assetId: string;
-      src?: string;
-      alt?: string;
-      title?: string;
-    };
-  };
-  updateAttributes: (attributes: Record<string, any>) => void;
-}
-
-export function CustomImageNodeView({
-  node,
-  updateAttributes,
-}: CustomImageNodeViewProps) {
+export function CustomImageNodeView({ node }: ReactNodeViewProps) {
   const { data: asset, isLoading } = useGetAssetQuery(node.attrs.assetId);
 
   if (isLoading || !asset) {

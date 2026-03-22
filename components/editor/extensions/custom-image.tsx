@@ -1,4 +1,6 @@
 import { Node } from "@tiptap/core";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { CustomImageNodeView } from "./custom-image-view";
 
 export interface CustomImageOptions {
   HTMLAttributes: Record<string, any>;
@@ -72,38 +74,7 @@ export const CustomImage = Node.create<CustomImageOptions>({
   },
 
   addNodeView() {
-    return ({ node }: any) => {
-      const img = document.createElement("img");
-
-      img.setAttribute("data-custom-image", "true");
-      img.setAttribute("loading", "lazy");
-
-      const updateAttributes = () => {
-        const attrs = node.attrs;
-
-        if (attrs.src) {
-          img.setAttribute("src", attrs.src);
-        }
-        if (attrs.alt) img.setAttribute("alt", attrs.alt);
-        if (attrs.title) img.setAttribute("title", attrs.title);
-        if (attrs.width) img.setAttribute("width", attrs.width);
-        if (attrs.height) img.setAttribute("height", attrs.height);
-
-        img.setAttribute("data-asset-id", attrs.assetId);
-      };
-
-      updateAttributes();
-
-      return {
-        dom: img,
-        update: (updatedNode: any) => {
-          if (updatedNode.type !== node.type) return false;
-          node = updatedNode;
-          updateAttributes();
-          return true;
-        },
-      };
-    };
+    return ReactNodeViewRenderer(CustomImageNodeView);
   },
 
   addCommands() {

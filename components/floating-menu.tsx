@@ -71,8 +71,6 @@ export function FloatingMenu({
       ?.flat()
       ?.filter((question) => question?.contentId === contentId) || [];
 
-  console.log("CONTAINS Q", containQuestions);
-
   return (
     <>
       <div className="flex flex-col gap-2 z-50">

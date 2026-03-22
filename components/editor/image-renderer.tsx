@@ -10,7 +10,7 @@ interface ImageRendererProps {
 export function ImageRenderer({ content }: ImageRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [processedAssets, setProcessedAssets] = useState<Set<string>>(
-    new Set(),
+    new Set()
   );
   const [assetUrls, setAssetUrls] = useState<Record<string, string>>({});
   const [assetMetadata, setAssetMetadata] = useState<
@@ -22,7 +22,7 @@ export function ImageRenderer({ content }: ImageRendererProps) {
 
     try {
       const { data: asset } = await fetch(`/api/assets/${assetId}`).then(
-        (res) => res.json(),
+        (res) => res.json()
       );
 
       if (asset?.downloadUrl) {
@@ -42,7 +42,7 @@ export function ImageRenderer({ content }: ImageRendererProps) {
     if (!containerRef.current) return;
 
     const images = containerRef.current.querySelectorAll(
-      "img[data-asset-id]",
+      "img[data-asset-id]"
     ) as NodeListOf<HTMLImageElement>;
 
     images.forEach((img) => {
@@ -57,7 +57,7 @@ export function ImageRenderer({ content }: ImageRendererProps) {
     if (!containerRef.current) return;
 
     const images = containerRef.current.querySelectorAll(
-      "img[data-asset-id]",
+      "img[data-asset-id]"
     ) as NodeListOf<HTMLImageElement>;
 
     images.forEach((img) => {
