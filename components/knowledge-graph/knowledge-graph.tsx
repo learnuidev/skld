@@ -247,6 +247,24 @@ export function KnowledgeGraph({
     [editedGraphData, pushToHistory, editingLink],
   );
 
+  const handleSaveMultipleLinks = useCallback(
+    (links: Link[]) => {
+      if (isUpdatingGraphRef.current) return;
+      isUpdatingGraphRef.current = true;
+
+      const newGraphData = {
+        ...editedGraphData,
+        links: [...editedGraphData.links, ...links],
+      };
+      pushToHistory(newGraphData);
+
+      setTimeout(() => {
+        isUpdatingGraphRef.current = false;
+      }, 0);
+    },
+    [editedGraphData, pushToHistory],
+  );
+
   const handleDeleteLink = useCallback(() => {
     if (!editingLink) return;
     if (isUpdatingGraphRef.current) return;
@@ -429,6 +447,7 @@ export function KnowledgeGraph({
         isOpen={linkEditorOpen}
         onClose={() => setLinkEditorOpen(false)}
         onSave={handleSaveLink}
+        onSaveMultiple={handleSaveMultipleLinks}
         onDelete={editingLink ? handleDeleteLink : undefined}
         nodes={currentGraphData.nodes}
       />

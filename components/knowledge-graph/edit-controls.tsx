@@ -11,6 +11,7 @@ import {
   Undo,
   Redo,
   Sparkles,
+  Check,
 } from "lucide-react";
 import {
   Dialog,
@@ -380,6 +381,7 @@ interface LinkEditorProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (link: Link) => void;
+  onSaveMultiple?: (links: Link[]) => void;
   onDelete?: () => void;
   nodes: Node[];
 }
@@ -402,6 +404,7 @@ export function LinkEditor({
   isOpen,
   onClose,
   onSave,
+  onSaveMultiple,
   onDelete,
   nodes,
 }: LinkEditorProps) {
@@ -422,6 +425,9 @@ export function LinkEditor({
   const [recommendations, setRecommendations] = useState<LinkRelationship[]>(
     []
   );
+  const [selectedRecommendations, setSelectedRecommendations] = useState<
+    Set<number>
+  >(new Set());
 
   const generateLinkRelationships = useGenerateLinkRelationshipsMutation();
 
@@ -448,6 +454,7 @@ export function LinkEditor({
       });
       setShowRecommendations(false);
       setRecommendations([]);
+      setSelectedRecommendations(new Set());
     }
   }, [link, isOpen]);
 
@@ -512,6 +519,57 @@ export function LinkEditor({
       value: LINK_VALUES[recommendation.strength],
     });
     setShowRecommendations(false);
+    setSelectedRecommendations(new Set());
+  };
+
+  const handleToggleRecommendation = (index: number) => {
+    setSelectedRecommendations((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const handleApplySelectedRecommendations = () => {
+    if (selectedRecommendations.size === 0) return;
+
+    const selectedIndices = Array.from(selectedRecommendations).sort(
+      (a, b) => a - b
+    );
+    const selectedRecs = selectedIndices.map((index) => recommendations[index]);
+
+    if (selectedRecs.length === 1) {
+      const linkData: Link = {
+        source: formData.source,
+        target: formData.target,
+        value: LINK_VALUES[selectedRecs[0].strength],
+        description: selectedRecs[0].description,
+        realExample: selectedRecs[0].realExample,
+        strength: selectedRecs[0].strength,
+        color: formData.color,
+      };
+      onSave(linkData);
+      onClose();
+    } else if (onSaveMultiple) {
+      const links: Link[] = selectedRecs.map((rec) => ({
+        source: formData.source,
+        target: formData.target,
+        value: LINK_VALUES[rec.strength],
+        description: rec.description,
+        realExample: rec.realExample,
+        strength: rec.strength,
+        color: formData.color,
+      }));
+      onSaveMultiple(links);
+      onClose();
+    }
+
+    setShowRecommendations(false);
+    setSelectedRecommendations(new Set());
   };
 
   const canGenerateRecommendations = formData.source && formData.target;
@@ -617,114 +675,118 @@ export function LinkEditor({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
-              Description
-            </Label>
-            <Textarea
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Explanation of relationship"
-              rows={2}
-              className={cn(
-                isDark
-                  ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300"
-              )}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
-              Real World Example
-            </Label>
-            <Textarea
-              value={formData.realExample}
-              onChange={(e) =>
-                setFormData({ ...formData, realExample: e.target.value })
-              }
-              placeholder="Specific real-world example"
-              rows={2}
-              className={cn(
-                isDark
-                  ? "bg-slate-900 border-slate-700 text-white"
-                  : "bg-slate-50 border-slate-300"
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
-                Strength
-              </Label>
-              <Select
-                value={formData.strength}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    strength: value as Link["strength"],
-                    value: LINK_VALUES[value as Link["strength"]],
-                  })
-                }
-              >
-                <SelectTrigger
+          {!showRecommendations && (
+            <>
+              <div className="space-y-2">
+                <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
+                  Description
+                </Label>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  placeholder="Explanation of relationship"
+                  rows={2}
                   className={cn(
                     isDark
                       ? "bg-slate-900 border-slate-700 text-white"
                       : "bg-slate-50 border-slate-300"
                   )}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent
-                  className={
-                    isDark
-                      ? "bg-slate-900 border-slate-700"
-                      : "bg-white border-slate-200"
-                  }
-                >
-                  {LINK_STRENGTHS.map((strength) => (
-                    <SelectItem
-                      key={strength}
-                      value={strength}
-                      className={isDark ? "text-white" : "text-slate-900"}
-                    >
-                      {strength.charAt(0).toUpperCase() + strength.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
-                Color
-              </Label>
-              <div className="grid grid-cols-4 gap-2">
-                {LINK_COLORS.map((color) => (
-                  <button
-                    key={color.value}
-                    type="button"
-                    onClick={() =>
-                      setFormData({ ...formData, color: color.value })
-                    }
-                    className={cn(
-                      "w-full aspect-square rounded-md border-2 transition-all",
-                      formData.color === color.value
-                        ? "border-emerald-500 ring-2 ring-emerald-500 ring-offset-2"
-                        : isDark
-                          ? "border-slate-700"
-                          : "border-slate-300"
-                    )}
-                    style={{ backgroundColor: color.value }}
-                    title={color.name}
-                  />
-                ))}
+                />
               </div>
-            </div>
-          </div>
+
+              <div className="space-y-2">
+                <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
+                  Real World Example
+                </Label>
+                <Textarea
+                  value={formData.realExample}
+                  onChange={(e) =>
+                    setFormData({ ...formData, realExample: e.target.value })
+                  }
+                  placeholder="Specific real-world example"
+                  rows={2}
+                  className={cn(
+                    isDark
+                      ? "bg-slate-900 border-slate-700 text-white"
+                      : "bg-slate-50 border-slate-300"
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
+                    Strength
+                  </Label>
+                  <Select
+                    value={formData.strength}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        strength: value as Link["strength"],
+                        value: LINK_VALUES[value as Link["strength"]],
+                      })
+                    }
+                  >
+                    <SelectTrigger
+                      className={cn(
+                        isDark
+                          ? "bg-slate-900 border-slate-700 text-white"
+                          : "bg-slate-50 border-slate-300"
+                      )}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent
+                      className={
+                        isDark
+                          ? "bg-slate-900 border-slate-700"
+                          : "bg-white border-slate-200"
+                      }
+                    >
+                      {LINK_STRENGTHS.map((strength) => (
+                        <SelectItem
+                          key={strength}
+                          value={strength}
+                          className={isDark ? "text-white" : "text-slate-900"}
+                        >
+                          {strength.charAt(0).toUpperCase() + strength.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
+                    Color
+                  </Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {LINK_COLORS.map((color) => (
+                      <button
+                        key={color.value}
+                        type="button"
+                        onClick={() =>
+                          setFormData({ ...formData, color: color.value })
+                        }
+                        className={cn(
+                          "w-full aspect-square rounded-md border-2 transition-all",
+                          formData.color === color.value
+                            ? "border-emerald-500 ring-2 ring-emerald-500 ring-offset-2"
+                            : isDark
+                              ? "border-slate-700"
+                              : "border-slate-300"
+                        )}
+                        style={{ backgroundColor: color.value }}
+                        title={color.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           {canGenerateRecommendations && (
             <Button
@@ -762,55 +824,97 @@ export function LinkEditor({
                 exit={{ opacity: 0, height: 0 }}
                 className="space-y-2"
               >
-                <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
-                  AI Recommendations
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
+                    AI Recommendations
+                  </Label>
+                  {selectedRecommendations.size > 0 && (
+                    <span
+                      className={cn(
+                        "text-xs px-2 py-1 rounded-full",
+                        isDark ? "bg-purple-900/50 text-purple-300" : "bg-purple-100 text-purple-700"
+                      )}
+                    >
+                      {selectedRecommendations.size} selected
+                    </span>
+                  )}
+                </div>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {recommendations.map((rec, index) => (
                     <button
                       key={index}
                       type="button"
-                      onClick={() => handleApplyRecommendation(rec)}
+                      onClick={() => handleToggleRecommendation(index)}
                       className={cn(
-                        "w-full text-left p-3 rounded-lg border transition-all hover:scale-[1.02]",
-                        isDark
-                          ? "bg-slate-900/50 border-slate-700 hover:border-purple-500"
-                          : "bg-slate-50 border-slate-300 hover:border-purple-500"
+                        "w-full text-left p-3 rounded-lg border transition-all hover:scale-[1.02] relative",
+                        selectedRecommendations.has(index)
+                          ? isDark
+                            ? "bg-purple-900/30 border-purple-500"
+                            : "bg-purple-50 border-purple-500"
+                          : isDark
+                            ? "bg-slate-900/50 border-slate-700 hover:border-purple-500"
+                            : "bg-slate-50 border-slate-300 hover:border-purple-500"
                       )}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span
+                      <div className="flex items-start gap-3">
+                        <div
                           className={cn(
-                            "text-xs font-medium px-2 py-1 rounded-full",
-                            rec.strength === "high"
-                              ? "bg-red-100 text-red-700"
-                              : rec.strength === "medium"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-green-100 text-green-700"
+                            "w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 mt-0.5",
+                            selectedRecommendations.has(index)
+                              ? "bg-purple-600 border-purple-600 text-white"
+                              : isDark
+                                ? "border-slate-600"
+                                : "border-slate-400"
                           )}
                         >
-                          {rec.strength.toUpperCase()} STRENGTH
-                        </span>
+                          {selectedRecommendations.has(index) && (
+                            <Check className="w-3 h-3" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <span
+                              className={cn(
+                                "text-xs font-medium px-2 py-1 rounded-full",
+                                rec.strength === "high"
+                                  ? "bg-red-100 text-red-700"
+                                  : rec.strength === "medium"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : "bg-green-100 text-green-700"
+                              )}
+                            >
+                              {rec.strength.toUpperCase()} STRENGTH
+                            </span>
+                          </div>
+                          <p
+                            className={cn(
+                              "text-sm font-medium mb-1",
+                              isDark ? "text-white" : "text-slate-900"
+                            )}
+                          >
+                            {rec.description}
+                          </p>
+                          <p
+                            className={cn(
+                              "text-xs",
+                              isDark ? "text-slate-400" : "text-slate-600"
+                            )}
+                          >
+                            {rec.realExample}
+                          </p>
+                        </div>
                       </div>
-                      <p
-                        className={cn(
-                          "text-sm font-medium mb-1",
-                          isDark ? "text-white" : "text-slate-900"
-                        )}
-                      >
-                        {rec.description}
-                      </p>
-                      <p
-                        className={cn(
-                          "text-xs",
-                          isDark ? "text-slate-400" : "text-slate-600"
-                        )}
-                      >
-                        {rec.realExample}
-                      </p>
                     </button>
                   ))}
                 </div>
+                {selectedRecommendations.size > 0 && (
+                  <Button
+                    onClick={handleApplySelectedRecommendations}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    Apply Selected ({selectedRecommendations.size})
+                  </Button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
