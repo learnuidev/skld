@@ -67,7 +67,7 @@ export function KnowledgeGraph({
   } = useKnowledgeGraph(
     isEditing ? editedGraphData : graphData,
     isDark,
-    selectedGroup,
+    selectedGroup
   );
 
   const hasChanges =
@@ -82,7 +82,7 @@ export function KnowledgeGraph({
       setFuture([]);
       setEditedGraphData(newGraphData);
     },
-    [editedGraphData],
+    [editedGraphData]
   );
 
   const handleUndo = useCallback(() => {
@@ -110,7 +110,7 @@ export function KnowledgeGraph({
   const handleToggleEdit = useCallback(() => {
     if (isEditing && hasChanges) {
       const confirm = window.confirm(
-        "You have unsaved changes. Do you want to discard them?",
+        "You have unsaved changes. Do you want to discard them?"
       );
       if (!confirm) return;
     }
@@ -158,7 +158,7 @@ export function KnowledgeGraph({
         const newGraphData = {
           ...editedGraphData,
           nodes: editedGraphData.nodes.map((n) =>
-            n.id === node.id ? node : n,
+            n.id === node.id ? node : n
           ),
         };
         pushToHistory(newGraphData);
@@ -174,7 +174,7 @@ export function KnowledgeGraph({
         isUpdatingGraphRef.current = false;
       }, 0);
     },
-    [editedGraphData, pushToHistory, editingNode],
+    [editedGraphData, pushToHistory, editingNode]
   );
 
   const handleDeleteNode = useCallback(() => {
@@ -190,7 +190,7 @@ export function KnowledgeGraph({
           (typeof l.source === "object" ? l.source.id : l.source) !==
             editingNode.id &&
           (typeof l.target === "object" ? l.target.id : l.target) !==
-            editingNode.id,
+            editingNode.id
       ),
     };
     pushToHistory(newGraphData);
@@ -244,7 +244,7 @@ export function KnowledgeGraph({
         isUpdatingGraphRef.current = false;
       }, 0);
     },
-    [editedGraphData, pushToHistory, editingLink],
+    [editedGraphData, pushToHistory, editingLink]
   );
 
   const handleSaveMultipleLinks = useCallback(
@@ -262,7 +262,7 @@ export function KnowledgeGraph({
         isUpdatingGraphRef.current = false;
       }, 0);
     },
-    [editedGraphData, pushToHistory],
+    [editedGraphData, pushToHistory]
   );
 
   const handleDeleteLink = useCallback(() => {
@@ -287,7 +287,7 @@ export function KnowledgeGraph({
             (typeof l.source === "object" ? l.source.id : l.source) ===
               sourceId &&
             (typeof l.target === "object" ? l.target.id : l.target) === targetId
-          ),
+          )
       ),
     };
     pushToHistory(newGraphData);
@@ -320,7 +320,7 @@ export function KnowledgeGraph({
   const handleCancel = useCallback(() => {
     if (hasChanges) {
       const confirm = window.confirm(
-        "Are you sure you want to discard your changes?",
+        "Are you sure you want to discard your changes?"
       );
       if (!confirm) return;
     }
@@ -378,13 +378,21 @@ export function KnowledgeGraph({
       />
       <SidePanel
         stats={Object.entries(
-          Object.groupBy(currentGraphData.nodes, (item) => item.group),
+          Object.groupBy(currentGraphData.nodes, (item) => item.group)
         ).map((item) => {
           const [id, items] = item;
+
+          const groupToColor = {
+            concept: "#4A7A7C",
+            attribute: "#C97C5D",
+            instance: "#9CAF88",
+            example: "#9CAF88",
+          } as any;
 
           return {
             id: id,
             count: (items || []).length,
+            color: groupToColor?.[id],
           };
         })}
         totalNodes={currentGraphData.nodes.length}

@@ -105,7 +105,7 @@ export const SidePanel = ({
   onReset: () => void;
   onLinkClick: (link: Link) => void;
   selectedLink: Link | null;
-  stats: { id: string; count: number }[];
+  stats: { id: string; count: number; color: string }[];
   courseId?: string;
   contentId?: string;
   isEditing?: boolean;
@@ -342,10 +342,11 @@ export const SidePanel = ({
                           10: "#2C5F2D",
                           11: "#8B3A3A",
                         } as any;
+
                         return (
                           <LegendItem
                             key={statItem.id}
-                            color={colors[idx || 0] || colors[0]}
+                            color={statItem.color || colors[0]}
                             label={statItem.id}
                             count={statItem.count}
                             isDark={isDark}
