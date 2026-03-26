@@ -3,12 +3,14 @@ export interface UserCourseRating {
   userId: string;
   courseId: string;
   rating: number;
+  review?: string;
   createdAt: number;
 }
 
 export interface CreateUserCourseRatingParams {
   courseId: string;
   rating: number;
+  review?: string;
 }
 
 export interface CourseRatingUpdate {

@@ -118,30 +118,31 @@ export function CourseRatingBanner({
             </div>
           </div>
 
-          {showReviewInput ? (
-            <div className="space-y-2">
-              <Textarea
-                placeholder="Share your experience with this course (optional)..."
-                value={review}
-                onChange={(e) => setReview(e.target.value)}
-                className="min-h-[100px] resize-none"
-                maxLength={500}
-              />
-              <div className="text-xs text-muted-foreground">
-                {review.length}/500 characters
+          {rating > 0 &&
+            (showReviewInput ? (
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Share your experience with this course (optional)..."
+                  value={review}
+                  onChange={(e) => setReview(e.target.value)}
+                  className="min-h-[100px] resize-none"
+                  maxLength={500}
+                />
+                <div className="text-xs text-muted-foreground">
+                  {review.length}/500 characters
+                </div>
               </div>
-            </div>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowReviewInput(true)}
-              className="text-muted-foreground hover:text-foreground gap-2"
-            >
-              <MessageSquare className="w-4 h-4" />
-              Leave a Review
-            </Button>
-          )}
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowReviewInput(true)}
+                className="text-muted-foreground hover:text-foreground gap-2"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Leave a Review
+              </Button>
+            ))}
 
           <Button
             onClick={handleRatingSubmit}
@@ -152,17 +153,18 @@ export function CourseRatingBanner({
           </Button>
         </div>
 
-      <button
-        onClick={() => {
-          setRating(0);
-          setReview("");
-          setShowReviewInput(false);
-        }}
-        className="absolute top-4 right-4 p-1 rounded-full hover:bg-secondary/50 transition-colors"
-        aria-label="Dismiss"
-      >
-        <X className="w-4 h-4 text-muted-foreground" />
-      </button>
+        <button
+          onClick={() => {
+            setRating(0);
+            setReview("");
+            setShowReviewInput(false);
+          }}
+          className="absolute top-4 right-4 p-1 rounded-full hover:bg-secondary/50 transition-colors"
+          aria-label="Dismiss"
+        >
+          <X className="w-4 h-4 text-muted-foreground" />
+        </button>
+      </div>
     </div>
   );
 }
