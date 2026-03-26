@@ -8,7 +8,8 @@ export interface CourseContent {
   chapterId?: string;
   title: string;
   description?: string;
-  content?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  content?: string | any;
   order: number;
   createdAt: number;
   updatedAt: number;

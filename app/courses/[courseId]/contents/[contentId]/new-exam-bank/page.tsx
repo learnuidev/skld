@@ -1,12 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useGenerateExamQuestionsMutation } from "@/modules/exam-bank/use-generate-exam-questions-mutation";
@@ -24,12 +20,13 @@ import { QUESTION_TYPES } from "@/modules/exam-bank/exam-bank.types";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { CoffeeIcon, Loader2, ChevronDown } from "lucide-react";
+import { CoffeeIcon, Loader2 } from "lucide-react";
 import Link from "next/link";
 import {
   parseContentToSlides,
   isStructuredContent,
   ParsedSlide,
+  ContentNode,
 } from "@/lib/content-parser";
 
 export default function NewExamBankPage() {
@@ -40,75 +37,46 @@ export default function NewExamBankPage() {
   const router = useRouter();
 
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId,
+    params.courseId
   );
+
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
+  );
+
+  const selectedDomain = course?.domains?.find((domain) =>
+    domain.chapters?.find((chapter) => chapter.id === content?.chapterId)
   );
 
   const generateExamQuestionsMutation = useGenerateExamQuestionsMutation();
 
   const [questionType, setQuestionType] = useState<string>(
-    "SINGLE_SELECT_MULTIPLE_CHOICE",
+    "SINGLE_SELECT_MULTIPLE_CHOICE"
   );
   const [difficulty, setDifficulty] = useState<string>("hard");
   const [questionCategory, setQuestionCategory] = useState<string>("scenario");
   const [totalQuestions, setTotalQuestions] = useState<string>("10");
   const [domain, setDomain] = useState<string>("");
+  const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedSlideIndex, setSelectedSlideIndex] = useState<number | null>(
-    null,
+    null
   );
-  const [isSlideSelectorOpen, setIsSlideSelectorOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("general");
+  const [previewSlideIndex, setPreviewSlideIndex] = useState<number | null>(
+    null
+  );
 
-  const slides = useState<ParsedSlide[]>(() => {
-    if (!content?.content) return [];
-    try {
-      const parsedContent = JSON.parse(content.content);
-      if (!isStructuredContent({ content: parsedContent })) return [];
-      return parseContentToSlides(parsedContent);
-    } catch {
-      return [];
-    }
-  })[0];
+  console.log("CONTERNT", content);
 
-  const title = content
-    ? `${content.title} - ${questionType || "Mixed"} ${difficulty || "Mixed"} Questions`
-    : "WIP";
+  const slides = (() => {
+    // if (!isStructuredContent(content)) return [];
+    return parseContentToSlides(content?.content?.content || []);
+  })();
 
-  const handleGenerate = async () => {
-    if (selectedSlideIndex === null && slides.length > 0) {
-      alert("Please select a slide");
-      return;
-    }
-
-    setIsGenerating(true);
-
-    try {
-      const examBank = await generateExamQuestionsMutation.mutateAsync({
-        courseId: params.courseId,
-        contentId: params.contentId,
-        slideIndex: selectedSlideIndex !== null ? selectedSlideIndex + 1 : 1,
-        specification: {
-          type: questionType || undefined,
-          difficulty: difficulty || undefined,
-          questionType: questionCategory || undefined,
-          totalQuestions: parseInt(totalQuestions),
-          domain: domain || undefined,
-          title,
-          description,
-        },
-      });
-
-      router.push(`/courses/${params.courseId}/exam-banks/${examBank.id}`);
-    } catch (error) {
-      console.error("Failed to generate exam questions:", error);
-      alert("Failed to generate exam questions. Please try again.");
-      setIsGenerating(false);
-    }
-  };
+  console.log("SLIDES", slides);
 
   if (courseLoading || contentLoading) {
     return (
@@ -126,9 +94,137 @@ export default function NewExamBankPage() {
     );
   }
 
+  const handleGenerate = async () => {
+    // if (selectedSlideIndex === null && slides.length > 0) {
+    //   setActiveTab("content");
+    //   return;
+    // }
+
+    if (!title.trim()) {
+      setActiveTab("general");
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      const examBank = await generateExamQuestionsMutation.mutateAsync({
+        courseId: params.courseId,
+        contentId: params.contentId,
+        domainId: selectedDomain?.id,
+        slideIndex: selectedSlideIndex !== null ? selectedSlideIndex + 1 : null,
+        specification: {
+          type: questionType || undefined,
+          difficulty: difficulty || undefined,
+          questionType: questionCategory || undefined,
+          totalQuestions: parseInt(totalQuestions),
+          domain: domain || undefined,
+          title,
+          description,
+        },
+      });
+
+      router.push(`/studio/${params.courseId}/exam-banks/${examBank.id}`);
+    } catch (error) {
+      console.error("Failed to generate exam questions:", error);
+      alert("Failed to generate exam questions. Please try again.");
+      setIsGenerating(false);
+    }
+  };
+
+  const renderSlideContent = (slide: ParsedSlide) => {
+    const renderNode = (node: ContentNode): React.ReactNode => {
+      if (node.type === "paragraph") {
+        const text =
+          node.content?.map((c) => c.text).join("") || node.text || "";
+        if (!text.trim()) return null;
+        return (
+          <p className="text-base leading-relaxed text-foreground/90">{text}</p>
+        );
+      }
+
+      if (node.type === "heading" && node.attrs?.level) {
+        const text =
+          node.content?.map((c) => c.text).join("") || node.text || "";
+        const level = node.attrs.level;
+        const fontSize =
+          level === 1 ? "text-2xl" : level === 2 ? "text-xl" : "text-lg";
+        return (
+          <h2
+            className={`font-semibold text-foreground ${fontSize} tracking-tight mb-6`}
+          >
+            {text}
+          </h2>
+        );
+      }
+
+      if (node.type === "bulletList") {
+        return (
+          <ul className="space-y-4 mb-6">
+            {node.content?.map((item, idx) => (
+              <li
+                key={idx}
+                className="text-base text-foreground/90 leading-relaxed flex items-start gap-3"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 flex-shrink-0 mt-2" />
+                <span className="flex-1">{renderNode(item)}</span>
+              </li>
+            ))}
+          </ul>
+        );
+      }
+
+      if (node.type === "listItem" && node.content) {
+        return (
+          <div>
+            {node.content.map((child, idx) => (
+              <div key={idx}>{renderNode(child)}</div>
+            ))}
+          </div>
+        );
+      }
+
+      if (node.type === "blockquote") {
+        return (
+          <blockquote className="border-l-4 border-foreground/20 pl-6 my-6 italic text-foreground/60 text-base">
+            {node.content?.map((child, idx) => {
+              if (child.type === "paragraph" && child.content) {
+                const text = child.content.map((c) => c.text).join("");
+                if (text.trim()) {
+                  return <p key={idx}>{text}</p>;
+                }
+              }
+              return <div key={idx}>{renderNode(child)}</div>;
+            })}
+          </blockquote>
+        );
+      }
+
+      return null;
+    };
+
+    return (
+      <div className="space-y-6">
+        {slide.heading && (
+          <div className="text-xl font-semibold text-foreground">
+            {slide.heading}
+          </div>
+        )}
+        {slide.intro && (
+          <p className="text-base text-foreground/70 leading-relaxed">
+            {slide.intro}
+          </p>
+        )}
+        {slide.content?.map((node, idx) => (
+          <div key={idx}>{renderNode(node)}</div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto px-6 pb-32 pt-24 sm:pt-32">
+      <div className="max-w-4xl mx-auto px-6 pb-32 pt-24 sm:pt-32">
         <div className="mb-16">
           <Link
             href={`/courses/${params.courseId}/contents/${params.contentId}`}
@@ -148,85 +244,173 @@ export default function NewExamBankPage() {
             </p>
           </div>
 
-          {slides.length > 0 && (
-            <div className="space-y-6">
-              <Label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                Select Content Slide
-              </Label>
-              <button
-                onClick={() => setIsSlideSelectorOpen(true)}
-                className="w-full group relative px-8 py-6 rounded-2xl border border-border/40 hover:border-border hover:bg-muted/40 transition-all duration-300 text-left flex items-center justify-between"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-base text-foreground">
-                    {selectedSlideIndex !== null
-                      ? slides[selectedSlideIndex]?.heading || "Untitled"
-                      : "Select a slide"}
-                  </p>
-                  <p className="text-sm text-muted-foreground/60 mt-1">
-                    {selectedSlideIndex !== null
-                      ? `Slide ${selectedSlideIndex + 1}`
-                      : "Choose content to generate questions from"}
-                  </p>
-                </div>
-                <ChevronDown className="w-5 h-5 text-muted-foreground/40 group-hover:text-foreground transition-colors ml-4" />
-              </button>
-            </div>
-          )}
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList
+              variant="line"
+              className="w-full justify-start mb-12 border-b border-border/40"
+            >
+              <TabsTrigger value="general" className="text-base pb-3">
+                General
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="text-base pb-3">
+                Question Settings
+              </TabsTrigger>
+              <TabsTrigger value="content" className="text-base pb-3">
+                Content
+              </TabsTrigger>
+              <TabsTrigger value="review" className="text-base pb-3">
+                Review
+              </TabsTrigger>
+            </TabsList>
 
-          <div className="grid gap-12">
-            <div className="space-y-4">
-              <Label
-                htmlFor="questionType"
-                className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
-              >
-                Question Type
-              </Label>
-              <Select value={questionType} onValueChange={setQuestionType}>
-                <SelectTrigger
-                  id="questionType"
-                  className="h-14 text-base px-6 border-border/40 rounded-xl"
-                >
-                  <SelectValue placeholder="Select question type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {QUESTION_TYPES.map((qt) => (
-                    <SelectItem
-                      key={qt.type}
-                      value={qt.type}
-                      className="text-base py-4"
-                    >
-                      {qt.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-12">
+            <TabsContent value="general" className="mt-8 space-y-12">
               <div className="space-y-4">
                 <Label
-                  htmlFor="difficulty"
+                  htmlFor="title"
                   className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
                 >
-                  Difficulty
+                  Title
                 </Label>
-                <Select value={difficulty} onValueChange={setDifficulty}>
+                <Input
+                  id="title"
+                  placeholder="Enter exam bank title..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="h-14 text-base px-6 border-border/40 rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <Label
+                  htmlFor="description"
+                  className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
+                >
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  placeholder="Add a description for this exam bank..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                  className="text-base px-6 py-4 resize-none border-border/40 rounded-xl"
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-8 space-y-12">
+              <div className="space-y-4">
+                <Label
+                  htmlFor="questionType"
+                  className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
+                >
+                  Question Type
+                </Label>
+                <Select value={questionType} onValueChange={setQuestionType}>
                   <SelectTrigger
-                    id="difficulty"
+                    id="questionType"
                     className="h-14 text-base px-6 border-border/40 rounded-xl"
                   >
-                    <SelectValue placeholder="Select difficulty" />
+                    <SelectValue placeholder="Select question type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="easy" className="text-base py-4">
-                      Easy
+                    {QUESTION_TYPES.map((qt) => (
+                      <SelectItem
+                        key={qt.type}
+                        value={qt.type}
+                        className="text-base py-4"
+                      >
+                        {qt.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-12">
+                <div className="space-y-4">
+                  <Label
+                    htmlFor="difficulty"
+                    className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
+                  >
+                    Difficulty
+                  </Label>
+                  <Select value={difficulty} onValueChange={setDifficulty}>
+                    <SelectTrigger
+                      id="difficulty"
+                      className="h-14 text-base px-6 border-border/40 rounded-xl"
+                    >
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="easy" className="text-base py-4">
+                        Easy
+                      </SelectItem>
+                      <SelectItem value="medium" className="text-base py-4">
+                        Medium
+                      </SelectItem>
+                      <SelectItem value="hard" className="text-base py-4">
+                        Hard
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-4">
+                  <Label
+                    htmlFor="totalQuestions"
+                    className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
+                  >
+                    Number of Questions
+                  </Label>
+                  <Input
+                    id="totalQuestions"
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={totalQuestions}
+                    onChange={(e) => setTotalQuestions(e.target.value)}
+                    className="h-14 text-base px-6 border-border/40 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label
+                  htmlFor="questionCategory"
+                  className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
+                >
+                  Question Category
+                </Label>
+                <Select
+                  value={questionCategory}
+                  onValueChange={setQuestionCategory}
+                >
+                  <SelectTrigger
+                    id="questionCategory"
+                    className="h-14 text-base px-6 border-border/40 rounded-xl"
+                  >
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="scenario" className="text-base py-4">
+                      Scenario
                     </SelectItem>
-                    <SelectItem value="medium" className="text-base py-4">
-                      Medium
+                    <SelectItem value="definition" className="text-base py-4">
+                      Definition
                     </SelectItem>
-                    <SelectItem value="hard" className="text-base py-4">
-                      Hard
+                    <SelectItem value="sequence" className="text-base py-4">
+                      Sequence
+                    </SelectItem>
+                    <SelectItem
+                      value="identification"
+                      className="text-base py-4"
+                    >
+                      Identification
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -234,97 +418,190 @@ export default function NewExamBankPage() {
 
               <div className="space-y-4">
                 <Label
-                  htmlFor="totalQuestions"
+                  htmlFor="domain"
                   className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
                 >
-                  Number of Questions
+                  Domain/Theme
                 </Label>
                 <Input
-                  id="totalQuestions"
-                  type="number"
-                  min="1"
-                  max="50"
-                  value={totalQuestions}
-                  onChange={(e) => setTotalQuestions(e.target.value)}
+                  id="domain"
+                  placeholder="e.g., Cloud Computing, AWS Services"
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
                   className="h-14 text-base px-6 border-border/40 rounded-xl"
                 />
               </div>
-            </div>
+            </TabsContent>
 
-            <div className="space-y-4">
-              <Label
-                htmlFor="questionCategory"
-                className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
-              >
-                Question Category
-              </Label>
-              <Select
-                value={questionCategory}
-                onValueChange={setQuestionCategory}
-              >
-                <SelectTrigger
-                  id="questionCategory"
-                  className="h-14 text-base px-6 border-border/40 rounded-xl"
-                >
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="scenario" className="text-base py-4">
-                    Scenario
-                  </SelectItem>
-                  <SelectItem value="definition" className="text-base py-4">
-                    Definition
-                  </SelectItem>
-                  <SelectItem value="sequence" className="text-base py-4">
-                    Sequence
-                  </SelectItem>
-                  <SelectItem value="identification" className="text-base py-4">
-                    Identification
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <TabsContent value="content" className="mt-8">
+              {slides.length === 0 ? (
+                <div className="text-center py-20 text-muted-foreground">
+                  No slides available
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-1 space-y-4">
+                      <Label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                        Slides ({slides.length})
+                      </Label>
+                      <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2">
+                        {slides.map((slide, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setPreviewSlideIndex(idx)}
+                            className={`w-full p-6 rounded-xl border text-left transition-all hover:border-border hover:bg-muted/40 ${
+                              previewSlideIndex === idx
+                                ? "border-foreground bg-muted/30"
+                                : "border-border/30 bg-background"
+                            }`}
+                          >
+                            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                              Slide {idx + 1}
+                            </div>
+                            <div className="text-base font-semibold text-foreground truncate">
+                              {slide.heading || "Untitled"}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      <div className="pt-4">
+                        <Button
+                          onClick={() => {
+                            setSelectedSlideIndex(previewSlideIndex);
+                            setActiveTab("review");
+                          }}
+                          disabled={previewSlideIndex === null}
+                          className="w-full h-12 rounded-xl"
+                        >
+                          Select This Slide
+                        </Button>
+                      </div>
+                    </div>
 
-            <div className="space-y-4">
-              <Label
-                htmlFor="domain"
-                className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
-              >
-                Domain/Theme
-              </Label>
-              <Input
-                id="domain"
-                placeholder="e.g., Cloud Computing, AWS Services"
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
-                className="h-14 text-base px-6 border-border/40 rounded-xl"
-              />
-            </div>
+                    <div className="lg:col-span-2">
+                      {previewSlideIndex !== null &&
+                      slides[previewSlideIndex] ? (
+                        <div className="bg-muted/20 rounded-2xl p-8 min-h-[500px]">
+                          <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-6">
+                            Slide {previewSlideIndex + 1}
+                          </div>
+                          {renderSlideContent(slides[previewSlideIndex])}
+                        </div>
+                      ) : (
+                        <div className="bg-muted/20 rounded-2xl p-8 min-h-[500px] flex items-center justify-center text-muted-foreground">
+                          Select a slide to preview
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
 
-            <div className="space-y-4">
-              <Label
-                htmlFor="description"
-                className="text-sm font-medium text-muted-foreground uppercase tracking-wider"
-              >
-                Description
-              </Label>
-              <Textarea
-                id="description"
-                placeholder="Add a description for this exam bank..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="text-base px-6 py-4 resize-none border-border/40 rounded-xl"
-              />
-            </div>
-          </div>
+            <TabsContent value="review" className="mt-8">
+              <div className="space-y-12">
+                <div className="bg-muted/20 rounded-2xl p-8 space-y-8">
+                  <div>
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                      Title
+                    </div>
+                    <div className="text-xl font-semibold text-foreground">
+                      {title || "Not set"}
+                    </div>
+                  </div>
+
+                  {description && (
+                    <div>
+                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                        Description
+                      </div>
+                      <div className="text-base text-foreground/80">
+                        {description}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-8">
+                  <div className="bg-muted/20 rounded-2xl p-8">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                      Question Type
+                    </div>
+                    <div className="text-base font-semibold text-foreground">
+                      {QUESTION_TYPES.find((qt) => qt.type === questionType)
+                        ?.title || "Not set"}
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/20 rounded-2xl p-8">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                      Difficulty
+                    </div>
+                    <div className="text-base font-semibold text-foreground capitalize">
+                      {difficulty || "Not set"}
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/20 rounded-2xl p-8">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                      Number of Questions
+                    </div>
+                    <div className="text-base font-semibold text-foreground">
+                      {totalQuestions}
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/20 rounded-2xl p-8">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                      Question Category
+                    </div>
+                    <div className="text-base font-semibold text-foreground capitalize">
+                      {questionCategory || "Not set"}
+                    </div>
+                  </div>
+
+                  {domain && (
+                    <div className="bg-muted/20 rounded-2xl p-8 sm:col-span-2">
+                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                        Domain/Theme
+                      </div>
+                      <div className="text-base font-semibold text-foreground">
+                        {domain}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedSlideIndex !== null &&
+                    slides[selectedSlideIndex] && (
+                      <div className="bg-muted/20 rounded-2xl p-8 sm:col-span-2">
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                          Selected Content
+                        </div>
+                        <div className="space-y-2">
+                          <div className="text-base font-semibold text-foreground">
+                            Slide {selectedSlideIndex + 1}:{" "}
+                            {slides[selectedSlideIndex].heading || "Untitled"}
+                          </div>
+                          {slides[selectedSlideIndex].intro && (
+                            <div className="text-sm text-foreground/70 line-clamp-2">
+                              {slides[selectedSlideIndex].intro}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
 
           <div className="flex flex-col sm:flex-row gap-6 pt-8">
             <Button
               variant="outline"
               onClick={() =>
                 router.push(
-                  `/courses/${params.courseId}/contents/${params.contentId}`,
+                  `/courses/${params.courseId}/contents/${params.contentId}`
                 )
               }
               className="flex-1 h-14 text-base border-border/40 hover:bg-muted/40"
@@ -341,65 +618,6 @@ export default function NewExamBankPage() {
           </div>
         </div>
       </div>
-
-      <Dialog open={isSlideSelectorOpen} onOpenChange={setIsSlideSelectorOpen}>
-        <DialogContent className="max-w-3xl max-h-[85vh] p-0">
-          <div className="p-8 border-b border-border/40">
-            <DialogTitle className="text-xl font-semibold">
-              Select a Slide
-            </DialogTitle>
-          </div>
-          <div className="p-8 space-y-3 overflow-y-auto max-h-[65vh]">
-            {slides.map((slide, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setSelectedSlideIndex(idx);
-                  setIsSlideSelectorOpen(false);
-                }}
-                className={`w-full p-8 rounded-2xl border text-left transition-all hover:border-border hover:bg-muted/40 ${
-                  selectedSlideIndex === idx
-                    ? "border-foreground bg-muted/30"
-                    : "border-border/30 bg-background"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-                      Slide {idx + 1}
-                    </div>
-                    <div className="text-lg font-semibold text-foreground mb-3">
-                      {slide.heading || "Untitled"}
-                    </div>
-                    {slide.intro && (
-                      <div className="text-sm text-muted-foreground/70 leading-relaxed">
-                        {slide.intro}
-                      </div>
-                    )}
-                  </div>
-                  {selectedSlideIndex === idx && (
-                    <div className="w-6 h-6 rounded-full bg-foreground flex items-center justify-center flex-shrink-0">
-                      <svg
-                        className="w-4 h-4 text-background"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={3}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={isGenerating}>
         <DialogContent showCloseButton={false} className="max-w-md p-8">
