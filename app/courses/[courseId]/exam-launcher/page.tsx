@@ -162,6 +162,7 @@ export default function ExamLauncherPage() {
         selectedDomains: Array.from(selectedDomains),
         totalTimeSeconds,
         examBankIds: [...selectedExamBanks],
+        examVariant: "normal",
       });
 
       router.push(`/courses/${params.courseId}/mock-exam/${mockExam.id}`);

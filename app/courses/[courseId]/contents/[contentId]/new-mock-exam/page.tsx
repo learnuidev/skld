@@ -54,10 +54,7 @@ export default function NewMockExamPage() {
   );
 
   const failedQuestions = mockExams?.reduce<string[]>((acc, exam) => {
-    if (
-      exam.examType === "failed" ||
-      exam.selectedContentIds?.includes(params.contentId)
-    ) {
+    if (exam.selectedContentIds?.includes(params.contentId)) {
       Object.entries(exam.answers || {}).forEach(([questionId, answer]) => {
         const question = examBanks
           ?.flatMap((eb) => eb.questions)
@@ -130,7 +127,7 @@ export default function NewMockExamPage() {
               ? selectedQuestionIds
               : undefined
             : failedQuestions || [],
-        examType: selectedType === "retry" ? "failed" : null,
+        examVariant: selectedType === "retry" ? "failed" : null,
       });
       router.push(
         `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`

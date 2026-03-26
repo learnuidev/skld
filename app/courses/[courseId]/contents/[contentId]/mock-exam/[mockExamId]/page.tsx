@@ -69,9 +69,19 @@ function ContentQuizPageInner({
 
   const selectedContentId = mockExam?.selectedContentIds?.[0];
 
+  console.log("EXAM BANKS", examBanks);
+  console.log("MOCK EXAM", mockExam);
+
   const allQuestions: Question[] = useMemo(() => {
     return (
       examBanks
+        ?.filter((examBank) => {
+          if (mockExam?.examBankIds?.length > 0) {
+            return mockExam?.examBankIds?.includes(examBank.id);
+          }
+
+          return true;
+        })
         ?.map((exam) =>
           exam?.questions?.map((question) => {
             return {
@@ -85,12 +95,15 @@ function ContentQuizPageInner({
           if (mockExam?.questionIds) {
             return mockExam?.questionIds?.includes(question?.id);
           }
-          return question?.contentId === selectedContentId;
+          return (
+            question?.contentId === selectedContentId &&
+            mockExam?.examBankIds?.length
+          );
         }) || []
     );
   }, [examBanks, selectedContentId]);
 
-  console.log("ALL QUESTIONS", allQuestions);
+
 
   const totalQuestions = allQuestions?.length || 0;
 
