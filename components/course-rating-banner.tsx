@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -9,10 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useAddUserCourseRatingMutation } from "@/modules/user-course-rating/use-add-user-course-rating-mutation";
-import { MessageSquare, X, Star, AlertCircle } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  useAddUserCourseRatingMutation,
+  useRefetchUserRatingsHandler,
+} from "@/modules/user-course-rating/use-add-user-course-rating-mutation";
+import { AlertCircle, MessageSquare, Star, X } from "lucide-react";
+import { useState } from "react";
 
 interface CourseRatingBannerProps {
   courseId: string;
@@ -26,35 +29,17 @@ export function CourseRatingBanner({
   onRated,
 }: CourseRatingBannerProps) {
   const [rating, setRating] = useState<number>(0);
-  const [daysSinceEnrollment, setDaysSinceEnrollment] = useState<number>(0);
   const [review, setReview] = useState<string>("");
   const [showReviewInput, setShowReviewInput] = useState<boolean>(false);
-  const [isVisible, setIsVisible] = useState<boolean>(false);
   const [showThankYouDialog, setShowThankYouDialog] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const addRatingMutation = useAddUserCourseRatingMutation();
-  const daysRef = useRef<number>(0);
 
-  useEffect(() => {
-    const calculateDays = () => {
-      const days = Math.floor(
-        (Date.now() - enrolledAt) / (1000 * 60 * 60 * 24),
-      );
-      daysRef.current = days;
-      setDaysSinceEnrollment(days);
-    };
+  const refetchUserRatingsHandler = useRefetchUserRatingsHandler();
 
-    calculateDays();
-
-    const interval = setInterval(calculateDays, 60000);
-
-    return () => clearInterval(interval);
-  }, [enrolledAt]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+  const daysSinceEnrollment = Math.floor(
+    (Date.now() - enrolledAt) / (1000 * 60 * 60 * 24)
+  );
 
   const isEligible = daysSinceEnrollment >= 10;
 
@@ -69,9 +54,7 @@ export function CourseRatingBanner({
         rating,
         review: review.trim() || undefined,
       });
-      setReview("");
-      setShowReviewInput(false);
-      setRating(0);
+
       setShowThankYouDialog(true);
       onRated?.();
     } catch (error) {
@@ -79,7 +62,7 @@ export function CourseRatingBanner({
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to submit rating. Please try again.",
+          : "Failed to submit rating. Please try again."
       );
     }
   };
@@ -88,7 +71,7 @@ export function CourseRatingBanner({
     <div
       className={cn(
         "relative border border-border rounded-2xl p-12 my-8 transition-all duration-500 ease-out",
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
+        "opacity-100 translate-y-0"
       )}
     >
       <button
@@ -96,7 +79,6 @@ export function CourseRatingBanner({
           setRating(0);
           setReview("");
           setShowReviewInput(false);
-          setIsVisible(false);
         }}
         className="absolute top-6 right-6 p-2 rounded-full hover:bg-muted transition-all duration-300 hover:scale-110"
         aria-label="Dismiss"
@@ -131,7 +113,7 @@ export function CourseRatingBanner({
                   "hover:scale-105 active:scale-95",
                   rating === num
                     ? "bg-foreground text-background font-medium"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80",
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
               >
                 {num}
@@ -146,7 +128,7 @@ export function CourseRatingBanner({
               "space-y-6 transition-all duration-500 ease-out",
               showReviewInput
                 ? "opacity-100 max-h-[500px]"
-                : "opacity-80 max-h-12",
+                : "opacity-80 max-h-12"
             )}
           >
             {!showReviewInput ? (
@@ -213,11 +195,11 @@ export function CourseRatingBanner({
             <Button
               onClick={() => {
                 setShowThankYouDialog(false);
-                setIsVisible(false);
+                refetchUserRatingsHandler(courseId);
               }}
               className="w-full"
             >
-              Continue
+              Close
             </Button>
           </div>
         </DialogContent>
