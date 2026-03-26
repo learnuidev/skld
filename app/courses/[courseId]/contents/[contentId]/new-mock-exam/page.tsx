@@ -22,6 +22,7 @@ import type { Answer } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { ChevronRight, GraduationCap, RefreshCw } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 type AnswerItem = number | string | boolean | null;
 
@@ -102,6 +103,15 @@ export default function NewMockExamPage() {
     )
   ).filter(Boolean) as string[];
 
+  const ebIds =
+    selectedType === "custom"
+      ? selectedExamBankIds.length > 0
+        ? selectedExamBankIds
+        : contentExamBanks?.map((eb) => eb.id) || []
+      : failedQuestionExamBankIds;
+
+  console.log("EB IDS  ", ebIds);
+
   const handleCreateExam = async () => {
     setIsCreating(true);
     try {
@@ -120,6 +130,7 @@ export default function NewMockExamPage() {
               ? selectedQuestionIds
               : undefined
             : failedQuestions || [],
+        examType: selectedType === "retry" ? "failed" : null,
       });
       router.push(
         `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`
@@ -167,93 +178,150 @@ export default function NewMockExamPage() {
         </div>
 
         {!selectedType ? (
-          <div className="grid md:grid-cols-2 gap-8" key="work">
-            <Card
-              className="group cursor-pointer border-2 hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden relative"
-              onClick={() => setSelectedType("custom")}
-              key="custom-card"
+          <motion.div
+            className="grid md:grid-cols-2 gap-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-              <CardHeader className="relative">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="p-4 rounded-2xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                    <GraduationCap className="w-6 h-6 text-primary" />
+              <Card
+                className="group cursor-pointer border-2 border-border hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden relative"
+                onClick={() => setSelectedType("custom")}
+                key="custom-card"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+                <CardHeader className="relative">
+                  <div className="flex items-start justify-between mb-6">
+                    <motion.div
+                      className="p-4 rounded-2xl bg-primary/10 group-hover:bg-primary/15 transition-colors"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <GraduationCap className="w-6 h-6 text-primary" />
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ x: 5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-all" />
+                    </motion.div>
                   </div>
-                  <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                </div>
-                <div className="relative">
-                  <CardTitle className="text-2xl mb-3">
-                    Create New Practice Exam
-                  </CardTitle>
-                  <CardDescription className="text-base leading-relaxed">
-                    Choose from available exam banks and optionally select
-                    specific questions to focus your practice on topics you want
-                    to master
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="pt-6 border-t border-border/50">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <span className="font-medium">
-                      {contentExamBanks?.length || 0} exam banks available
-                    </span>
+                  <div className="relative">
+                    <CardTitle className="text-2xl mb-3">
+                      Create New Practice Exam
+                    </CardTitle>
+                    <CardDescription className="text-base leading-relaxed">
+                      Choose from available exam banks and optionally select
+                      specific questions to focus your practice on topics you
+                      want to master
+                    </CardDescription>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="relative">
+                  <div className="pt-6 border-t border-border/50">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <span className="font-medium">
+                        {contentExamBanks?.length || 0} exam banks available
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card
-              className={`group cursor-pointer border-2 hover:border-rose-400/40 hover:shadow-2xl hover:shadow-rose-500/5 transition-all duration-300 overflow-hidden relative ${
-                !hasFailedQuestions ? "opacity-50 pointer-events-none" : ""
-              }`}
-              onClick={() => setSelectedType("retry")}
-              key="retry-card"
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-              <CardHeader className="relative">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="p-4 rounded-2xl bg-rose-500/10 group-hover:bg-rose-500/15 transition-colors">
-                    <RefreshCw className="w-6 h-6 text-rose-500" />
+              <Card
+                className={`group cursor-pointer border-2 border-border hover:border-rose-400/40 hover:shadow-2xl hover:shadow-rose-500/5 transition-all duration-300 overflow-hidden relative ${
+                  !hasFailedQuestions ? "opacity-50 pointer-events-none" : ""
+                }`}
+                onClick={() => setSelectedType("retry")}
+                key="retry-card"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-transparent to-transparent pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
+                <CardHeader className="relative">
+                  <div className="flex items-start justify-between mb-6">
+                    <motion.div
+                      className="p-4 rounded-2xl bg-rose-500/10 group-hover:bg-rose-500/15 transition-colors"
+                      whileHover={{ scale: 1.1, rotate: -5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <RefreshCw className="w-6 h-6 text-rose-500" />
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ x: 5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-rose-500 transition-all" />
+                    </motion.div>
                   </div>
-                  <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-rose-500 group-hover:translate-x-1 transition-all" />
-                </div>
-                <div className="relative">
-                  <CardTitle className="text-2xl mb-3">
-                    Review & Practice Missed Questions
-                  </CardTitle>
-                  <CardDescription className="text-base leading-relaxed">
-                    Focus on questions you've previously missed to strengthen
-                    your understanding and improve your performance
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="pt-6 border-t border-border/50">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <span className="font-medium">
-                      {failedQuestions?.length || 0} questions to review
-                    </span>
+                  <div className="relative">
+                    <CardTitle className="text-2xl mb-3">
+                      Review & Practice Missed Questions
+                    </CardTitle>
+                    <CardDescription className="text-base leading-relaxed">
+                      Focus on questions you've previously missed to strengthen
+                      your understanding and improve your performance
+                    </CardDescription>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardHeader>
+                <CardContent className="relative">
+                  <div className="pt-6 border-t border-border/50">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <span className="font-medium">
+                        {failedQuestions?.length || 0} questions to review
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
         ) : selectedType === "custom" ? (
-          <div className="space-y-12">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setSelectedType(null);
-                setSelectedExamBankIds([]);
-                setSelectedQuestionIds([]);
-              }}
-              className="hover:bg-accent/50"
-            >
-              ← Back
-            </Button>
+          <motion.div
+            className="space-y-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div initial={{ x: -20 }} animate={{ x: 0 }}>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setSelectedType(null);
+                  setSelectedExamBankIds([]);
+                  setSelectedQuestionIds([]);
+                }}
+                className="hover:bg-accent/50"
+              >
+                ← Back
+              </Button>
+            </motion.div>
 
-            <div className="space-y-8">
+            <motion.div
+              className="space-y-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
               <div className="space-y-3">
                 <h2 className="text-2xl font-semibold tracking-tight">
                   Select Exam Banks
@@ -264,14 +332,20 @@ export default function NewMockExamPage() {
                 </p>
               </div>
               {contentExamBanks?.length === 0 ? (
-                <Card className="p-12 text-center">
-                  <p className="text-muted-foreground">
-                    No exam banks available
-                  </p>
-                </Card>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="p-12 text-center">
+                    <p className="text-muted-foreground">
+                      No exam banks available
+                    </p>
+                  </Card>
+                </motion.div>
               ) : (
                 <div className="space-y-5">
-                  {contentExamBanks?.map((examBank) => {
+                  {contentExamBanks?.map((examBank, index) => {
                     const contentQuestions = examBank.questions.filter(
                       (q) => q.contentId === params.contentId
                     );
@@ -279,48 +353,63 @@ export default function NewMockExamPage() {
                       examBank.id
                     );
                     return (
-                      <Card
+                      <motion.div
                         key={examBank.id}
-                        className={`transition-all duration-300 hover:shadow-lg ${
-                          isSelected ? "border-primary/50 bg-primary/5" : ""
-                        }`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
                       >
-                        <CardHeader>
-                          <div className="flex items-start gap-5">
-                            <div className="pt-1">
-                              <input
-                                type="checkbox"
-                                id={examBank.id}
-                                checked={isSelected}
-                                onChange={() => toggleExamBank(examBank.id)}
-                                className="w-5 h-5 rounded-md border-2"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <CardTitle className="text-xl mb-2">
-                                {examBank.title}
-                              </CardTitle>
-                              {examBank.description && (
-                                <CardDescription className="text-base mb-3">
-                                  {examBank.description}
-                                </CardDescription>
-                              )}
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground/80">
-                                <span className="font-medium">
-                                  {contentQuestions.length} questions
-                                </span>
+                        <Card
+                          className={`transition-all duration-300 hover:shadow-lg ${
+                            isSelected ? "border-primary/50 bg-primary/5" : ""
+                          }`}
+                        >
+                          <CardHeader>
+                            <div className="flex items-start gap-5">
+                              <motion.div
+                                className="pt-1"
+                                whileHover={{ scale: 1.2 }}
+                                transition={{ type: "spring", stiffness: 400 }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  id={examBank.id}
+                                  checked={isSelected}
+                                  onChange={() => toggleExamBank(examBank.id)}
+                                  className="w-5 h-5 rounded-md border-2"
+                                />
+                              </motion.div>
+                              <div className="flex-1">
+                                <CardTitle className="text-xl mb-2">
+                                  {examBank.title}
+                                </CardTitle>
+                                {examBank.description && (
+                                  <CardDescription className="text-base mb-3">
+                                    {examBank.description}
+                                  </CardDescription>
+                                )}
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground/80">
+                                  <span className="font-medium">
+                                    {contentQuestions.length} questions
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </CardHeader>
-                      </Card>
+                          </CardHeader>
+                        </Card>
+                      </motion.div>
                     );
                   })}
                 </div>
               )}
-            </div>
+            </motion.div>
 
-            <div className="space-y-8">
+            <motion.div
+              className="space-y-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               <div className="space-y-3">
                 <h2 className="text-2xl font-semibold tracking-tight">
                   Select Questions
@@ -332,88 +421,135 @@ export default function NewMockExamPage() {
                 </p>
               </div>
               {selectedExamBankIds.length === 0 ? (
-                <Card className="p-12 text-center">
-                  <p className="text-muted-foreground">
-                    Please select at least one exam bank above to see questions
-                  </p>
-                </Card>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="p-12 text-center">
+                    <p className="text-muted-foreground">
+                      Please select at least one exam bank above to see
+                      questions
+                    </p>
+                  </Card>
+                </motion.div>
               ) : (
                 <div className="space-y-5">
                   {contentExamBanks
                     ?.filter((eb) => selectedExamBankIds.includes(eb.id))
-                    .map((examBank) => {
+                    .map((examBank, index) => {
                       const contentQuestions = examBank.questions.filter(
                         (q) => q.contentId === params.contentId
                       );
                       return (
-                        <Card
+                        <motion.div
                           key={examBank.id}
-                          className="hover:shadow-md transition-all"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.05 }}
                         >
-                          <CardHeader>
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <CardTitle className="text-lg mb-1">
-                                  {examBank.title}
-                                </CardTitle>
-                                <p className="text-sm text-muted-foreground/80">
-                                  {contentQuestions.length} questions
-                                </p>
+                          <Card className="hover:shadow-md transition-all">
+                            <CardHeader>
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <CardTitle className="text-lg mb-1">
+                                    {examBank.title}
+                                  </CardTitle>
+                                  <p className="text-sm text-muted-foreground/80">
+                                    {contentQuestions.length} questions
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
-                              {contentQuestions.map((question) => (
-                                <label
-                                  key={question.id}
-                                  className="group flex items-center gap-4 p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-accent/50 cursor-pointer transition-all"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedQuestionIds.includes(
-                                      question.id
-                                    )}
-                                    onChange={() => toggleQuestion(question.id)}
-                                    className="w-4 h-4 rounded"
-                                  />
-                                  <span className="flex-1 text-sm leading-relaxed">
-                                    {question.question.slice(0, 120)}
-                                    {question.question.length > 120 && "..."}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                {contentQuestions.map((question, qIndex) => (
+                                  <motion.label
+                                    key={question.id}
+                                    className="group flex items-center gap-4 p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-accent/50 cursor-pointer transition-all"
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{
+                                      duration: 0.2,
+                                      delay: qIndex * 0.03,
+                                    }}
+                                    whileHover={{ x: 5 }}
+                                  >
+                                    <motion.input
+                                      type="checkbox"
+                                      checked={selectedQuestionIds.includes(
+                                        question.id
+                                      )}
+                                      onChange={() =>
+                                        toggleQuestion(question.id)
+                                      }
+                                      className="w-4 h-4 rounded"
+                                      whileHover={{ scale: 1.2 }}
+                                      transition={{
+                                        type: "spring",
+                                        stiffness: 400,
+                                      }}
+                                    />
+                                    <span className="flex-1 text-sm leading-relaxed">
+                                      {question.question.slice(0, 120)}
+                                      {question.question.length > 120 && "..."}
+                                    </span>
+                                  </motion.label>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
                       );
                     })}
                 </div>
               )}
-            </div>
+            </motion.div>
 
-            <div className="flex justify-end pt-4">
-              <Button
-                onClick={handleCreateExam}
-                disabled={selectedExamBankIds.length === 0 || isCreating}
-                size="lg"
-                className="rounded-full px-8"
-              >
-                {isCreating ? "Creating Exam..." : "Begin Practice Session"}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-12">
-            <Button
-              variant="ghost"
-              onClick={() => setSelectedType(null)}
-              className="hover:bg-accent/50"
+            <motion.div
+              className="flex justify-end pt-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
             >
-              ← Back
-            </Button>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  onClick={handleCreateExam}
+                  disabled={selectedExamBankIds.length === 0 || isCreating}
+                  size="lg"
+                  className="rounded-full px-8"
+                >
+                  {isCreating ? "Creating Exam..." : "Begin Practice Session"}
+                </Button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        ) : (
+          <motion.div
+            className="space-y-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div initial={{ x: -20 }} animate={{ x: 0 }}>
+              <Button
+                variant="ghost"
+                onClick={() => setSelectedType(null)}
+                className="hover:bg-accent/50"
+              >
+                ← Back
+              </Button>
+            </motion.div>
 
-            <div className="space-y-8">
+            <motion.div
+              className="space-y-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
               <div className="space-y-3">
                 <h2 className="text-2xl font-semibold tracking-tight">
                   Questions to Review
@@ -427,48 +563,78 @@ export default function NewMockExamPage() {
 
               {failedQuestions && failedQuestions.length > 0 ? (
                 <div className="space-y-4">
-                  {failedQuestions.map((questionId) => {
+                  {failedQuestions.map((questionId, index) => {
                     const question = examBanks
                       ?.flatMap((eb) => eb.questions)
                       .find((q) => q.id === questionId);
                     if (!question) return null;
                     return (
-                      <Card
+                      <motion.div
                         key={questionId}
-                        className="hover:border-primary/30 hover:shadow-md transition-all"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
                       >
-                        <CardContent className="p-6">
-                          <p className="text-base leading-relaxed">
-                            {question.question.slice(0, 180)}
-                            {question.question.length > 180 && "..."}
-                          </p>
-                        </CardContent>
-                      </Card>
+                        <Card className="hover:border-primary/30 hover:shadow-md transition-all">
+                          <CardContent className="p-6">
+                            <p className="text-base leading-relaxed">
+                              {question.question.slice(0, 180)}
+                              {question.question.length > 180 && "..."}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
                     );
                   })}
                 </div>
               ) : (
-                <Card className="p-16 text-center border-2 border-dashed">
-                  <RefreshCw className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-30" />
-                  <p className="text-lg text-muted-foreground/80 max-w-md mx-auto leading-relaxed">
-                    No questions to review yet. Take some practice exams and
-                    come back to review any questions you miss.
-                  </p>
-                </Card>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Card className="p-16 text-center border-2 border-dashed">
+                    <motion.div
+                      initial={{ rotate: 0 }}
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 20,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                    >
+                      <RefreshCw className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-30" />
+                    </motion.div>
+                    <p className="text-lg text-muted-foreground/80 max-w-md mx-auto leading-relaxed">
+                      No questions to review yet. Take some practice exams and
+                      come back to review any questions you miss.
+                    </p>
+                  </Card>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
 
-            <div className="flex justify-end pt-4">
-              <Button
-                onClick={handleCreateExam}
-                disabled={!hasFailedQuestions || isCreating}
-                size="lg"
-                className="rounded-full px-8"
+            <motion.div
+              className="flex justify-end pt-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                {isCreating ? "Creating Exam..." : "Start Review Session"}
-              </Button>
-            </div>
-          </div>
+                <Button
+                  onClick={handleCreateExam}
+                  disabled={!hasFailedQuestions || isCreating}
+                  size="lg"
+                  className="rounded-full px-8"
+                >
+                  {isCreating ? "Creating Exam..." : "Start Review Session"}
+                </Button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
         )}
       </div>
 

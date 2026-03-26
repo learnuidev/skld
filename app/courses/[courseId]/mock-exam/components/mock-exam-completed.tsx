@@ -150,55 +150,54 @@ export function MockExamCompleted({
 
     return (
       <div className="min-h-screen flex justify-center bg-background py-12">
-        <div className="w-full">
-          <div className="bg-white dark:bg-[rgb(10,11,12)] rounded-2xl border border-border shadow-lg p-8">
-            <div className="mb-8">
-              <Link
-                href={`/courses/${examBank.courseId}`}
-                className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Course
-              </Link>
-            </div>
+        <div className="w-full max-w-3xl">
+          <div className="mb-12">
+            <Link
+              href={`/courses/${examBank.courseId}`}
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Course
+            </Link>
+          </div>
 
-            <div className="mb-12">
-              <h1 className="text-3xl font-bold text-foreground mb-2">
-                Exam Results
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                {mockExam.examType === "timed" ? "Timed Exam" : "Untimed Exam"}
-              </p>
-            </div>
+          <div className="mb-12">
+            <h1 className="text-4xl font-semibold tracking-tight mb-3">
+              Exam Results
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              {mockExam.examType === "timed" ? "Timed Exam" : "Untimed Exam"}
+            </p>
+          </div>
 
-            <div className="grid grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-3 gap-8 mb-12">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
+                Questions Answered
+              </h2>
+              <div className="text-3xl font-semibold text-foreground">
+                {questionsAnswered}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
+                Total Time Spent
+              </h2>
+              <div className="text-3xl font-semibold text-foreground">
+                {formatTime(totalTimeSpent)}
+              </div>
+            </div>
+            {overallAccuracy !== null && (
               <div className="flex flex-col gap-2">
-                <div className="text-sm text-muted-foreground">
-                  Questions Answered
-                </div>
-                <div className="text-3xl font-bold text-foreground">
-                  {questionsAnswered}
+                <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Accuracy</h2>
+                <div className="text-3xl font-semibold text-foreground">
+                  {overallAccuracy}%
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="text-sm text-muted-foreground">
-                  Total Time Spent
-                </div>
-                <div className="text-3xl font-bold text-foreground">
-                  {formatTime(totalTimeSpent)}
-                </div>
-              </div>
-              {overallAccuracy !== null && (
-                <div className="flex flex-col gap-2">
-                  <div className="text-sm text-muted-foreground">Accuracy</div>
-                  <div className="text-3xl font-bold text-foreground">
-                    {overallAccuracy}%
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
+          </div>
 
-            <div className="h-px w-full bg-border mb-8" />
+          <div className="h-px w-full bg-border mb-12" />
 
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-foreground mb-6">

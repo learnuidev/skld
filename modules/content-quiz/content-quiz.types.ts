@@ -9,7 +9,7 @@ export interface CreateContentQuizParams {
   contentId: string;
   examBankIds: string[];
   questionIds?: string[];
-  examType?: ExamType;
+  examType?: ExamType | null;
 }
 
 export interface SubmitContentQuizParams {

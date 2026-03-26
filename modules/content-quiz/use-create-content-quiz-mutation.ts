@@ -23,7 +23,13 @@ export function useCreateContentQuizMutation() {
             "Content-Type": "application/json",
             Authorization: token,
           },
-        },
+
+          body: JSON.stringify({
+            questionIds: params.questionIds,
+            examBankIds: params.examBankIds,
+            examType: params.examType,
+          }),
+        }
       );
 
       if (!response.ok) {

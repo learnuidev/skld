@@ -72,11 +72,25 @@ function ContentQuizPageInner({
   const allQuestions: Question[] = useMemo(() => {
     return (
       examBanks
-        ?.map((exam) => exam?.questions)
+        ?.map((exam) =>
+          exam?.questions?.map((question) => {
+            return {
+              ...question,
+              examBankId: exam.id,
+            };
+          })
+        )
         ?.flat()
-        ?.filter((question) => question?.contentId === selectedContentId) || []
+        ?.filter((question) => {
+          if (mockExam?.questionIds) {
+            return mockExam?.questionIds?.includes(question?.id);
+          }
+          return question?.contentId === selectedContentId;
+        }) || []
     );
   }, [examBanks, selectedContentId]);
+
+  console.log("ALL QUESTIONS", allQuestions);
 
   const totalQuestions = allQuestions?.length || 0;
 
