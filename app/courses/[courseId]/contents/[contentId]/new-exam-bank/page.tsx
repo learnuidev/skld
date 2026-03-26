@@ -69,14 +69,9 @@ export default function NewExamBankPage() {
     null
   );
 
-  console.log("CONTERNT", content);
-
   const slides = (() => {
-    // if (!isStructuredContent(content)) return [];
     return parseContentToSlides(content?.content?.content || []);
   })();
-
-  console.log("SLIDES", slides);
 
   if (courseLoading || contentLoading) {
     return (
@@ -95,11 +90,6 @@ export default function NewExamBankPage() {
   }
 
   const handleGenerate = async () => {
-    // if (selectedSlideIndex === null && slides.length > 0) {
-    //   setActiveTab("content");
-    //   return;
-    // }
-
     if (!title.trim()) {
       setActiveTab("general");
       return;

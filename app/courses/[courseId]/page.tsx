@@ -1,6 +1,7 @@
 "use client";
 
 import { ContentTab } from "@/app/studio/[courseId]/components/content-tab";
+import { CourseRatingBanner } from "@/components/course-rating-banner";
 import { CourseBackLink } from "@/components/course/course-back-link";
 import { CourseContainer } from "@/components/course/course-container";
 import { CourseGeneralInfo } from "@/components/course/course-general-info";
@@ -18,12 +19,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
-import { useGetEnrollmentQuery } from "@/modules/enrollment/use-get-enrollment-query";
 import { useCreateEnrollmentMutation } from "@/modules/enrollment/use-create-enrollment-mutation";
-import { useDeleteMockExamMutation } from "@/modules/user-mock-exams/use-delete-mock-exam-mutation";
-import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
+import { useGetEnrollmentQuery } from "@/modules/enrollment/use-get-enrollment-query";
+import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useGetUserCourseRatingQuery } from "@/modules/user-course-rating/use-get-user-course-rating-query";
+import { useDeleteMockExamMutation } from "@/modules/user-mock-exams/use-delete-mock-exam-mutation";
+import { useListMockExamsQuery } from "@/modules/user-mock-exams/use-list-mock-exams-query";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -37,7 +38,6 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { CourseRatingBanner } from "@/components/course-rating-banner";
 
 function DeleteDialog({
   open,
@@ -126,7 +126,7 @@ function MyMockExamsTab({
   courseId: string;
   course: any;
 }) {
-  const { data: mockExams, isLoading } = useGetMockExamsQuery(courseId);
+  const { data: mockExams, isLoading } = useListMockExamsQuery(courseId);
   const { data: examBanks } = useGetExamBanksQuery(courseId);
   const { data: enrollment } = useGetEnrollmentQuery(courseId);
   const { mutateAsync: createEnrollment } = useCreateEnrollmentMutation();
@@ -134,7 +134,7 @@ function MyMockExamsTab({
   const queryClient = useQueryClient();
   const deleteMockExamMutation = useDeleteMockExamMutation();
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">(
-    "all",
+    "all"
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
@@ -262,10 +262,10 @@ function MyMockExamsTab({
       : mockExams.filter((exam) => exam.status === filter);
 
   const inProgressExams = filteredExams.filter(
-    (exam) => exam.status === "in_progress",
+    (exam) => exam.status === "in_progress"
   );
   const completedExams = filteredExams.filter(
-    (exam) => exam.status === "completed",
+    (exam) => exam.status === "completed"
   );
 
   return (
@@ -395,7 +395,7 @@ function MyMockExamsTab({
                 const allQuestions = getExamQuestions(
                   exam,
                   examBanks || [],
-                  course?.domains || [],
+                  course?.domains || []
                 );
 
                 Object.entries(exam.answers || {}).forEach(
@@ -403,7 +403,7 @@ function MyMockExamsTab({
                     if (!answer) return;
 
                     const question = allQuestions.find(
-                      (q: any) => q.id === questionId,
+                      (q: any) => q.id === questionId
                     );
                     if (!question) return;
 
@@ -421,7 +421,7 @@ function MyMockExamsTab({
                       if (
                         userAnswers.length === correctAnswers.length &&
                         userAnswers.every((ans: string) =>
-                          correctAnswers.includes(ans),
+                          correctAnswers.includes(ans)
                         )
                       ) {
                         correct++;
@@ -431,7 +431,7 @@ function MyMockExamsTab({
                         correct++;
                       }
                     }
-                  },
+                  }
                 );
 
                 if (total === 0) return null;
@@ -560,7 +560,7 @@ function MyMockExamsTab({
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
           mockExamTitle={getExamTitle(
-            mockExams?.find((e) => e.id === examToDelete),
+            mockExams?.find((e) => e.id === examToDelete)
           )}
           onConfirm={() => {
             if (examToDelete) {
@@ -612,7 +612,7 @@ function InProgressExamBanner({
   const percentageRemaining =
     totalTimeInMilliSeconds !== null && timeRemainingInMilliseconds !== null
       ? Math.round(
-          (timeRemainingInMilliseconds / totalTimeInMilliSeconds) * 100,
+          (timeRemainingInMilliseconds / totalTimeInMilliSeconds) * 100
         )
       : null;
 
@@ -677,7 +677,7 @@ export default function CoursePage() {
   const { data: course, isLoading, error } = useGetCourseQuery(params.courseId);
   const { data: enrollment } = useGetEnrollmentQuery(params.courseId);
   const { data: userRating } = useGetUserCourseRatingQuery(params.courseId);
-  const { data: mockExams } = useGetMockExamsQuery(params.courseId);
+  const { data: mockExams } = useListMockExamsQuery(params.courseId);
   const createEnrollmentMutation = useCreateEnrollmentMutation();
   const [showRatingBanner, setShowRatingBanner] = useState(true);
 
@@ -697,7 +697,7 @@ export default function CoursePage() {
   };
 
   const inProgressExam = mockExams?.find(
-    (exam) => exam.status === "in_progress",
+    (exam) => exam.status === "in_progress"
   );
 
   const handleResumeExam = () => {
@@ -770,7 +770,7 @@ export default function CoursePage() {
               "relative px-4 py-3 text-sm font-medium transition-colors",
               activeTab === tab
                 ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground",
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {tab}
@@ -790,7 +790,7 @@ export default function CoursePage() {
             courseId={course.id}
             chapters={
               course.domains?.flatMap((d) =>
-                d.chapters.map((c) => ({ ...c })),
+                d.chapters.map((c) => ({ ...c }))
               ) || []
             }
           />

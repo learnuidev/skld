@@ -11,7 +11,7 @@ import { CourseContent } from "@/modules/course-content/course-content.types";
 import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
 import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
-import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
+
 import {
   BarChart3,
   LightbulbIcon,
@@ -61,8 +61,6 @@ export function FloatingMenu({
   ongoingContentQuiz,
 }: FloatingMenuProps) {
   const isAuthor = useIsUserCourseAuthor(courseId);
-
-  const { data: mockExams } = useGetMockExamsQuery(courseId);
 
   const { data: examBanks } = useGetExamBanksQuery(courseId);
 

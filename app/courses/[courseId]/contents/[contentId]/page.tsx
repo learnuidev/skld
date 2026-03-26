@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAutoSizeTextarea } from "@/hooks/ui/use-auto-size-textarea";
+import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
 import { useUpdateCourseContentMutation } from "@/modules/course-content/use-update-course-content-mutation";
@@ -19,29 +20,25 @@ import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-autho
 import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
 import { useRetryKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-retry-knowledge-graph-mutation";
-import { useSkldMutation } from "@/modules/skld/use-skld-mutation";
 import { ContentRecommendation } from "@/modules/skld/skld.types";
-import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
-import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
+import { useSkldMutation } from "@/modules/skld/use-skld-mutation";
+
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useGetUserContentStatsQuery } from "@/modules/user-content-stats/use-get-user-content-stats-query";
+import { useListMockExamsQuery } from "@/modules/user-mock-exams/use-list-mock-exams-query";
 import { fetchAuthSession } from "aws-amplify/auth";
 import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
-  Clock,
   CoffeeIcon,
-  Eye,
   Loader2,
   Save,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { useGetUserContentStatsQuery } from "@/modules/user-content-stats/use-get-user-content-stats-query";
-import { cn } from "@/lib/utils";
-import { UserContentStatsResponse } from "@/modules/user-content-stats/user-content-stats.types";
-import { TimePresent } from "./time-present";
 
 function estimateReadTime(text = "", wordsPerMinute: number = 225): number {
   const words: number = JSON.stringify(text).trim().split(/\s+/).length;
@@ -77,7 +74,7 @@ export default function ContentPage() {
 
   const createContentQuizMutation = useCreateContentQuizMutation();
 
-  const { data: mockExams } = useGetMockExamsQuery(params.courseId);
+  const { data: mockExams } = useListMockExamsQuery(params.courseId);
 
   const ongoingContentQuiz = mockExams?.find(
     (exam) =>

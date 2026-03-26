@@ -503,7 +503,6 @@ function ContentQuizPageInner({
                     const existingAnswer =
                       mockExam.answers[currentQuestion?.id];
 
-                    console.log("YOOOOOO", existingAnswer);
                     if (existingAnswer) {
                       handleContinue();
                     } else {
