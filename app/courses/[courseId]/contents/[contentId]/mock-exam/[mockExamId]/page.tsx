@@ -69,9 +69,6 @@ function ContentQuizPageInner({
 
   const selectedContentId = mockExam?.selectedContentIds?.[0];
 
-  console.log("EXAM BANKS", examBanks);
-  console.log("MOCK EXAM", mockExam);
-
   const allQuestions: Question[] = useMemo(() => {
     return (
       examBanks
@@ -102,8 +99,6 @@ function ContentQuizPageInner({
         }) || []
     );
   }, [examBanks, selectedContentId]);
-
-
 
   const totalQuestions = allQuestions?.length || 0;
 

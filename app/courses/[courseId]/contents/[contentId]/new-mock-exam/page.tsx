@@ -107,8 +107,6 @@ export default function NewMockExamPage() {
         : contentExamBanks?.map((eb) => eb.id) || []
       : failedQuestionExamBankIds;
 
-  console.log("EB IDS  ", ebIds);
-
   const handleCreateExam = async () => {
     setIsCreating(true);
     try {
@@ -161,8 +159,6 @@ export default function NewMockExamPage() {
       </div>
     );
   }
-
-  console.log("SELECTED TYPE", selectedType);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-16 px-6">
