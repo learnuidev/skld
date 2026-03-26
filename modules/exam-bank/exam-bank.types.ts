@@ -1,3 +1,5 @@
+import { ResourceStatus } from "../knowledge-graph/knowledge-graph.types";
+
 export type QuestionType =
   | "SINGLE_SELECT_MULTIPLE_CHOICE"
   | "MULTIPLE_SELECT_MULTIPLE_CHOICE"
@@ -61,6 +63,8 @@ export interface ExamBank {
   questions: Question[];
   createdAt: number;
   updatedAt: number;
+
+  status?: ResourceStatus;
 }
 
 export interface CreateExamBankParams {

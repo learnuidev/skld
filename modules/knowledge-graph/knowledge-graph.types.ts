@@ -1,4 +1,38 @@
-import { GraphData } from "@/components/knowledge-graph/knowledge-graph.types";
+type NodeType = string;
+type LinkStrength = "high" | "medium" | "low";
+export type ResourceStatus =
+  | "pending"
+  | "in_progress"
+  | "completed"
+  | "failed"
+  | "processing";
+
+export interface Node {
+  id: string;
+  group: string;
+  type: NodeType;
+  label: string;
+  description: string;
+  examples: string[];
+  color: string;
+  weight: number;
+  contentId: string;
+}
+
+export interface Link {
+  source: string | Node;
+  target: string | Node;
+  value: number;
+  description: string;
+  realExample: string;
+  strength: LinkStrength;
+  color: string;
+}
+
+export interface GraphData {
+  nodes: Node[];
+  links: Link[];
+}
 
 export interface KnowledgeGraph {
   id: string;
@@ -7,7 +41,7 @@ export interface KnowledgeGraph {
   chapterId: string | null;
   contentId: string | null;
   userId: string;
-  status: "pending" | "in_progress" | "completed" | "failed" | "processing";
+  status: ResourceStatus;
   knowledgeGraphData?: GraphData;
   error?: string;
   createdAt: number;

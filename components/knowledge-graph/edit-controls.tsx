@@ -32,11 +32,12 @@ import {
 } from "@/components/ui/select";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { Node, Link } from "./knowledge-graph.types";
+
 import {
   useGenerateLinkRelationshipsMutation,
   LinkRelationship,
 } from "@/modules/knowledge-graph/use-gen-link-relationships-mutation";
+import { Link, Node } from "@/modules/knowledge-graph/knowledge-graph.types";
 
 interface NodeEditorProps {
   node?: Node | null;
@@ -717,7 +718,9 @@ export function LinkEditor({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
+                  <Label
+                    className={isDark ? "text-slate-200" : "text-slate-700"}
+                  >
                     Strength
                   </Label>
                   <Select
@@ -759,7 +762,9 @@ export function LinkEditor({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
+                  <Label
+                    className={isDark ? "text-slate-200" : "text-slate-700"}
+                  >
                     Color
                   </Label>
                   <div className="grid grid-cols-4 gap-2">
@@ -825,14 +830,18 @@ export function LinkEditor({
                 className="space-y-2"
               >
                 <div className="flex items-center justify-between">
-                  <Label className={isDark ? "text-slate-200" : "text-slate-700"}>
+                  <Label
+                    className={isDark ? "text-slate-200" : "text-slate-700"}
+                  >
                     AI Recommendations
                   </Label>
                   {selectedRecommendations.size > 0 && (
                     <span
                       className={cn(
                         "text-xs px-2 py-1 rounded-full",
-                        isDark ? "bg-purple-900/50 text-purple-300" : "bg-purple-100 text-purple-700"
+                        isDark
+                          ? "bg-purple-900/50 text-purple-300"
+                          : "bg-purple-100 text-purple-700"
                       )}
                     >
                       {selectedRecommendations.size} selected
