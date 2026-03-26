@@ -22,11 +22,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useGetUserContentStatsQuery } from "@/modules/user-content-stats/use-get-user-content-stats-query";
 import { useListMockExamsQuery } from "@/modules/user-mock-exams/use-list-mock-exams-query";
+import { useTimeTrackingStore } from "@/stores/time-tracking";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { ArrowLeft, ArrowRight, CheckCircle2, Save } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { TimePresent } from "./time-present";
 
 function estimateReadTime(text = "", wordsPerMinute: number = 225): number {
   const words: number = JSON.stringify(text).trim().split(/\s+/).length;
@@ -73,14 +75,23 @@ export default function ContentPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editChapterId, setEditChapterId] = useState<string>("");
-  const [startTime, setStartTime] = useState<number>(Date.now());
-  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+  const [currentTime, setCurrentTime] = useState<number>(0);
   const [showTimeSpent, setShowTimeSpent] = useState(false);
   const [recommendations, setRecommendations] = useState<
     ContentRecommendation[] | null
   >(null);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
+
+  const {
+    startTracking,
+    stopTracking,
+    pauseTracking,
+    resumeTracking,
+    getTotalTime,
+    clearContentTime,
+    activeViewMode,
+  } = useTimeTrackingStore();
 
   const skldMutation = useSkldMutation();
 
@@ -119,14 +130,37 @@ export default function ContentPage() {
   }, []);
 
   useEffect(() => {
-    setStartTime(Date.now());
     setShowTimeSpent(false);
     setTimeout(() => setShowTimeSpent(true), 2000);
-  }, [params.contentId]);
+
+    if (!showPresentation) {
+      startTracking(params.contentId, "content");
+    }
+
+    return () => {
+      if (!showPresentation && activeViewMode === "content") {
+        pauseTracking();
+      }
+    };
+  }, [
+    params.contentId,
+    showPresentation,
+    startTracking,
+    pauseTracking,
+    activeViewMode,
+  ]);
+
+  useEffect(() => {
+    if (showPresentation) {
+      pauseTracking();
+    } else if (activeViewMode !== "presentation") {
+      resumeTracking();
+    }
+  }, [showPresentation, pauseTracking, resumeTracking, activeViewMode]);
 
   const handleNext = async () => {
     try {
-      const timespent = Math.floor((Date.now() - startTime) / 1000);
+      const timespent = Math.floor(getTotalTime() / 1000);
 
       const result = await skldMutation.mutateAsync({
         contentId: params.contentId,
@@ -136,7 +170,9 @@ export default function ContentPage() {
 
       setRecommendations(result.recommendations);
       setShowRecommendations(true);
-      setStartTime(Date.now());
+      clearContentTime(params.contentId);
+      stopTracking();
+      startTracking(params.contentId, "content");
     } catch (error) {
       console.error("Failed to submit skld request:", error);
     }
@@ -239,19 +275,19 @@ export default function ContentPage() {
         </div>
       )}
 
-      {/* {userContentStats !== undefined && (
+      {userContentStats !== undefined && (
         <TimePresent
           showTimeSpent={showTimeSpent}
-          currentTime={currentTime}
-          startTime={startTime}
           userContentStats={userContentStats}
+          getTotalTime={getTotalTime}
         />
-      )} */}
+      )}
 
       <div className="max-w-4xl mx-auto sm:px-6 px-0 pb-24 lg:pb-32 pt-6">
         <div className="mb-16 flex items-center justify-between">
           <Link
             href={`/courses/${params.courseId}`}
+            onClick={() => stopTracking()}
             className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -270,6 +306,7 @@ export default function ContentPage() {
                     href={`/courses/${params.courseId}/contents/${rec.contentId}`}
                     onClick={() => {
                       setShowRecommendations(false);
+                      stopTracking();
                     }}
                     className="flex items-start gap-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-colors"
                   >
@@ -468,6 +505,7 @@ export default function ContentPage() {
           onClose={() => setShowPresentation(false)}
           updatedAt={content.updatedAt}
           estimatedReadTime={estimatedReadTime}
+          contentId={params.contentId}
         />
       )}
     </div>

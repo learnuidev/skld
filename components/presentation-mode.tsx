@@ -17,6 +17,7 @@ import {
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useTimeTrackingStore } from "@/stores/time-tracking";
 
 interface PresentationModeProps {
   content: any;
@@ -24,6 +25,7 @@ interface PresentationModeProps {
   onClose: () => void;
   updatedAt?: string | Date | number;
   estimatedReadTime?: number;
+  contentId?: string;
 }
 
 export function PresentationMode({
@@ -32,7 +34,11 @@ export function PresentationMode({
   onClose,
   updatedAt,
   estimatedReadTime,
+  contentId,
 }: PresentationModeProps) {
+  const { startTracking, pauseTracking, activeViewMode } =
+    useTimeTrackingStore();
+
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [slideSteps, setSlideSteps] = useState<Record<number, number>>({});
@@ -80,6 +86,18 @@ export function PresentationMode({
     : 0;
 
   const totalSteps = contentOffset + contentSteps;
+
+  useEffect(() => {
+    if (contentId) {
+      startTracking(contentId, "presentation");
+    }
+
+    return () => {
+      if (activeViewMode === "presentation") {
+        pauseTracking();
+      }
+    };
+  }, [contentId, startTracking, pauseTracking, activeViewMode]);
 
   const enterFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -174,7 +192,7 @@ export function PresentationMode({
       onClose,
       handleFullscreenToggle,
       showSlideNavigator,
-    ]
+    ],
   );
 
   useEffect(() => {
@@ -206,7 +224,7 @@ export function PresentationMode({
 
   const renderNode = (
     node: ContentNode,
-    maxItems?: number
+    maxItems?: number,
   ): React.ReactNode => {
     if (node.type === "paragraph") {
       const text = node.content?.map((c) => c.text).join("") || node.text || "";
@@ -282,7 +300,7 @@ export function PresentationMode({
 
   const renderContentWithSteps = (
     nodes: ContentNode[],
-    remainingSteps: number
+    remainingSteps: number,
   ) => {
     let stepsUsed = 0;
     const renderedNodes = [];
@@ -303,7 +321,7 @@ export function PresentationMode({
               transition={{ duration: 0.4 }}
             >
               {renderNode(node, node.content?.length)}
-            </motion.div>
+            </motion.div>,
           );
         } else {
           renderedNodes.push(
@@ -314,7 +332,7 @@ export function PresentationMode({
               transition={{ duration: 0.4 }}
             >
               {renderNode(node)}
-            </motion.div>
+            </motion.div>,
           );
         }
         stepsUsed += nodeSteps;
@@ -328,7 +346,7 @@ export function PresentationMode({
             transition={{ duration: 0.4 }}
           >
             {renderNode(node, partialItems)}
-          </motion.div>
+          </motion.div>,
         );
         stepsUsed = remainingSteps;
       }
@@ -469,7 +487,7 @@ export function PresentationMode({
                                 typeof updatedAt === "string" ||
                                 updatedAt instanceof Date
                                   ? updatedAt
-                                  : Number(updatedAt)
+                                  : Number(updatedAt),
                               ).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
@@ -648,7 +666,7 @@ export function PresentationMode({
                           >
                             {renderContentWithSteps(
                               currentSlide.content,
-                              Math.max(0, currentStep - contentOffset)
+                              Math.max(0, currentStep - contentOffset),
                             )}
                           </motion.div>
                         )}
