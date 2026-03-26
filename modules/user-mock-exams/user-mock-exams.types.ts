@@ -1,4 +1,4 @@
-export type ExamType = "timed" | "untimed";
+export type ExamType = "timed" | "untimed" | "failed";
 
 export type MockExamStatus = "in_progress" | "completed" | "abandoned";
 
@@ -16,6 +16,7 @@ export interface MockExam {
   userId: string;
   courseId: string;
   examBankIds: string[];
+  questionIds?: string[];
   examType: ExamType;
   selectedContentIds?: string[];
   selectedDomains: string[];

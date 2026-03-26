@@ -701,7 +701,11 @@ export default function CoursePage() {
   );
 
   const handleResumeExam = () => {
-    if (inProgressExam) {
+    if (inProgressExam?.selectedContentIds?.length === 1) {
+      router.push(
+        `/courses/${params.courseId}/contents/${inProgressExam?.selectedContentIds?.[0]}/mock-exam/${inProgressExam.id}`
+      );
+    } else if (inProgressExam) {
       router.push(`/courses/${params.courseId}/mock-exam/${inProgressExam.id}`);
     }
   };
