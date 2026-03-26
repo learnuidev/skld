@@ -10,6 +10,7 @@ interface StarRatingProps {
   showCount?: boolean;
   interactive?: boolean;
   onRatingChange?: (rating: number) => void;
+  className?: string;
 }
 
 export function StarRating({
@@ -19,6 +20,7 @@ export function StarRating({
   showCount = true,
   interactive = false,
   onRatingChange,
+  className,
 }: StarRatingProps) {
   const sizeClasses = {
     sm: "w-4 h-4",
@@ -46,7 +48,7 @@ export function StarRating({
           onClick={() => onRatingChange?.(i)}
           className={cn(
             "transition-transform hover:scale-110",
-            interactive && "cursor-pointer hover:text-yellow-400",
+            interactive && "cursor-pointer hover:text-foreground",
             !interactive && "pointer-events-none",
           )}
           aria-label={`Rate ${i} stars`}
@@ -55,9 +57,9 @@ export function StarRating({
             className={cn(
               sizeClasses[size],
               isFilled
-                ? "text-yellow-400 fill-yellow-400"
+                ? "text-foreground fill-foreground"
                 : "text-muted-foreground",
-              isPartial && "text-yellow-200",
+              isPartial && "text-muted-foreground/60",
             )}
           />
         </button>,
@@ -67,7 +69,7 @@ export function StarRating({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className={cn("flex items-center gap-2", className)}>
       <div className={cn("flex items-center", containerSizeClasses[size])}>
         {renderStars()}
       </div>
