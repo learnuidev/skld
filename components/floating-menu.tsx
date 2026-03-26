@@ -20,6 +20,7 @@ import {
   Pencil,
   Presentation,
   RefreshCw,
+  Sparkles,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -197,6 +198,19 @@ export function FloatingMenu({
                 <Presentation className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
               </Button>
             )}
+
+          {isAuthor && (
+            <Link
+              href={`/courses/${courseId}/contents/${contentId}/new-exam-bank`}
+            >
+              <Button
+                size="icon-lg"
+                className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
+              >
+                <Sparkles className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </Button>
+            </Link>
+          )}
 
           {isAuthor && (
             <Button
