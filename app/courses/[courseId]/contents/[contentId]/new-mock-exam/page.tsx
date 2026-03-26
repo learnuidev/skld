@@ -31,21 +31,25 @@ export default function NewMockExamPage() {
 
   const { data: content } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
   const { data: examBanks } = useGetExamBanksQuery(params.courseId);
   const { data: mockExams } = useListMockExamsQuery(params.courseId);
   const createContentQuizMutation = useCreateContentQuizMutation();
 
-  const [selectedType, setSelectedType] = useState<"custom" | "retry" | null>(
-    null,
+  const [selectedType, _setSelectedType] = useState<"custom" | "retry" | null>(
+    null
   );
+
+  const setSelectedType = (type: "custom" | "retry" | null) => {
+    _setSelectedType(type);
+  };
   const [selectedExamBankIds, setSelectedExamBankIds] = useState<string[]>([]);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
   const [isCreating, setIsCreating] = useState(false);
 
   const contentExamBanks = examBanks?.filter((exam) =>
-    exam.questions.some((q) => q.contentId === params.contentId),
+    exam.questions.some((q) => q.contentId === params.contentId)
   );
 
   const failedQuestions = mockExams?.reduce<string[]>((acc, exam) => {
@@ -68,7 +72,7 @@ export default function NewMockExamPage() {
               userAnswers.length === correctAnswers.length &&
               userAnswers.every(
                 (ans: AnswerItem) =>
-                  typeof ans === "string" && correctAnswers.includes(ans),
+                  typeof ans === "string" && correctAnswers.includes(ans)
               );
           } else if (question.type === "TRUE_FALSE") {
             isCorrect = answer.answer === question.correctOptionId;
@@ -91,11 +95,11 @@ export default function NewMockExamPage() {
           ?.flatMap((eb) => eb.questions)
           .find((q) => q.id === questionId);
         const examBank = examBanks?.find((eb) =>
-          eb.questions.some((q) => q.id === questionId),
+          eb.questions.some((q) => q.id === questionId)
         );
         return examBank?.id;
-      }) || [],
-    ),
+      }) || []
+    )
   ).filter(Boolean) as string[];
 
   const handleCreateExam = async () => {
@@ -118,7 +122,7 @@ export default function NewMockExamPage() {
             : failedQuestions || [],
       });
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`,
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`
       );
     } catch (error) {
       console.error("Failed to create quiz:", error);
@@ -130,7 +134,7 @@ export default function NewMockExamPage() {
     setSelectedExamBankIds((prev) =>
       prev.includes(examBankId)
         ? prev.filter((id) => id !== examBankId)
-        : [...prev, examBankId],
+        : [...prev, examBankId]
     );
   };
 
@@ -138,7 +142,7 @@ export default function NewMockExamPage() {
     setSelectedQuestionIds((prev) =>
       prev.includes(questionId)
         ? prev.filter((id) => id !== questionId)
-        : [...prev, questionId],
+        : [...prev, questionId]
     );
   };
 
@@ -149,6 +153,8 @@ export default function NewMockExamPage() {
       </div>
     );
   }
+
+  console.log("SELECTED TYPE", selectedType);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 py-16 px-6">
@@ -161,10 +167,14 @@ export default function NewMockExamPage() {
         </div>
 
         {!selectedType ? (
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-8" key="work">
             <Card
               className="group cursor-pointer border-2 hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden"
-              onClick={() => setSelectedType("custom")}
+              onClick={() => {
+                alert("yoo");
+                setSelectedType("custom");
+              }}
+              key="custom-card"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <CardHeader className="relative">
@@ -176,7 +186,7 @@ export default function NewMockExamPage() {
                 </div>
                 <div className="relative">
                   <CardTitle className="text-2xl mb-3">
-                    Create New Practice Exam
+                    Create New Practice Exam yoo
                   </CardTitle>
                   <CardDescription className="text-base leading-relaxed">
                     Choose from available exam banks and optionally select
@@ -200,7 +210,11 @@ export default function NewMockExamPage() {
               className={`group cursor-pointer border-2 hover:border-rose-400/40 hover:shadow-2xl hover:shadow-rose-500/5 transition-all duration-300 overflow-hidden ${
                 !hasFailedQuestions ? "opacity-50 pointer-events-none" : ""
               }`}
-              onClick={() => setSelectedType("retry")}
+              onClick={() => {
+                alert("ayee");
+                setSelectedType("retry");
+              }}
+              key="retry-card"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <CardHeader className="relative">
@@ -248,12 +262,11 @@ export default function NewMockExamPage() {
             <div className="space-y-8">
               <div className="space-y-3">
                 <h2 className="text-2xl font-semibold tracking-tight">
-                  Choose Exam Banks
+                  Select Exam Banks
                 </h2>
                 <p className="text-base text-muted-foreground/80 leading-relaxed">
                   Select one or more exam banks to include in your practice
-                  session. You can also choose specific questions within each
-                  bank.
+                  session.
                 </p>
               </div>
               {contentExamBanks?.length === 0 ? (
@@ -266,10 +279,10 @@ export default function NewMockExamPage() {
                 <div className="space-y-5">
                   {contentExamBanks?.map((examBank) => {
                     const contentQuestions = examBank.questions.filter(
-                      (q) => q.contentId === params.contentId,
+                      (q) => q.contentId === params.contentId
                     );
                     const isSelected = selectedExamBankIds.includes(
-                      examBank.id,
+                      examBank.id
                     );
                     return (
                       <Card
@@ -278,7 +291,7 @@ export default function NewMockExamPage() {
                           isSelected ? "border-primary/50 bg-primary/5" : ""
                         }`}
                       >
-                        <CardHeader className="pb-4">
+                        <CardHeader>
                           <div className="flex items-start gap-5">
                             <div className="pt-1">
                               <input
@@ -306,50 +319,81 @@ export default function NewMockExamPage() {
                             </div>
                           </div>
                         </CardHeader>
-                        {isSelected && (
-                          <CardContent className="pt-4">
-                            <div className="mt-6 pt-6 border-t border-border/60">
-                              <div className="space-y-4">
-                                <div>
-                                  <p className="text-sm font-medium mb-2">
-                                    Select Specific Questions
-                                  </p>
-                                  <p className="text-sm text-muted-foreground/70">
-                                    Leave all unchecked to include all questions
-                                    from this exam bank
-                                  </p>
-                                </div>
-                                <div className="space-y-3">
-                                  {contentQuestions.map((question) => (
-                                    <label
-                                      key={question.id}
-                                      className="group flex items-center gap-4 p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-accent/50 cursor-pointer transition-all"
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={selectedQuestionIds.includes(
-                                          question.id,
-                                        )}
-                                        onChange={() =>
-                                          toggleQuestion(question.id)
-                                        }
-                                        className="w-4 h-4 rounded"
-                                      />
-                                      <span className="flex-1 text-sm leading-relaxed">
-                                        {question.question.slice(0, 120)}
-                                        {question.question.length > 120 &&
-                                          "..."}
-                                      </span>
-                                    </label>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        )}
                       </Card>
                     );
                   })}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <h2 className="text-2xl font-semibold tracking-tight">
+                  Select Questions
+                </h2>
+                <p className="text-base text-muted-foreground/80 leading-relaxed">
+                  Select specific questions from the exam banks above. You can
+                  choose to select all questions from an entire exam bank or
+                  pick individual questions.
+                </p>
+              </div>
+              {selectedExamBankIds.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <p className="text-muted-foreground">
+                    Please select at least one exam bank above to see questions
+                  </p>
+                </Card>
+              ) : (
+                <div className="space-y-5">
+                  {contentExamBanks
+                    ?.filter((eb) => selectedExamBankIds.includes(eb.id))
+                    .map((examBank) => {
+                      const contentQuestions = examBank.questions.filter(
+                        (q) => q.contentId === params.contentId
+                      );
+                      return (
+                        <Card
+                          key={examBank.id}
+                          className="hover:shadow-md transition-all"
+                        >
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <CardTitle className="text-lg mb-1">
+                                  {examBank.title}
+                                </CardTitle>
+                                <p className="text-sm text-muted-foreground/80">
+                                  {contentQuestions.length} questions
+                                </p>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              {contentQuestions.map((question) => (
+                                <label
+                                  key={question.id}
+                                  className="group flex items-center gap-4 p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-accent/50 cursor-pointer transition-all"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedQuestionIds.includes(
+                                      question.id
+                                    )}
+                                    onChange={() => toggleQuestion(question.id)}
+                                    className="w-4 h-4 rounded"
+                                  />
+                                  <span className="flex-1 text-sm leading-relaxed">
+                                    {question.question.slice(0, 120)}
+                                    {question.question.length > 120 && "..."}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                 </div>
               )}
             </div>
