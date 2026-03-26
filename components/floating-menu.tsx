@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/popover";
 import { isStructuredContent } from "@/lib/content-parser";
 import { CourseContent } from "@/modules/course-content/course-content.types";
-import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-author";
 import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
 
@@ -17,11 +16,7 @@ import {
   LightbulbIcon,
   List,
   Network,
-  Pencil,
   Presentation,
-  RefreshCw,
-  Sparkles,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -30,14 +25,7 @@ interface FloatingMenuProps {
   contentId: string;
   contents: CourseContent[];
   content?: CourseContent;
-  isEditing: boolean;
-  onEdit: () => void;
-  onCancel: () => void;
   knowledgeGraph?: KnowledgeGraph;
-  onCreateKnowledgeGraph?: () => void;
-  isCreatingKnowledgeGraph?: boolean;
-  onRetryKnowledgeGraph?: () => void;
-  isRetryingKnowledgeGraph?: boolean;
   onStartQuiz?: () => void;
   onPresentation?: () => void;
   ongoingContentQuiz: boolean;
@@ -48,20 +36,11 @@ export function FloatingMenu({
   contentId,
   contents,
   content,
-  isEditing,
-  onEdit,
-  onCancel,
   knowledgeGraph,
-  onCreateKnowledgeGraph,
-  isCreatingKnowledgeGraph,
-  onRetryKnowledgeGraph,
-  isRetryingKnowledgeGraph = false,
   onStartQuiz,
   onPresentation,
   ongoingContentQuiz,
 }: FloatingMenuProps) {
-  const isAuthor = useIsUserCourseAuthor(courseId);
-
   const { data: examBanks } = useGetExamBanksQuery(courseId);
 
   const containQuestions =
@@ -133,44 +112,18 @@ export function FloatingMenu({
           </Link>
 
           {knowledgeGraph?.status === "completed" &&
-          knowledgeGraph.knowledgeGraphData ? (
-            <Link
-              href={`/courses/${courseId}/contents/${contentId}/knowledge-graph`}
-            >
-              <Button
-                size="icon-lg"
-                className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
+            knowledgeGraph.knowledgeGraphData && (
+              <Link
+                href={`/courses/${courseId}/contents/${contentId}/knowledge-graph`}
               >
-                <Network className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </Button>
-            </Link>
-          ) : knowledgeGraph?.status === "failed" ? (
-            <Button
-              size="icon-lg"
-              onClick={onRetryKnowledgeGraph}
-              disabled={isRetryingKnowledgeGraph}
-              className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
-            >
-              <RefreshCw
-                className={`w-5 h-5 text-red-500 group-hover:text-red-600 transition-colors ${
-                  isRetryingKnowledgeGraph ? "animate-spin" : ""
-                }`}
-              />
-            </Button>
-          ) : (
-            <Button
-              size="icon-lg"
-              onClick={onCreateKnowledgeGraph}
-              disabled={isCreatingKnowledgeGraph}
-              className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
-            >
-              <Network
-                className={`w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors ${
-                  isCreatingKnowledgeGraph ? "animate-pulse" : ""
-                }`}
-              />
-            </Button>
-          )}
+                <Button
+                  size="icon-lg"
+                  className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
+                >
+                  <Network className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                </Button>
+              </Link>
+            )}
 
           {!ongoingContentQuiz &&
             containQuestions?.length > 0 &&
@@ -184,8 +137,7 @@ export function FloatingMenu({
               </Button>
             )}
 
-          {!isEditing &&
-            content &&
+          {content &&
             isStructuredContent(content?.content) &&
             onPresentation && (
               <Button
@@ -196,33 +148,6 @@ export function FloatingMenu({
                 <Presentation className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
               </Button>
             )}
-
-          {isAuthor && (
-            <Link
-              href={`/courses/${courseId}/contents/${contentId}/new-exam-bank`}
-            >
-              <Button
-                size="icon-lg"
-                className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
-              >
-                <Sparkles className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </Button>
-            </Link>
-          )}
-
-          {isAuthor && (
-            <Button
-              size="icon-lg"
-              onClick={isEditing ? onCancel : onEdit}
-              className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
-            >
-              {isEditing ? (
-                <X className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-              ) : (
-                <Pencil className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-              )}
-            </Button>
-          )}
         </div>
       </div>
     </>

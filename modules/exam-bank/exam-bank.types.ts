@@ -64,6 +64,9 @@ export interface ExamBank {
   createdAt: number;
   updatedAt: number;
 
+  // This is the index of the content slide
+  slideIndex?: number;
+
   status?: ResourceStatus;
 }
 

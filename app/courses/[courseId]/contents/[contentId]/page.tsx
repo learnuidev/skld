@@ -4,6 +4,7 @@ import { TiptapEditor } from "@/components/editor/tiptap-editor";
 import { FloatingMenu } from "@/components/floating-menu";
 import { KnowledgeGraphStatus } from "@/components/knowledge-graph/knowledge-graph-status";
 import { PresentationMode } from "@/components/presentation-mode";
+import { AuthorActions } from "@/components/author-actions";
 import {
   Dialog,
   DialogContent,
@@ -383,11 +384,6 @@ export default function ContentPage() {
                       {content.title}
                     </h1>
 
-                    {/* {content.description && (
-                      <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                        {content.description}
-                      </p>
-                    )} */}
                     <div className="text-sm text-muted-foreground mt-4">
                       {estimatedReadTime < 60
                         ? `${estimatedReadTime} sec read`
@@ -447,14 +443,7 @@ export default function ContentPage() {
               contentId={params.contentId}
               content={content}
               contents={contents || []}
-              isEditing={isEditing}
-              onEdit={handleEdit}
-              onCancel={handleCancel}
               knowledgeGraph={knowledgeGraph || undefined}
-              onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
-              isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
-              onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
-              isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
               onStartQuiz={handleStartQuiz}
               onPresentation={() => setShowPresentation(true)}
               ongoingContentQuiz={!!ongoingContentQuiz}
@@ -483,6 +472,21 @@ export default function ContentPage() {
           </div>
         </div>
       </div>
+
+      {isAuthor && (
+        <AuthorActions
+          courseId={params.courseId}
+          contentId={params.contentId}
+          knowledgeGraph={knowledgeGraph || undefined}
+          isEditing={isEditing}
+          onEdit={handleEdit}
+          onCancel={handleCancel}
+          onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
+          isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
+          onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
+          isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
+        />
+      )}
 
       {showPresentation && content && (
         <PresentationMode
