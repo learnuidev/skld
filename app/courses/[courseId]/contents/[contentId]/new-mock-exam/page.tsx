@@ -169,14 +169,11 @@ export default function NewMockExamPage() {
         {!selectedType ? (
           <div className="grid md:grid-cols-2 gap-8" key="work">
             <Card
-              className="group cursor-pointer border-2 hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden"
-              onClick={() => {
-                alert("yoo");
-                setSelectedType("custom");
-              }}
+              className="group cursor-pointer border-2 hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden relative"
+              onClick={() => setSelectedType("custom")}
               key="custom-card"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
               <CardHeader className="relative">
                 <div className="flex items-start justify-between mb-6">
                   <div className="p-4 rounded-2xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
@@ -186,7 +183,7 @@ export default function NewMockExamPage() {
                 </div>
                 <div className="relative">
                   <CardTitle className="text-2xl mb-3">
-                    Create New Practice Exam yoo
+                    Create New Practice Exam
                   </CardTitle>
                   <CardDescription className="text-base leading-relaxed">
                     Choose from available exam banks and optionally select
@@ -207,16 +204,13 @@ export default function NewMockExamPage() {
             </Card>
 
             <Card
-              className={`group cursor-pointer border-2 hover:border-rose-400/40 hover:shadow-2xl hover:shadow-rose-500/5 transition-all duration-300 overflow-hidden ${
+              className={`group cursor-pointer border-2 hover:border-rose-400/40 hover:shadow-2xl hover:shadow-rose-500/5 transition-all duration-300 overflow-hidden relative ${
                 !hasFailedQuestions ? "opacity-50 pointer-events-none" : ""
               }`}
-              onClick={() => {
-                alert("ayee");
-                setSelectedType("retry");
-              }}
+              onClick={() => setSelectedType("retry")}
               key="retry-card"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
               <CardHeader className="relative">
                 <div className="flex items-start justify-between mb-6">
                   <div className="p-4 rounded-2xl bg-rose-500/10 group-hover:bg-rose-500/15 transition-colors">
