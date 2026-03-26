@@ -41,6 +41,9 @@ export default function NewMockExamPage() {
   );
   const [selectedExamBankIds, setSelectedExamBankIds] = useState<string[]>([]);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
+  const [selectedFailedQuestionIds, setSelectedFailedQuestionIds] = useState<
+    string[]
+  >([]);
   const [isCreating, setIsCreating] = useState(false);
 
   const contentExamBanks = examBanks?.filter((exam) =>
@@ -111,7 +114,9 @@ export default function NewMockExamPage() {
             ? selectedQuestionIds.length > 0
               ? selectedQuestionIds
               : undefined
-            : failedQuestions || [],
+            : selectedFailedQuestionIds.length > 0
+              ? selectedFailedQuestionIds
+              : failedQuestions || [],
         examVariant: selectedType === "retry" ? "failed" : null,
       });
       router.push(
@@ -133,6 +138,14 @@ export default function NewMockExamPage() {
 
   const toggleQuestion = (questionId: string) => {
     setSelectedQuestionIds((prev) =>
+      prev.includes(questionId)
+        ? prev.filter((id) => id !== questionId)
+        : [...prev, questionId],
+    );
+  };
+
+  const toggleFailedQuestion = (questionId: string) => {
+    setSelectedFailedQuestionIds((prev) =>
       prev.includes(questionId)
         ? prev.filter((id) => id !== questionId)
         : [...prev, questionId],
@@ -174,7 +187,12 @@ export default function NewMockExamPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
-                onClick={() => setSelectedType("custom")}
+                onClick={() => {
+                  setSelectedType("custom");
+                  setSelectedExamBankIds([]);
+                  setSelectedQuestionIds([]);
+                  setSelectedFailedQuestionIds([]);
+                }}
                 className="p-6 rounded-xl border-2 text-left transition-all border-border hover:border-foreground/30"
               >
                 <div className="flex items-center gap-3 mb-3">
@@ -194,7 +212,12 @@ export default function NewMockExamPage() {
                 </div>
               </button>
               <button
-                onClick={() => setSelectedType("retry")}
+                onClick={() => {
+                  setSelectedType("retry");
+                  setSelectedExamBankIds([]);
+                  setSelectedQuestionIds([]);
+                  setSelectedFailedQuestionIds([]);
+                }}
                 className={`p-6 rounded-xl border-2 text-left transition-all ${
                   !hasFailedQuestions
                     ? "opacity-50 border-border cursor-not-allowed"
@@ -383,7 +406,10 @@ export default function NewMockExamPage() {
           <div className="space-y-12">
             {/* Back Button */}
             <button
-              onClick={() => setSelectedType(null)}
+              onClick={() => {
+                setSelectedType(null);
+                setSelectedFailedQuestionIds([]);
+              }}
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronLeft className="w-4 h-4 mr-2" />
@@ -394,6 +420,7 @@ export default function NewMockExamPage() {
             <div>
               <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground mb-6">
                 Questions to Review
+                <span className="ml-2 text-xs font-normal">(optional)</span>
               </h2>
               {failedQuestions && failedQuestions.length > 0 ? (
                 <div className="space-y-3">
@@ -402,16 +429,36 @@ export default function NewMockExamPage() {
                       ?.flatMap((eb) => eb.questions)
                       .find((q) => q.id === questionId);
                     if (!question) return null;
+                    const isSelected =
+                      selectedFailedQuestionIds.includes(questionId);
                     return (
-                      <div
+                      <button
                         key={questionId}
-                        className="p-5 rounded-xl border-2 border-border"
+                        onClick={() => toggleFailedQuestion(questionId)}
+                        className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 text-left transition-all ${
+                          isSelected
+                            ? "border-foreground/60 bg-foreground/5"
+                            : "border-border hover:border-foreground/30"
+                        }`}
                       >
-                        <p className="text-sm leading-relaxed">
-                          {question.question.slice(0, 180)}
-                          {question.question.length > 180 && "..."}
-                        </p>
-                      </div>
+                        <div
+                          className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                            isSelected
+                              ? "border-foreground bg-foreground"
+                              : "border-foreground"
+                          }`}
+                        >
+                          {isSelected && (
+                            <ChevronRight className="w-3 h-3 text-background" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm leading-relaxed">
+                            {question.question.slice(0, 180)}
+                            {question.question.length > 180 && "..."}
+                          </p>
+                        </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -421,6 +468,9 @@ export default function NewMockExamPage() {
                   back to review any questions you miss.
                 </div>
               )}
+              <p className="text-sm text-muted-foreground mt-4">
+                Leave all questions unselected to include all questions
+              </p>
             </div>
 
             {/* Start Button */}
