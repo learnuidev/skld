@@ -104,7 +104,10 @@ export default function NewMockExamPage() {
       const mockExam = await createContentQuizMutation.mutateAsync({
         courseId: params.courseId,
         contentId: params.contentId,
-        examBankIds: selectedType === "custom" ? selectedExamBankIds : [],
+        examBankIds:
+          selectedType === "custom"
+            ? selectedExamBankIds
+            : failedQuestionExamBankIds,
         questionIds:
           selectedType === "custom"
             ? selectedQuestionIds
