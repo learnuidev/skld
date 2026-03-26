@@ -29,7 +29,7 @@ export function CourseRatingBanner({
   useEffect(() => {
     const calculateDays = () => {
       const days = Math.floor(
-        (Date.now() - enrolledAt) / (1000 * 60 * 60 * 24)
+        (Date.now() - enrolledAt) / (1000 * 60 * 60 * 24),
       );
       daysRef.current = days;
       setDaysSinceEnrollment(days);
@@ -72,7 +72,7 @@ export function CourseRatingBanner({
     <div
       className={cn(
         "relative border border-border rounded-2xl p-12 my-8 transition-all duration-500 ease-out",
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
       )}
     >
       <button
@@ -115,7 +115,7 @@ export function CourseRatingBanner({
                   "hover:scale-105 active:scale-95",
                   rating === num
                     ? "bg-foreground text-background font-medium"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80",
                 )}
               >
                 {num}
@@ -130,19 +130,30 @@ export function CourseRatingBanner({
               "space-y-6 transition-all duration-500 ease-out",
               showReviewInput
                 ? "opacity-100 max-h-[500px]"
-                : "opacity-80 max-h-12"
+                : "opacity-80 max-h-12",
             )}
           >
             {!showReviewInput ? (
-              <Button
-                variant="ghost"
-                size="lg"
-                onClick={() => setShowReviewInput(true)}
-                className="text-muted-foreground hover:text-foreground gap-3 px-0 transition-all duration-300 hover:pl-2"
-              >
-                <MessageSquare className="w-5 h-5" />
-                Leave a Review
-              </Button>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  onClick={() => setShowReviewInput(true)}
+                  className="text-muted-foreground hover:text-foreground gap-3 px-0 transition-all duration-300 hover:pl-2"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  Leave a Review
+                </Button>
+                <Button
+                  onClick={handleRatingSubmit}
+                  disabled={rating === 0 || addRatingMutation.isPending}
+                  className="transition-all duration-300 hover:scale-105 active:scale-95"
+                >
+                  {addRatingMutation.isPending
+                    ? "Submitting..."
+                    : "Submit Rating"}
+                </Button>
+              </div>
             ) : (
               <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
                 <Textarea
