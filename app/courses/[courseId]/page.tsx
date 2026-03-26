@@ -23,6 +23,7 @@ import { useGetEnrollmentQuery } from "@/modules/enrollment/use-get-enrollment-q
 import { useCreateEnrollmentMutation } from "@/modules/enrollment/use-create-enrollment-mutation";
 import { useDeleteMockExamMutation } from "@/modules/user-mock-exams/use-delete-mock-exam-mutation";
 import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
+import { useGetUserCourseRatingQuery } from "@/modules/user-course-rating/use-get-user-course-rating-query";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -36,6 +37,7 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { CourseRatingBanner } from "@/components/course-rating-banner";
 
 function DeleteDialog({
   open,
@@ -415,8 +417,7 @@ function MyMockExamsTab({
                       question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE"
                     ) {
                       const userAnswers = answer.answers || [];
-                      const correctAnswers =
-                        question.correctOptionIds || [];
+                      const correctAnswers = question.correctOptionIds || [];
                       if (
                         userAnswers.length === correctAnswers.length &&
                         userAnswers.every((ans: string) =>
@@ -675,8 +676,10 @@ export default function CoursePage() {
 
   const { data: course, isLoading, error } = useGetCourseQuery(params.courseId);
   const { data: enrollment } = useGetEnrollmentQuery(params.courseId);
+  const { data: userRating } = useGetUserCourseRatingQuery(params.courseId);
   const { data: mockExams } = useGetMockExamsQuery(params.courseId);
   const createEnrollmentMutation = useCreateEnrollmentMutation();
+  const [showRatingBanner, setShowRatingBanner] = useState(true);
 
   const handleLaunchExam = () => {
     router.push(`/courses/${params.courseId}/exam-launcher`);
@@ -746,6 +749,15 @@ export default function CoursePage() {
           exam={inProgressExam}
           onClick={handleResumeExam}
           course={course}
+        />
+      )}
+
+      {/* Rating Banner */}
+      {enrollment && !userRating && showRatingBanner && (
+        <CourseRatingBanner
+          courseId={params.courseId}
+          enrolledAt={enrollment.enrolledAt}
+          onRated={() => setShowRatingBanner(false)}
         />
       )}
 

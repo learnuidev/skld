@@ -1,180 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import {
-  Search,
-  X,
-  BookOpen,
-  DollarSign,
-  Clock,
-  GraduationCap,
-} from "lucide-react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Search, X, BookOpen, Clock, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Exam {
-  id: string;
-  name: string;
-  code: string;
-  duration: number;
-  questions: number;
-  passingScore: number;
-  price: number;
-  level: string;
-  description: string;
-  featured?: boolean;
-  gradient: string;
-  organization?: string;
-}
-
-const mockExams: Exam[] = [
-  {
-    id: "cissp",
-    name: "CISSP",
-    code: "ISC2-CISSP",
-    duration: 180,
-    questions: 150,
-    passingScore: 700,
-    price: 749,
-    level: "Advanced",
-    description:
-      "The premier cybersecurity certification for experienced professionals",
-    featured: true,
-    gradient: "from-orange-600 to-red-700",
-    organization: "ISC2",
-  },
-  {
-    id: "sscp",
-    name: "SSCP",
-    code: "ISC2-SSCP",
-    duration: 150,
-    questions: 125,
-    passingScore: 700,
-    price: 249,
-    level: "Intermediate",
-    description: "Security operations and administration certification",
-    gradient: "from-orange-500 to-red-600",
-    organization: "ISC2",
-  },
-  {
-    id: "ccsp",
-    name: "CCSP",
-    code: "ISC2-CCSP",
-    duration: 165,
-    questions: 125,
-    passingScore: 700,
-    price: 599,
-    level: "Advanced",
-    description: "Cloud security certification for IT leaders",
-    gradient: "from-orange-500 to-red-600",
-    organization: "ISC2",
-  },
-  {
-    id: "cc",
-    name: "CC",
-    code: "ISC2-CC",
-    duration: 180,
-    questions: 100,
-    passingScore: 700,
-    price: 599,
-    level: "Beginner",
-    description: "Certified in Cybersecurity",
-    gradient: "from-orange-300 to-red-400",
-    organization: "ISC2",
-  },
-  {
-    id: "solutions-architect",
-    name: "Solutions Architect Professional",
-    code: "AWS-SAP-C02",
-    duration: 170,
-    questions: 75,
-    passingScore: 720,
-    price: 300,
-    level: "Professional",
-    description: "Design distributed systems on AWS",
-    featured: true,
-    gradient: "from-yellow-500 to-orange-600",
-    organization: "AWS",
-  },
-  {
-    id: "developer-associate",
-    name: "Developer Associate",
-    code: "AWS-DVA-C02",
-    duration: 130,
-    questions: 65,
-    passingScore: 720,
-    price: 150,
-    level: "Associate",
-    description: "Develop and maintain AWS applications",
-    gradient: "from-yellow-400 to-orange-500",
-    organization: "AWS",
-  },
-  {
-    id: "sysops-admin",
-    name: "SysOps Administrator Associate",
-    code: "AWS-SOA-C02",
-    duration: 130,
-    questions: 65,
-    passingScore: 720,
-    price: 150,
-    level: "Associate",
-    description: "Deploy and operate workloads on AWS",
-    gradient: "from-yellow-400 to-orange-500",
-    organization: "AWS",
-  },
-  {
-    id: "devops-engineer",
-    name: "DevOps Engineer Professional",
-    code: "AWS-DOP-C02",
-    duration: 170,
-    questions: 75,
-    passingScore: 720,
-    price: 300,
-    level: "Professional",
-    description: "Provision and operate AWS services",
-    gradient: "from-yellow-500 to-orange-600",
-    organization: "AWS",
-  },
-  {
-    id: "cfa-level-1",
-    name: "CFA Level I",
-    code: "CFA-L1",
-    duration: 270,
-    questions: 180,
-    passingScore: 70,
-    price: 1000,
-    level: "Level I",
-    description: "Foundation of investment tools and concepts",
-    featured: true,
-    gradient: "from-blue-600 to-indigo-700",
-    organization: "CFA Institute",
-  },
-  {
-    id: "cfa-level-2",
-    name: "CFA Level II",
-    code: "CFA-L2",
-    duration: 270,
-    questions: 90,
-    passingScore: 70,
-    price: 1000,
-    level: "Level II",
-    description: "Application of investment tools and concepts",
-    gradient: "from-blue-600 to-indigo-700",
-    organization: "CFA Institute",
-  },
-  {
-    id: "cfa-level-3",
-    name: "CFA Level III",
-    code: "CFA-L3",
-    duration: 270,
-    questions: 60,
-    passingScore: 70,
-    price: 1000,
-    level: "Level III",
-    description: "Portfolio management and wealth planning",
-    gradient: "from-blue-600 to-indigo-700",
-    organization: "CFA Institute",
-  },
-];
+import { useListPublicCoursesQuery } from "@/modules/course/use-list-public-courses-query";
 
 interface SearchDialogProps {
   open?: boolean;
@@ -196,6 +25,7 @@ export function SearchDialog({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const wasOpen = useRef(false);
+  const { data: courses, isLoading } = useListPublicCoursesQuery();
 
   const goalIntents = [
     "i want to pass",
@@ -208,17 +38,40 @@ export function SearchDialog({
     intent.includes(searchQuery.toLowerCase()),
   );
 
-  let filteredExams = mockExams.filter(
-    (exam) =>
-      exam.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      exam.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      exam.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      exam.organization?.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const getGradientForCourse = (index: number) => {
+    const gradients = [
+      "from-purple-500 to-pink-600",
+      "from-blue-500 to-cyan-600",
+      "from-green-500 to-emerald-600",
+      "from-orange-500 to-red-600",
+      "from-indigo-500 to-purple-600",
+    ];
+    return gradients[index % gradients.length];
+  };
 
-  if (isGoalIntent) {
-    filteredExams = mockExams;
-  }
+  const getLevelFromCourseType = (courseType?: string) => {
+    if (!courseType) return "Intermediate";
+    return courseType.charAt(0).toUpperCase() + courseType.slice(1);
+  };
+
+  const filteredCourses = useMemo(() => {
+    if (isGoalIntent) {
+      return courses || [];
+    }
+
+    return (
+      courses?.filter(
+        (course) =>
+          course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          course.description
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          course.domains?.some((domain) =>
+            domain.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
+      ) || []
+    );
+  }, [courses, searchQuery, isGoalIntent]);
 
   const handleSearchQueryChange = (query: string) => {
     setSearchQuery(query);
@@ -238,21 +91,21 @@ export function SearchDialog({
         if (e.key === "ArrowDown") {
           e.preventDefault();
           setSelectedIndex((prev) =>
-            prev < filteredExams.length - 1 ? prev + 1 : prev,
+            prev < filteredCourses.length - 1 ? prev + 1 : prev,
           );
         }
         if (e.key === "ArrowUp") {
           e.preventDefault();
           setSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
         }
-        if (e.key === "Enter" && filteredExams.length > 0) {
+        if (e.key === "Enter" && filteredCourses.length > 0) {
           e.preventDefault();
-          const selected = filteredExams[selectedIndex];
-          onSearch?.(selected.name);
+          const selected = filteredCourses[selectedIndex];
+          onSearch?.(selected.title);
           if (isGoalIntent) {
             window.location.href = `/goals?courseId=${selected.id}`;
           } else {
-            window.location.href = `/catalog`;
+            window.location.href = `/courses/${selected.id}`;
           }
           setOpen(false);
         }
@@ -263,7 +116,7 @@ export function SearchDialog({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     open,
-    filteredExams,
+    filteredCourses,
     selectedIndex,
     setOpen,
     onSearch,
@@ -334,7 +187,11 @@ export function SearchDialog({
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto p-6">
-            {searchQuery === "" ? (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+                <div className="text-muted-foreground">Loading courses...</div>
+              </div>
+            ) : searchQuery === "" ? (
               <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
                 <Search className="h-24 w-24 text-muted-foreground/50" />
                 <div className="space-y-2">
@@ -348,7 +205,7 @@ export function SearchDialog({
                   </p>
                 </div>
               </div>
-            ) : filteredExams.length === 0 ? (
+            ) : filteredCourses.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <Search className="h-24 w-24 text-muted-foreground/50 mb-6" />
                 <p className="text-2xl font-medium mb-2">No results found</p>
@@ -367,15 +224,15 @@ export function SearchDialog({
                   </div>
                 )}
                 <div className="space-y-3">
-                  {filteredExams.map((exam, index) => (
+                  {filteredCourses.map((course, index) => (
                     <button
-                      key={exam.id}
+                      key={course.id}
                       onClick={() => {
-                        onSearch?.(exam.name);
+                        onSearch?.(course.title);
                         if (isGoalIntent) {
-                          window.location.href = `/goals?courseId=${exam.id}`;
+                          window.location.href = `/goals?courseId=${course.id}`;
                         } else {
-                          window.location.href = `/catalog`;
+                          window.location.href = `/courses/${course.id}`;
                         }
                         setOpen(false);
                       }}
@@ -387,46 +244,54 @@ export function SearchDialog({
                       <div
                         className={cn(
                           "flex-none w-14 h-14 rounded-lg bg-gradient-to-br flex items-center justify-center text-white font-bold text-lg shadow-lg shrink-0",
-                          exam.gradient,
+                          getGradientForCourse(index),
                         )}
                       >
-                        {exam.code.split("-")[0]}
+                        {course.title.substring(0, 2).toUpperCase()}
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <h4 className="font-bold text-lg">
-                            {highlightMatch(exam.name, searchQuery)}
+                            {highlightMatch(course.title, searchQuery)}
                           </h4>
-                          {exam.featured && (
+                          {course.hasCertification && (
                             <span className="shrink-0 text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
-                              Featured
+                              Certification
                             </span>
                           )}
                         </div>
-                        <p className="text-muted-foreground mb-2 line-clamp-1 text-sm">
-                          {highlightMatch(exam.code, searchQuery)}
-                        </p>
                         <p className="text-muted-foreground line-clamp-2 mb-3">
-                          {highlightMatch(exam.description, searchQuery)}
+                          {highlightMatch(
+                            course.description || "",
+                            searchQuery,
+                          )}
                         </p>
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <GraduationCap className="h-3 w-3" />
-                            {exam.level}
+                            {getLevelFromCourseType(course.courseType)}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <BookOpen className="h-3 w-3" />
-                            {exam.questions} Questions
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {exam.duration}min
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3" />
-                            {exam.price}
-                          </span>
+                          {course.exam && (
+                            <>
+                              <span className="flex items-center gap-1">
+                                <BookOpen className="h-3 w-3" />
+                                {course.exam.totalQuestions} Questions
+                              </span>
+                              {course.exam.totalTimeMinutes && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {course.exam.totalTimeMinutes}min
+                                </span>
+                              )}
+                            </>
+                          )}
+                          {course.domains && course.domains.length > 0 && (
+                            <span className="flex items-center gap-1">
+                              <BookOpen className="h-3 w-3" />
+                              {course.domains.length} Domains
+                            </span>
+                          )}
                         </div>
                       </div>
                     </button>
@@ -462,7 +327,7 @@ export function SearchDialog({
             </div>
             <div className="text-sm">
               {searchQuery &&
-                `${filteredExams.length} result${filteredExams.length !== 1 ? "s" : ""}`}
+                `${filteredCourses.length} result${filteredCourses.length !== 1 ? "s" : ""}`}
             </div>
           </div>
         </div>

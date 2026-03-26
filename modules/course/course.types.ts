@@ -19,6 +19,13 @@ export interface Course {
   updatedAt: number;
   domains?: Domain[];
   exam?: ExamInfo;
+
+  // stats
+  // Update these two when the user rates a course
+  averageRating: number;
+  totalTimesRated: number;
+  // Update this when the user first enrolls in a course
+  totalTimesEnrolled: number;
 }
 
 export interface CreateCourseParams {

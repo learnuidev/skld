@@ -5,6 +5,7 @@ import { Course } from "@/modules/course/course.types";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { StarRating } from "./star-rating";
 
 export const CourseCardContainer = ({
   children,
@@ -79,6 +80,18 @@ export const CourseCard = ({
             {course.description}
           </p>
         )}
+
+        {course.averageRating !== undefined &&
+          course.totalTimesRated !== undefined && (
+            <div className="flex items-center gap-2 mb-4">
+              <StarRating
+                rating={course.averageRating}
+                count={course.totalTimesRated}
+                size="sm"
+                showCount
+              />
+            </div>
+          )}
 
         <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
