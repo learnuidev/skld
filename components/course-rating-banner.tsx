@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useAddUserCourseRatingMutation } from "@/modules/user-course-rating/use-add-user-course-rating-mutation";
-import { MessageSquare, X, Star } from "lucide-react";
+import { MessageSquare, X, Star, AlertCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface CourseRatingBannerProps {
@@ -31,6 +31,7 @@ export function CourseRatingBanner({
   const [showReviewInput, setShowReviewInput] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [showThankYouDialog, setShowThankYouDialog] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const addRatingMutation = useAddUserCourseRatingMutation();
   const daysRef = useRef<number>(0);
 
@@ -75,6 +76,11 @@ export function CourseRatingBanner({
       onRated?.();
     } catch (error) {
       console.error("Failed to submit rating:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to submit rating. Please try again.",
+      );
     }
   };
 
@@ -212,6 +218,28 @@ export function CourseRatingBanner({
               className="w-full"
             >
               Continue
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={error !== null}
+        onOpenChange={(open) => !open && setError(null)}
+      >
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl text-destructive">
+              <AlertCircle className="w-6 h-6" />
+              Oops! Something Went Wrong
+            </DialogTitle>
+            <DialogDescription className="text-base pt-4">
+              {error}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center pt-4">
+            <Button onClick={() => setError(null)} className="w-full">
+              Close
             </Button>
           </div>
         </DialogContent>
