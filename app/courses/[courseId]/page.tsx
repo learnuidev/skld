@@ -134,7 +134,7 @@ function MyMockExamsTab({
   const queryClient = useQueryClient();
   const deleteMockExamMutation = useDeleteMockExamMutation();
   const [filter, setFilter] = useState<"all" | "in_progress" | "completed">(
-    "all",
+    "all"
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [examToDelete, setExamToDelete] = useState<string | null>(null);
@@ -262,10 +262,10 @@ function MyMockExamsTab({
       : mockExams.filter((exam) => exam.status === filter);
 
   const inProgressExams = filteredExams.filter(
-    (exam) => exam.status === "in_progress",
+    (exam) => exam.status === "in_progress"
   );
   const completedExams = filteredExams.filter(
-    (exam) => exam.status === "completed",
+    (exam) => exam.status === "completed"
   );
 
   return (
@@ -395,7 +395,7 @@ function MyMockExamsTab({
                 const allQuestions = getExamQuestions(
                   exam,
                   examBanks || [],
-                  course?.domains || [],
+                  course?.domains || []
                 );
 
                 Object.entries(exam.answers || {}).forEach(
@@ -403,7 +403,7 @@ function MyMockExamsTab({
                     if (!answer) return;
 
                     const question = allQuestions.find(
-                      (q: any) => q.id === questionId,
+                      (q: any) => q.id === questionId
                     );
                     if (!question) return;
 
@@ -421,7 +421,7 @@ function MyMockExamsTab({
                       if (
                         userAnswers.length === correctAnswers.length &&
                         userAnswers.every((ans: string) =>
-                          correctAnswers.includes(ans),
+                          correctAnswers.includes(ans)
                         )
                       ) {
                         correct++;
@@ -431,7 +431,7 @@ function MyMockExamsTab({
                         correct++;
                       }
                     }
-                  },
+                  }
                 );
 
                 if (total === 0) return null;
@@ -560,7 +560,7 @@ function MyMockExamsTab({
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
           mockExamTitle={getExamTitle(
-            mockExams?.find((e) => e.id === examToDelete),
+            mockExams?.find((e) => e.id === examToDelete)
           )}
           onConfirm={() => {
             if (examToDelete) {
@@ -612,7 +612,7 @@ function InProgressExamBanner({
   const percentageRemaining =
     totalTimeInMilliSeconds !== null && timeRemainingInMilliseconds !== null
       ? Math.round(
-          (timeRemainingInMilliseconds / totalTimeInMilliSeconds) * 100,
+          (timeRemainingInMilliseconds / totalTimeInMilliSeconds) * 100
         )
       : null;
 
@@ -697,7 +697,7 @@ export default function CoursePage() {
   };
 
   const inProgressExam = mockExams?.find(
-    (exam) => exam.status === "in_progress",
+    (exam) => exam.status === "in_progress"
   );
 
   const handleResumeExam = () => {
@@ -771,7 +771,7 @@ export default function CoursePage() {
               "relative px-4 py-3 text-sm font-medium transition-colors",
               activeTab === tab
                 ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground",
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {tab}
@@ -791,7 +791,7 @@ export default function CoursePage() {
             courseId={course.id}
             chapters={
               course.domains?.flatMap((d) =>
-                d.chapters.map((c) => ({ ...c })),
+                d.chapters.map((c) => ({ ...c }))
               ) || []
             }
           />
