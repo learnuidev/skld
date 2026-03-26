@@ -13,11 +13,15 @@ import {
   Maximize2,
   Minimize2,
   LayoutGrid,
+  ArrowRight,
 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { CourseContent } from "@/modules/course-content/course-content.types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useTimeTrackingStore } from "@/stores/time-tracking";
+import { usePresentationStore } from "@/stores/presentation";
 
 interface PresentationModeProps {
   content: any;
@@ -26,6 +30,8 @@ interface PresentationModeProps {
   updatedAt?: string | Date | number;
   estimatedReadTime?: number;
   contentId?: string;
+  courseId?: string;
+  contents?: CourseContent[];
 }
 
 export function PresentationMode({
@@ -35,14 +41,46 @@ export function PresentationMode({
   updatedAt,
   estimatedReadTime,
   contentId,
+  courseId,
+  contents = [],
 }: PresentationModeProps) {
   const { startTracking, pauseTracking, activeViewMode } =
     useTimeTrackingStore();
+  const { setPresentationState, getPresentationState } = usePresentationStore();
 
-  const [currentIndex, setCurrentIndex] = useState(-1);
+  const [presentationState, setPresentationLocalState] = useState(() => {
+    if (contentId) {
+      const savedState = getPresentationState(contentId) || {
+        currentIndex: -1,
+        slideSteps: {},
+      };
+      return {
+        ...savedState,
+        slideSteps:
+          savedState.slideSteps[savedState.currentIndex] !== undefined
+            ? savedState.slideSteps
+            : { ...savedState.slideSteps, [savedState.currentIndex]: 0 },
+      };
+    }
+    return { currentIndex: -1, slideSteps: {} };
+  });
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [slideSteps, setSlideSteps] = useState<Record<number, number>>({});
   const [showSlideNavigator, setShowSlideNavigator] = useState(false);
+
+  const currentIndex = presentationState.currentIndex;
+  const slideSteps = presentationState.slideSteps;
+
+  const currentContentIndex = contents.findIndex((c) => c.id === contentId);
+  const nextContent =
+    currentContentIndex !== -1 && currentContentIndex < contents.length - 1
+      ? contents[currentContentIndex + 1]
+      : null;
+
+  useEffect(() => {
+    if (contentId) {
+      setPresentationState(contentId, presentationState);
+    }
+  }, [contentId, presentationState, setPresentationState]);
 
   const slides = useState<ParsedSlide[]>(() => {
     if (!isStructuredContent(content)) return [];
@@ -126,18 +164,27 @@ export function PresentationMode({
 
     const currentSlideStep = slideSteps[currentIndex] || 0;
     if (currentSlideStep > 0) {
-      setSlideSteps((prev) => ({
-        ...prev,
-        [currentIndex]: currentSlideStep - 1,
-      }));
+      setPresentationLocalState({
+        ...presentationState,
+        slideSteps: {
+          ...slideSteps,
+          [currentIndex]: currentSlideStep - 1,
+        },
+      });
     } else {
-      setCurrentIndex((prev) => Math.max(-1, prev - 1));
+      setPresentationLocalState({
+        ...presentationState,
+        currentIndex: Math.max(-1, currentIndex - 1),
+      });
     }
-  }, [currentIndex, slideSteps]);
+  }, [currentIndex, slideSteps, presentationState]);
 
   const handleNext = useCallback(() => {
     if (currentIndex === -1) {
-      setCurrentIndex(0);
+      setPresentationLocalState({
+        ...presentationState,
+        currentIndex: 0,
+      });
       return;
     }
 
@@ -147,14 +194,20 @@ export function PresentationMode({
 
     const currentSlideStep = slideSteps[currentIndex] || 0;
     if (currentSlideStep < totalSteps) {
-      setSlideSteps((prev) => ({
-        ...prev,
-        [currentIndex]: currentSlideStep + 1,
-      }));
+      setPresentationLocalState({
+        ...presentationState,
+        slideSteps: {
+          ...slideSteps,
+          [currentIndex]: currentSlideStep + 1,
+        },
+      });
     } else {
-      setCurrentIndex((prev) => Math.min(slides.length, prev + 1));
+      setPresentationLocalState({
+        ...presentationState,
+        currentIndex: Math.min(slides.length, currentIndex + 1),
+      });
     }
-  }, [slides.length, currentIndex, totalSteps, slideSteps]);
+  }, [slides.length, currentIndex, totalSteps, slideSteps, presentationState]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -212,15 +265,6 @@ export function PresentationMode({
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
-
-  useEffect(() => {
-    setSlideSteps((prev) => {
-      if (prev[currentIndex] === undefined) {
-        return { ...prev, [currentIndex]: 0 };
-      }
-      return prev;
-    });
-  }, [currentIndex]);
 
   const renderNode = (
     node: ContentNode,
@@ -580,7 +624,12 @@ export function PresentationMode({
                     >
                       <Button
                         variant={"outline"}
-                        onClick={() => setCurrentIndex(0)}
+                        onClick={() =>
+                          setPresentationLocalState({
+                            ...presentationState,
+                            currentIndex: 0,
+                          })
+                        }
                         className="rounded-full text-base font-medium"
                       >
                         Restart
@@ -592,6 +641,19 @@ export function PresentationMode({
                       >
                         Exit
                       </Button>
+                      {nextContent && courseId && (
+                        <Link
+                          href={`/courses/${courseId}/contents/${nextContent.id}`}
+                        >
+                          <Button
+                            onClick={onClose}
+                            className="rounded-full text-base font-medium"
+                          >
+                            Next Lesson
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </Link>
+                      )}
                     </motion.div>
                   </motion.div>
                 )}
@@ -716,7 +778,10 @@ export function PresentationMode({
                         transition={{ duration: 0.3, delay: 0.05 }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setCurrentIndex(-1);
+                          setPresentationLocalState({
+                            ...presentationState,
+                            currentIndex: -1,
+                          });
                           setShowSlideNavigator(false);
                         }}
                         className={`p-6 rounded-lg border text-left transition-all hover:border-primary/50 ${
@@ -744,7 +809,10 @@ export function PresentationMode({
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setCurrentIndex(idx);
+                            setPresentationLocalState({
+                              ...presentationState,
+                              currentIndex: idx,
+                            });
                             setShowSlideNavigator(false);
                           }}
                           className={`p-6 rounded-lg border text-left transition-all hover:border-primary/50 ${
@@ -776,7 +844,10 @@ export function PresentationMode({
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setCurrentIndex(slides.length);
+                          setPresentationLocalState({
+                            ...presentationState,
+                            currentIndex: slides.length,
+                          });
                           setShowSlideNavigator(false);
                         }}
                         className={`p-6 rounded-lg border text-left transition-all hover:border-primary/50 ${

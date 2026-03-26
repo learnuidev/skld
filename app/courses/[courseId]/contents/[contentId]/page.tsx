@@ -506,6 +506,8 @@ export default function ContentPage() {
           updatedAt={content.updatedAt}
           estimatedReadTime={estimatedReadTime}
           contentId={params.contentId}
+          courseId={params.courseId}
+          contents={contents || []}
         />
       )}
     </div>

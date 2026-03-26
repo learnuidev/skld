@@ -89,6 +89,8 @@ export default function NewExamBankPage() {
     );
   }
 
+  console.log("selectedSlideIndex", selectedSlideIndex);
+
   const handleGenerate = async () => {
     if (!title.trim()) {
       setActiveTab("general");
