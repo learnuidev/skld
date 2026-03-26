@@ -2,9 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useAddUserCourseRatingMutation } from "@/modules/user-course-rating/use-add-user-course-rating-mutation";
-import { MessageSquare, X } from "lucide-react";
+import { MessageSquare, X, Star } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface CourseRatingBannerProps {
@@ -23,6 +30,7 @@ export function CourseRatingBanner({
   const [review, setReview] = useState<string>("");
   const [showReviewInput, setShowReviewInput] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [showThankYouDialog, setShowThankYouDialog] = useState<boolean>(false);
   const addRatingMutation = useAddUserCourseRatingMutation();
   const daysRef = useRef<number>(0);
 
@@ -62,6 +70,8 @@ export function CourseRatingBanner({
       });
       setReview("");
       setShowReviewInput(false);
+      setRating(0);
+      setShowThankYouDialog(true);
       onRated?.();
     } catch (error) {
       console.error("Failed to submit rating:", error);
@@ -180,6 +190,32 @@ export function CourseRatingBanner({
           </div>
         )}
       </div>
+
+      <Dialog open={showThankYouDialog} onOpenChange={setShowThankYouDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <Star className="w-6 h-6 fill-yellow-400 text-yellow-400" />
+              Thank You!
+            </DialogTitle>
+            <DialogDescription className="text-base pt-4">
+              Your feedback helps us improve and helps other learners make
+              informed decisions about their courses.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center pt-4">
+            <Button
+              onClick={() => {
+                setShowThankYouDialog(false);
+                setIsVisible(false);
+              }}
+              className="w-full"
+            >
+              Continue
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
