@@ -209,27 +209,11 @@ export function KnowledgeGraph({
       isUpdatingGraphRef.current = true;
 
       if (editingLink) {
-        const editingSourceId =
-          typeof editingLink.source === "object"
-            ? editingLink.source.id
-            : editingLink.source;
-        const editingTargetId =
-          typeof editingLink.target === "object"
-            ? editingLink.target.id
-            : editingLink.target;
-
         const newGraphData = {
           ...editedGraphData,
-          links: editedGraphData.links.map((l) => {
-            const lSourceId =
-              typeof l.source === "object" ? l.source.id : l.source;
-            const lTargetId =
-              typeof l.target === "object" ? l.target.id : l.target;
-            return lSourceId === editingSourceId &&
-              lTargetId === editingTargetId
-              ? link
-              : l;
-          }),
+          links: editedGraphData.links.map((l) =>
+            l === editingLink ? link : l
+          ),
         };
         pushToHistory(newGraphData);
       } else {
@@ -270,25 +254,9 @@ export function KnowledgeGraph({
     if (isUpdatingGraphRef.current) return;
     isUpdatingGraphRef.current = true;
 
-    const sourceId =
-      typeof editingLink.source === "object"
-        ? editingLink.source.id
-        : editingLink.source;
-    const targetId =
-      typeof editingLink.target === "object"
-        ? editingLink.target.id
-        : editingLink.target;
-
     const newGraphData = {
       ...editedGraphData,
-      links: editedGraphData.links.filter(
-        (l) =>
-          !(
-            (typeof l.source === "object" ? l.source.id : l.source) ===
-              sourceId &&
-            (typeof l.target === "object" ? l.target.id : l.target) === targetId
-          )
-      ),
+      links: editedGraphData.links.filter((l) => l !== editingLink),
     };
     pushToHistory(newGraphData);
 
