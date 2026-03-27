@@ -1,7 +1,7 @@
 import { LanguageCode } from "@/constants/languages";
 import { CourseContentVariants } from "../course-content/course-content.types";
 import { QuestionType } from "../exam-bank/exam-bank.types";
-import { CourseType } from "./course.types";
+import { CourseLevel } from "./course.types";
 
 export interface CourseV2 {
   /** Unique identifier for the course */
@@ -16,8 +16,8 @@ export interface CourseV2 {
   title: string;
   /** Detailed description of the course */
   description?: string;
-  /** Type/category of the course */
-  courseType: CourseType;
+  /** Level of the course */
+  courseLevel: CourseLevel;
   /** Whether the course offers certification upon completion */
   hasCertification?: boolean;
   /** Timestamp when the course was created (Unix epoch in seconds) */
@@ -207,7 +207,7 @@ export interface ContentTranslationV2 {
 export interface ChapterContent {
   /** Unique identifier for the list entry */
   id: string;
-  /** Sort key for DynamoDB. Example: "CHAPTER_123" */
+  /** Sort key for DynamoDB. Example: "CONTENT_content202_LIST_list303" */
   chapterId: string;
   /** Reference to the parent content ID */
   contentId: string;

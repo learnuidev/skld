@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CourseFormData, CourseType } from "@/modules/course/course.types";
-import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/constants/languages";
-import { motion, AnimatePresence } from "framer-motion";
+import { SUPPORTED_LANGUAGES } from "@/constants/languages";
+import { CourseFormData, CourseLevel } from "@/modules/course/course.types";
 import {
   QUESTION_TYPES,
   QuestionType,
 } from "@/modules/exam-bank/exam-bank.types";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface CourseFormTraditionalProps {
   formData: CourseFormData;
@@ -108,7 +108,7 @@ export function CourseFormTraditional({
                 onClick={() =>
                   setFormData({
                     ...formData,
-                    courseType: type as CourseType,
+                    courseType: type as CourseLevel,
                   })
                 }
                 className={`px-5 py-4 text-sm font-medium rounded-xl border-2 transition-all capitalize ${
