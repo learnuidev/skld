@@ -124,10 +124,8 @@ export interface ExamV2 {
 }
 
 export interface ExamTranslationV2 {
-  /** Primary key for DynamoDB. Example: "EXAM_exam101" */
+  /** Primary key for DynamoDB. Example: "EXAM-exam101_TRANSLATION-fr" */
   id: string;
-  /** Sort key for DynamoDB. Example: "EXAM_exam101_TRANSLATION_en" */
-  sk: string;
   /** Reference to the parent exam ID */
   examId: string;
   /** Language code for this translation */
