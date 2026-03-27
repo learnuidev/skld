@@ -6,7 +6,7 @@ import { CourseContentVariants } from "../course-content/course-content.types";
 export interface CourseV2 {
   id: string;
   userId: string;
-  title: Record<LanguageCode, string>;
+  title: string;
   description?: string;
   courseType: CourseType;
   hasCertification?: boolean;
