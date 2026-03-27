@@ -139,7 +139,21 @@ export interface ExamTranslationV2 {
 }
 
 export interface ContentDetails {
-  /** Unique identifier for the content */
+  /** Primary Key Reference to the parent content ID from ContentV2 */
+  contentId: string;
+  /** Language code for this content */
+  languageCode: LanguageCode;
+  /** The actual content data (can be text string or any structured data) */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  content?: string | any;
+  /** Timestamp when the content details were created (Unix epoch in seconds) */
+  createdAt: number;
+  /** Timestamp when the content details were last updated (Unix epoch in seconds) */
+  updatedAt: number;
+}
+
+export interface ContentDetailsTranslations {
+  /** Unique identifier for the content: CONTENT-123_LANGUAGE-fr */
   id: string;
   /** Reference to the parent content ID from ContentV2 */
   contentId: string;
@@ -174,10 +188,8 @@ export interface ContentV2 {
 }
 
 export interface ContentTranslationV2 {
-  /** Primary key for DynamoDB. Example: "CONTENT_content202" */
+  /** Primary key for DynamoDB. Example: "CONTENT-content202_TRANSLATION-en" */
   id: string;
-  /** Sort key for DynamoDB. Example: "CONTENT_content202_TRANSLATION_en" */
-  sk: string;
   /** Reference to the parent content ID */
   contentId: string;
   /** Language code for this translation */
