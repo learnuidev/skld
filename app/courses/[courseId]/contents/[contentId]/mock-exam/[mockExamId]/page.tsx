@@ -218,7 +218,7 @@ function ContentQuizPageInner({
   }, [currentQuestion, restoreQuestionState]);
 
   const checkAnswer = async () => {
-    const newAnswers = { ...mockExam.answers };
+    const newAnswers: any = {};
     const questionId = currentQuestion.id || "";
 
     if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
