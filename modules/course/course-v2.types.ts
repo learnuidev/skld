@@ -157,10 +157,6 @@ export interface ContentDetails {
 export interface ContentV2 {
   /** Unique identifier for the content */
   id: string;
-  /** Reference to the parent course ID */
-  courseId: string;
-  /** Reference to the parent chapter ID (optional for course-level content) */
-  chapterId?: string;
   /** Default language for the content */
   defaultLanguage: LanguageCode;
   /** List of content variants in different formats/languages */
@@ -171,8 +167,6 @@ export interface ContentV2 {
   title: string;
   /** Description of the content */
   description?: string;
-  /** Order/sequence of this content within the chapter/course */
-  order: number;
   /** Timestamp when the content was created (Unix epoch in seconds) */
   createdAt: number;
   /** Timestamp when the content was last updated (Unix epoch in seconds) */
