@@ -11,7 +11,7 @@ import {
 export function useSubmitContentQuizMutation() {
   return useMutation({
     mutationFn: async (
-      params: SubmitContentQuizParams,
+      params: SubmitContentQuizParams
     ): Promise<SubmitContentQuizResponse> => {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
@@ -28,8 +28,11 @@ export function useSubmitContentQuizMutation() {
             "Content-Type": "application/json",
             Authorization: token,
           },
-          body: JSON.stringify({ answers: params.answers }),
-        },
+          body: JSON.stringify({
+            answers: params.answers,
+            eliminatedAnswerIds: params.eliminatedAnswerIds,
+          }),
+        }
       );
 
       if (!response.ok) {
