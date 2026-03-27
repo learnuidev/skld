@@ -34,10 +34,8 @@ export interface CourseV2 {
 }
 
 export interface CourseTranslationV2 {
-  /** Primary key for DynamoDB. */
-  id: string;
-  /** Sort key for DynamoDB. Example: "COURSE_course123_TRANSLATION_en" */
-  sk: string;
+  /** Primary key for DynamoDB. Example: "COURSE_course123_TRANSLATION_en" */
+  courseIdAndLang: string;
   /** Reference to the parent course ID */
   courseId: string;
   /** Language code for this translation */
