@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CourseFormData, CourseType } from "@/modules/course/course.types";
+import { CourseFormData, CourseLevel } from "@/modules/course/course.types";
 import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/constants/languages";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -144,7 +144,7 @@ export function CourseFormMinimal({
                 onClick={() =>
                   setFormData({
                     ...formData,
-                    courseType: type as CourseType,
+                    courseType: type as CourseLevel,
                   })
                 }
                 className={`p-6 text-sm font-medium rounded-2xl border-2 transition-all capitalize hover:border-foreground/40 ${

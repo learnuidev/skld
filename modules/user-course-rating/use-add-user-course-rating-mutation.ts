@@ -1,19 +1,30 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchAuthSession } from "@aws-amplify/auth";
 import { appConfig } from "@/lib/app-config";
+import { fetchAuthSession } from "@aws-amplify/auth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  UserCourseRating,
   CreateUserCourseRatingParams,
+  UserCourseRating,
 } from "./user-course-rating.types";
 
-export function useAddUserCourseRatingMutation() {
+export const useRefetchUserRatingsHandler = () => {
   const queryClient = useQueryClient();
+  return (courseId: string) => {
+    queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+    queryClient.invalidateQueries({
+      queryKey: ["courses", courseId],
+    });
+    queryClient.invalidateQueries({ queryKey: ["public-courses"] });
 
+    queryClient.invalidateQueries({ queryKey: ["userCourseRating", courseId] });
+  };
+};
+
+export function useAddUserCourseRatingMutation() {
   return useMutation({
     mutationFn: async (
-      params: CreateUserCourseRatingParams,
+      params: CreateUserCourseRatingParams
     ): Promise<UserCourseRating> => {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
@@ -31,7 +42,7 @@ export function useAddUserCourseRatingMutation() {
             Authorization: token,
           },
           body: JSON.stringify(params),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -40,13 +51,6 @@ export function useAddUserCourseRatingMutation() {
       }
 
       return response.json();
-    },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["enrollments"] });
-      queryClient.invalidateQueries({
-        queryKey: ["courses", variables.courseId],
-      });
-      queryClient.invalidateQueries({ queryKey: ["public-courses"] });
     },
   });
 }

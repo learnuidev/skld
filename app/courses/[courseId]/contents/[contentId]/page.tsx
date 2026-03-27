@@ -4,13 +4,9 @@ import { TiptapEditor } from "@/components/editor/tiptap-editor";
 import { FloatingMenu } from "@/components/floating-menu";
 import { KnowledgeGraphStatus } from "@/components/knowledge-graph/knowledge-graph-status";
 import { PresentationMode } from "@/components/presentation-mode";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { AuthorActions } from "@/components/author-actions";
 import { useAutoSizeTextarea } from "@/hooks/ui/use-auto-size-textarea";
+
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
 import { useUpdateCourseContentMutation } from "@/modules/course-content/use-update-course-content-mutation";
@@ -19,28 +15,19 @@ import { useIsUserCourseAuthor } from "@/modules/course/use-is-user-course-autho
 import { useCreateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-create-knowledge-graph-mutation";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
 import { useRetryKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-retry-knowledge-graph-mutation";
-import { useSkldMutation } from "@/modules/skld/use-skld-mutation";
 import { ContentRecommendation } from "@/modules/skld/skld.types";
-import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
-import { useGetMockExamsQuery } from "@/modules/user-mock-exams/use-get-mock-exams-query";
+import { useSkldMutation } from "@/modules/skld/use-skld-mutation";
+
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useGetUserContentStatsQuery } from "@/modules/user-content-stats/use-get-user-content-stats-query";
+import { useListMockExamsQuery } from "@/modules/user-mock-exams/use-list-mock-exams-query";
+import { useTimeTrackingStore } from "@/stores/time-tracking";
 import { fetchAuthSession } from "aws-amplify/auth";
-import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle2,
-  Clock,
-  CoffeeIcon,
-  Eye,
-  Loader2,
-  Save,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Save } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { useGetUserContentStatsQuery } from "@/modules/user-content-stats/use-get-user-content-stats-query";
-import { cn } from "@/lib/utils";
-import { UserContentStatsResponse } from "@/modules/user-content-stats/user-content-stats.types";
 import { TimePresent } from "./time-present";
 
 function estimateReadTime(text = "", wordsPerMinute: number = 225): number {
@@ -75,9 +62,7 @@ export default function ContentPage() {
     params.contentId
   );
 
-  const createContentQuizMutation = useCreateContentQuizMutation();
-
-  const { data: mockExams } = useGetMockExamsQuery(params.courseId);
+  const { data: mockExams } = useListMockExamsQuery(params.courseId);
 
   const ongoingContentQuiz = mockExams?.find(
     (exam) =>
@@ -90,15 +75,23 @@ export default function ContentPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editChapterId, setEditChapterId] = useState<string>("");
-  const [startTime, setStartTime] = useState<number>(Date.now());
-  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+  const [currentTime, setCurrentTime] = useState<number>(0);
   const [showTimeSpent, setShowTimeSpent] = useState(false);
   const [recommendations, setRecommendations] = useState<
     ContentRecommendation[] | null
   >(null);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
-  const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
+
+  const {
+    startTracking,
+    stopTracking,
+    pauseTracking,
+    resumeTracking,
+    getTotalTime,
+    clearContentTime,
+    activeViewMode,
+  } = useTimeTrackingStore();
 
   const skldMutation = useSkldMutation();
 
@@ -137,14 +130,37 @@ export default function ContentPage() {
   }, []);
 
   useEffect(() => {
-    setStartTime(Date.now());
     setShowTimeSpent(false);
     setTimeout(() => setShowTimeSpent(true), 2000);
-  }, [params.contentId]);
+
+    if (!showPresentation) {
+      startTracking(params.contentId, "content");
+    }
+
+    return () => {
+      if (!showPresentation && activeViewMode === "content") {
+        pauseTracking();
+      }
+    };
+  }, [
+    params.contentId,
+    showPresentation,
+    startTracking,
+    pauseTracking,
+    activeViewMode,
+  ]);
+
+  useEffect(() => {
+    if (showPresentation) {
+      pauseTracking();
+    } else if (activeViewMode !== "presentation") {
+      resumeTracking();
+    }
+  }, [showPresentation, pauseTracking, resumeTracking, activeViewMode]);
 
   const handleNext = async () => {
     try {
-      const timespent = Math.floor((Date.now() - startTime) / 1000);
+      const timespent = Math.floor(getTotalTime() / 1000);
 
       const result = await skldMutation.mutateAsync({
         contentId: params.contentId,
@@ -154,7 +170,9 @@ export default function ContentPage() {
 
       setRecommendations(result.recommendations);
       setShowRecommendations(true);
-      setStartTime(Date.now());
+      clearContentTime(params.contentId);
+      stopTracking();
+      startTracking(params.contentId, "content");
     } catch (error) {
       console.error("Failed to submit skld request:", error);
     }
@@ -210,21 +228,10 @@ export default function ContentPage() {
     }
   };
 
-  const handleStartQuiz = async () => {
-    setIsCreatingQuiz(true);
-    try {
-      const mockExam = await createContentQuizMutation.mutateAsync({
-        courseId: params.courseId,
-        contentId: params.contentId,
-      });
-      setIsCreatingQuiz(false);
-      router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`
-      );
-    } catch (error) {
-      setIsCreatingQuiz(false);
-      console.error("Failed to start quiz:", error);
-    }
+  const handleStartQuiz = () => {
+    router.push(
+      `/courses/${params.courseId}/contents/${params.contentId}/new-mock-exam`
+    );
   };
 
   if (isLoading) {
@@ -260,7 +267,7 @@ export default function ContentPage() {
             </p>
             <Link
               href={`/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${ongoingContentQuiz.id}`}
-              className="text-sm font-medium hover:underline"
+              className="text-sm font-medium hover:underline  animate-pulse"
             >
               Continue Quiz →
             </Link>
@@ -271,9 +278,8 @@ export default function ContentPage() {
       {/* {userContentStats !== undefined && (
         <TimePresent
           showTimeSpent={showTimeSpent}
-          currentTime={currentTime}
-          startTime={startTime}
           userContentStats={userContentStats}
+          getTotalTime={getTotalTime}
         />
       )} */}
 
@@ -281,6 +287,7 @@ export default function ContentPage() {
         <div className="mb-16 flex items-center justify-between">
           <Link
             href={`/courses/${params.courseId}`}
+            onClick={() => stopTracking()}
             className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -299,6 +306,7 @@ export default function ContentPage() {
                     href={`/courses/${params.courseId}/contents/${rec.contentId}`}
                     onClick={() => {
                       setShowRecommendations(false);
+                      stopTracking();
                     }}
                     className="flex items-start gap-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-colors"
                   >
@@ -386,11 +394,6 @@ export default function ContentPage() {
                       {content.title}
                     </h1>
 
-                    {/* {content.description && (
-                      <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                        {content.description}
-                      </p>
-                    )} */}
                     <div className="text-sm text-muted-foreground mt-4">
                       {estimatedReadTime < 60
                         ? `${estimatedReadTime} sec read`
@@ -450,14 +453,7 @@ export default function ContentPage() {
               contentId={params.contentId}
               content={content}
               contents={contents || []}
-              isEditing={isEditing}
-              onEdit={handleEdit}
-              onCancel={handleCancel}
               knowledgeGraph={knowledgeGraph || undefined}
-              onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
-              isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
-              onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
-              isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
               onStartQuiz={handleStartQuiz}
               onPresentation={() => setShowPresentation(true)}
               ongoingContentQuiz={!!ongoingContentQuiz}
@@ -487,6 +483,21 @@ export default function ContentPage() {
         </div>
       </div>
 
+      {isAuthor && (
+        <AuthorActions
+          courseId={params.courseId}
+          contentId={params.contentId}
+          knowledgeGraph={knowledgeGraph || undefined}
+          isEditing={isEditing}
+          onEdit={handleEdit}
+          onCancel={handleCancel}
+          onCreateKnowledgeGraph={handleCreateKnowledgeGraph}
+          isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
+          onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
+          isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
+        />
+      )}
+
       {showPresentation && content && (
         <PresentationMode
           content={content.content}
@@ -494,26 +505,11 @@ export default function ContentPage() {
           onClose={() => setShowPresentation(false)}
           updatedAt={content.updatedAt}
           estimatedReadTime={estimatedReadTime}
+          contentId={params.contentId}
+          courseId={params.courseId}
+          contents={contents || []}
         />
       )}
-
-      <Dialog open={isCreatingQuiz}>
-        <DialogContent showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Generating mini exam
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4 text-muted-foreground flex">
-            <span>Please wait or grab a </span>
-            <span className="px-2">
-              <CoffeeIcon />
-            </span>
-            <span>at the meantime</span>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

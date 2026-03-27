@@ -1,4 +1,8 @@
-import { MockExam } from "../user-mock-exams/user-mock-exams.types";
+import {
+  ExamType,
+  ExamVariant,
+  MockExam,
+} from "../user-mock-exams/user-mock-exams.types";
 import { UserContentStat } from "../skld/skld.types";
 
 export type { MockExam };
@@ -7,6 +11,10 @@ export type { UserContentStat };
 export interface CreateContentQuizParams {
   courseId: string;
   contentId: string;
+  examBankIds: string[];
+  questionIds?: string[];
+  examType?: ExamType | null;
+  examVariant: ExamVariant | null;
 }
 
 export interface SubmitContentQuizParams {

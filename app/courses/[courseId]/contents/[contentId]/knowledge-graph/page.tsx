@@ -3,14 +3,19 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect } from "react";
 import { KnowledgeGraph } from "@/components/knowledge-graph/knowledge-graph";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useGetKnowledgeGraphQuery } from "@/modules/knowledge-graph/use-get-knowledge-graph-query";
 import { useUpdateKnowledgeGraphMutation } from "@/modules/knowledge-graph/use-update-knowledge-graph-mutation";
+import { useTimeTrackingStore } from "@/stores/time-tracking";
 
 export default function ContentKnowledgeGraphPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
+
+  const { startTracking, pauseTracking, stopTracking, activeViewMode } =
+    useTimeTrackingStore();
 
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
     params.courseId,
@@ -29,6 +34,15 @@ export default function ContentKnowledgeGraphPage() {
   const updateKnowledgeGraphMutation = useUpdateKnowledgeGraphMutation();
 
   const isLoading = courseLoading || contentLoading || kgLoading;
+
+  useEffect(() => {
+    startTracking(params.contentId, "knowledge-graph");
+    return () => {
+      if (activeViewMode === "knowledge-graph") {
+        pauseTracking();
+      }
+    };
+  }, [params.contentId, startTracking, pauseTracking, activeViewMode]);
 
   if (isLoading) {
     return (
@@ -52,6 +66,7 @@ export default function ContentKnowledgeGraphPage() {
         <div className="px-0 pb-16 lg:pb-24 lg:pt-8 pt-4">
           <Link
             href={`/courses/${params.courseId}/contents/${params.contentId}`}
+            onClick={() => stopTracking()}
             className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

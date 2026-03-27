@@ -16,8 +16,13 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { Node, Link, GraphData } from "./knowledge-graph.types";
+
 import { getRelationships, getLinkId } from "./knowledge-graph.utils";
+import {
+  GraphData,
+  Link,
+  Node,
+} from "@/modules/knowledge-graph/knowledge-graph.types";
 
 const LegendItem = ({
   color,

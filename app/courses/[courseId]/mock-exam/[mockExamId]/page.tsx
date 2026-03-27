@@ -1,7 +1,10 @@
 "use client";
 
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import type { Question, QuestionOption } from "@/modules/exam-bank/exam-bank.types";
+import type {
+  Question,
+  QuestionOption,
+} from "@/modules/exam-bank/exam-bank.types";
 import {
   useGetExamBankQuery,
   useGetExamBanksQuery,
@@ -311,7 +314,7 @@ function MockExamPageInner({
     <div className="min-h-screen bg-background flex flex-col max-w-3xl mx-auto">
       <div className="mx-auto w-full py-12 flex-1">
         <header className="mb-12">
-          <div className="flex items-baseline gap-4 justify-between mb-4">
+          <div className="flex items-baseline gap-4 justify-between mb-6">
             <Link
               href={`/courses/${params.courseId}`}
               className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -336,7 +339,7 @@ function MockExamPageInner({
           </div>
         </header>
 
-        <div className="mb-20">
+        <div className="mb-12">
           <div className="h-px w-full bg-border" />
           <div
             className="h-px bg-foreground transition-all duration-300"
@@ -346,43 +349,45 @@ function MockExamPageInner({
           />
         </div>
 
-        <div className="mb-16">
-          <p className="text-xl text-foreground leading-relaxed mb-16">
+        <div className="mb-12">
+          <p className="text-xl text-foreground leading-relaxed mb-12">
             {currentQuestion.question}
           </p>
 
           <div className="space-y-4">
-            {currentQuestion.options.map((option: QuestionOption, index: number) => {
-              const optionId = option.id;
-              const isSelected =
-                currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
-                  ? selectedAnswer === optionId
-                  : currentQuestion.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE"
-                    ? selectedMultipleAnswers.has(optionId)
-                    : currentQuestion.type === "TRUE_FALSE"
-                      ? (index === 0 && trueFalseAnswer === true) ||
-                        (index === 1 && trueFalseAnswer === false)
-                      : false;
+            {currentQuestion.options.map(
+              (option: QuestionOption, index: number) => {
+                const optionId = option.id;
+                const isSelected =
+                  currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
+                    ? selectedAnswer === optionId
+                    : currentQuestion.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE"
+                      ? selectedMultipleAnswers.has(optionId)
+                      : currentQuestion.type === "TRUE_FALSE"
+                        ? (index === 0 && trueFalseAnswer === true) ||
+                          (index === 1 && trueFalseAnswer === false)
+                        : false;
 
-              return (
-                <button
-                  key={optionId || index}
-                  onClick={() => handleAnswerChange(index)}
-                  className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base ${
-                    isSelected
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-border hover:border-foreground/20"
-                  }`}
-                >
-                  <span className="flex items-center gap-4">
-                    <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
-                      {String.fromCharCode(65 + index)}
+                return (
+                  <button
+                    key={optionId || index}
+                    onClick={() => handleAnswerChange(index)}
+                    className={`w-full text-left p-6 rounded-xl border-2 transition-all text-base ${
+                      isSelected
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border hover:border-foreground/30"
+                    }`}
+                  >
+                    <span className="flex items-center gap-4">
+                      <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
+                        {String.fromCharCode(65 + index)}
+                      </span>
+                      <span>{option.text}</span>
                     </span>
-                    <span>{option.text}</span>
-                  </span>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              },
+            )}
           </div>
         </div>
 
@@ -390,7 +395,7 @@ function MockExamPageInner({
           <button
             onClick={handlePrevious}
             disabled={currentIndex === 0}
-            className="flex items-center gap-2 px-6 py-3 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-6 py-4 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             Previous
@@ -401,7 +406,7 @@ function MockExamPageInner({
               <button
                 onClick={handleSkip}
                 disabled={updateMockExamMutation.isPending}
-                className="flex items-center gap-2 px-6 py-3 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-2 px-6 py-4 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Skip
               </button>
@@ -411,19 +416,19 @@ function MockExamPageInner({
               <button
                 onClick={handleSubmit}
                 disabled={!canGoNext() || updateMockExamMutation.isPending}
-                className="flex items-center gap-2 px-8 py-3 bg-foreground text-background rounded-lg font-medium text-sm hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-2 px-12 py-4 bg-foreground text-background rounded-xl font-medium text-lg hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <Check className="w-4 h-4" />
+                <Check className="w-6 h-6" />
                 Submit
               </button>
             ) : (
               <button
                 onClick={handleNext}
                 disabled={!canGoNext() || updateMockExamMutation.isPending}
-                className="flex items-center gap-2 px-8 py-3 bg-foreground text-background rounded-lg font-medium text-sm hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-2 px-12 py-4 bg-foreground text-background rounded-xl font-medium text-lg hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Next
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-6 h-6" />
               </button>
             )}
           </div>

@@ -72,9 +72,31 @@ function ContentQuizPageInner({
   const allQuestions: Question[] = useMemo(() => {
     return (
       examBanks
-        ?.map((exam) => exam?.questions)
+        ?.filter((examBank) => {
+          if (mockExam?.examBankIds?.length > 0) {
+            return mockExam?.examBankIds?.includes(examBank.id);
+          }
+
+          return true;
+        })
+        ?.map((exam) =>
+          exam?.questions?.map((question) => {
+            return {
+              ...question,
+              examBankId: exam.id,
+            };
+          })
+        )
         ?.flat()
-        ?.filter((question) => question?.contentId === selectedContentId) || []
+        ?.filter((question) => {
+          if (mockExam?.questionIds) {
+            return mockExam?.questionIds?.includes(question?.id);
+          }
+          return (
+            question?.contentId === selectedContentId &&
+            mockExam?.examBankIds?.length
+          );
+        }) || []
     );
   }, [examBanks, selectedContentId]);
 
@@ -503,7 +525,6 @@ function ContentQuizPageInner({
                     const existingAnswer =
                       mockExam.answers[currentQuestion?.id];
 
-                    console.log("YOOOOOO", existingAnswer);
                     if (existingAnswer) {
                       handleContinue();
                     } else {
