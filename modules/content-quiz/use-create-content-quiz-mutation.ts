@@ -1,11 +1,13 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchAuthSession } from "@aws-amplify/auth";
 import { appConfig } from "@/lib/app-config";
 import { MockExam, CreateContentQuizParams } from "./content-quiz.types";
 
 export function useCreateContentQuizMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (params: CreateContentQuizParams): Promise<MockExam> => {
       const session = await fetchAuthSession();
@@ -38,6 +40,12 @@ export function useCreateContentQuizMutation() {
       }
 
       return response.json();
+    },
+
+    onSuccess: (params) => {
+      queryClient.invalidateQueries({
+        queryKey: ["mockExams", params.courseId],
+      });
     },
   });
 }

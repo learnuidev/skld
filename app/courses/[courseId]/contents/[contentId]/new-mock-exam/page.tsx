@@ -20,9 +20,37 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type AnswerItem = number | string | boolean | null;
+
+function checkCorrect(
+  question: {
+    type: string;
+    correctOptionId?: string;
+    correctOptionIds?: string[];
+  },
+  answer: Answer,
+): boolean {
+  if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
+    return answer.answer === question.correctOptionId;
+  }
+  if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
+    const userAnswers = answer.answers || [];
+    const correctAnswers = question.correctOptionIds || [];
+    return (
+      userAnswers.length === correctAnswers.length &&
+      userAnswers.every(
+        (ans: AnswerItem) =>
+          typeof ans === "string" && correctAnswers.includes(ans),
+      )
+    );
+  }
+  if (question.type === "TRUE_FALSE") {
+    return answer.answer === question.correctOptionId;
+  }
+  return false;
+}
 
 export default function NewMockExamPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
@@ -50,36 +78,51 @@ export default function NewMockExamPage() {
     exam.questions.some((q) => q.contentId === params.contentId),
   );
 
-  const failedQuestions = mockExams?.reduce<string[]>((acc, exam) => {
-    if (exam.selectedContentIds?.includes(params.contentId)) {
-      Object.entries(exam.answers || {}).forEach(([questionId, answer]) => {
-        const question = examBanks
-          ?.flatMap((eb) => eb.questions)
-          .find((q) => q.id === questionId);
-        if (question && answer) {
-          let isCorrect = false;
-          if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
-            isCorrect = answer.answer === question.correctOptionId;
-          } else if (question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
-            const userAnswers = answer.answers || [];
-            const correctAnswers = question.correctOptionIds || [];
-            isCorrect =
-              userAnswers.length === correctAnswers.length &&
-              userAnswers.every(
-                (ans: AnswerItem) =>
-                  typeof ans === "string" && correctAnswers.includes(ans),
-              );
-          } else if (question.type === "TRUE_FALSE") {
-            isCorrect = answer.answer === question.correctOptionId;
-          }
-          if (!isCorrect && !acc.includes(questionId)) {
-            acc.push(questionId);
-          }
-        }
-      });
+  const allQuestions = useMemo(
+    () => examBanks?.flatMap((eb) => eb.questions) || [],
+    [examBanks],
+  );
+
+  const questionLookup = useMemo(() => {
+    const map = new Map<string, (typeof allQuestions)[number]>();
+    allQuestions.forEach((q) => map.set(q.id, q));
+    return map;
+  }, [allQuestions]);
+
+  const sortedExams = useMemo(
+    () =>
+      [...(mockExams || [])]
+        .filter((e) => e.selectedContentIds?.includes(params.contentId))
+        .sort((a, b) => a.createdAt - b.createdAt),
+    [mockExams, params.contentId],
+  );
+
+  const questionHistory = useMemo(() => {
+    const map = new Map<string, boolean[]>();
+    for (const exam of sortedExams) {
+      for (const [qId, answer] of Object.entries(exam.answers || {})) {
+        if (!answer) continue;
+        const question = questionLookup.get(qId);
+        if (!question) continue;
+        const isCorrect = checkCorrect(question, answer);
+        const history = map.get(qId) || [];
+        history.push(isCorrect);
+        map.set(qId, history);
+      }
     }
-    return acc;
-  }, []);
+    for (const [qId, history] of map) {
+      map.set(qId, history.slice(-5));
+    }
+    return map;
+  }, [sortedExams, questionLookup]);
+
+  const failedQuestions = useMemo(
+    () =>
+      Array.from(questionHistory.entries())
+        .filter(([, history]) => history.some((c) => !c))
+        .map(([qId]) => qId),
+    [questionHistory],
+  );
 
   const hasFailedQuestions = failedQuestions && failedQuestions.length > 0;
 
@@ -452,11 +495,34 @@ export default function NewMockExamPage() {
                             <ChevronRight className="w-3 h-3 text-background" />
                           )}
                         </div>
-                        <div className="flex-1">
-                          <p className="text-sm leading-relaxed">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm leading-relaxed mb-1.5">
                             {question.question.slice(0, 180)}
                             {question.question.length > 180 && "..."}
                           </p>
+                          <div className="flex items-center gap-1.5">
+                            {(() => {
+                              const history =
+                                questionHistory.get(questionId) || [];
+                              const filled = 5;
+                              const dots: (boolean | null)[] = [
+                                ...Array(filled - history.length).fill(null),
+                                ...history,
+                              ];
+                              return dots.map((correct, i) => (
+                                <span
+                                  key={i}
+                                  className={`inline-block w-2 h-2 rounded-full ${
+                                    correct === null
+                                      ? "bg-foreground/10"
+                                      : correct
+                                        ? "bg-emerald-500"
+                                        : "bg-red-500"
+                                  }`}
+                                />
+                              ));
+                            })()}
+                          </div>
                         </div>
                       </button>
                     );
