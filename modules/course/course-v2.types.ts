@@ -57,13 +57,13 @@ export interface DomainV2 {
   courseId: string;
   /** Title of the domain */
   title: string;
+  /** Description of the domain */
+  description: string;
 }
 
 export interface DomainTranslationV2 {
-  /** Primary key for DynamoDB. Example: "DOMAIN_domain456" */
+  /** Primary key for DynamoDB. Example: "DOMAIN_domain456_TRANSLATION_en" */
   id: string;
-  /** Sort key for DynamoDB. Example: "DOMAIN_domain456_TRANSLATION_en" */
-  sk: string;
   /** Reference to the parent domain ID */
   domainId: string;
   /** Language code for this translation */
@@ -86,10 +86,8 @@ export interface ChapterV2 {
 }
 
 export interface ChapterTranslationV2 {
-  /** Primary key for DynamoDB. Example: "CHAPTER_chapter789" */
+  /** Primary key for DynamoDB. Example: "CHAPTER_chapter789_TRANSLATION_en" */
   id: string;
-  /** Sort key for DynamoDB. Example: "CHAPTER_chapter789_TRANSLATION_en" */
-  sk: string;
   /** Reference to the parent chapter ID */
   chapterId: string;
   /** Language code for this translation */
