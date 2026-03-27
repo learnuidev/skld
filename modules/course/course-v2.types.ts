@@ -1,7 +1,7 @@
-import { LanguageCode, SupportedLanguage } from "@/constants/languages";
-import { CourseType } from "./course.types";
-import { QuestionType } from "../exam-bank/exam-bank.types";
+import { LanguageCode } from "@/constants/languages";
 import { CourseContentVariants } from "../course-content/course-content.types";
+import { QuestionType } from "../exam-bank/exam-bank.types";
+import { CourseType } from "./course.types";
 
 export interface CourseV2 {
   /** Unique identifier for the course */
@@ -34,9 +34,9 @@ export interface CourseV2 {
 }
 
 export interface CourseTranslationV2 {
-  /** Primary key for DynamoDB */
-  pk: string;
-  /** Sort key for DynamoDB */
+  /** Primary key for DynamoDB. */
+  id: string;
+  /** Sort key for DynamoDB. Example: "COURSE_course123_TRANSLATION_en" */
   sk: string;
   /** Reference to the parent course ID */
   courseId: string;
@@ -62,9 +62,9 @@ export interface DomainV2 {
 }
 
 export interface DomainTranslationV2 {
-  /** Primary key for DynamoDB */
-  pk: string;
-  /** Sort key for DynamoDB */
+  /** Primary key for DynamoDB. Example: "DOMAIN_domain456" */
+  id: string;
+  /** Sort key for DynamoDB. Example: "DOMAIN_domain456_TRANSLATION_en" */
   sk: string;
   /** Reference to the parent domain ID */
   domainId: string;
@@ -88,9 +88,9 @@ export interface ChapterV2 {
 }
 
 export interface ChapterTranslationV2 {
-  /** Primary key for DynamoDB */
-  pk: string;
-  /** Sort key for DynamoDB */
+  /** Primary key for DynamoDB. Example: "CHAPTER_chapter789" */
+  id: string;
+  /** Sort key for DynamoDB. Example: "CHAPTER_chapter789_TRANSLATION_en" */
   sk: string;
   /** Reference to the parent chapter ID */
   chapterId: string;
@@ -128,9 +128,9 @@ export interface ExamV2 {
 }
 
 export interface ExamTranslationV2 {
-  /** Primary key for DynamoDB */
-  pk: string;
-  /** Sort key for DynamoDB */
+  /** Primary key for DynamoDB. Example: "EXAM_exam101" */
+  id: string;
+  /** Sort key for DynamoDB. Example: "EXAM_exam101_TRANSLATION_en" */
   sk: string;
   /** Reference to the parent exam ID */
   examId: string;
@@ -186,9 +186,9 @@ export interface ContentV2 {
 }
 
 export interface ContentTranslationV2 {
-  /** Primary key for DynamoDB */
-  pk: string;
-  /** Sort key for DynamoDB */
+  /** Primary key for DynamoDB. Example: "CONTENT_content202" */
+  id: string;
+  /** Sort key for DynamoDB. Example: "CONTENT_content202_TRANSLATION_en" */
   sk: string;
   /** Reference to the parent content ID */
   contentId: string;
@@ -207,7 +207,7 @@ export interface ContentTranslationV2 {
 export interface ListContent {
   /** Unique identifier for the list entry */
   id: string;
-  /** Sort key for DynamoDB */
+  /** Sort key for DynamoDB. Example: "CONTENT_content202_LIST_list303" */
   sk: string;
   /** Reference to the parent content ID */
   contentId: string;
@@ -216,33 +216,33 @@ export interface ListContent {
 }
 
 export const DynamoDBKeys = {
-  /** Generates DynamoDB key for a course */
-  COURSE: (id: string) => `COURSE#${id}`,
-  /** Generates DynamoDB key for a course translation */
+  /** Generates DynamoDB primary key for a course. Example: COURSE("course123") => "COURSE_course123" */
+  COURSE: (id: string) => `COURSE_${id}`,
+  /** Generates DynamoDB sort key for a course translation. Example: COURSE_TRANSLATION("course123", "en") => "COURSE_course123_TRANSLATION_en" */
   COURSE_TRANSLATION: (courseId: string, languageCode: LanguageCode) =>
-    `COURSE#${courseId}#TRANSLATION#${languageCode}`,
-  /** Generates DynamoDB key for a domain */
-  DOMAIN: (id: string) => `DOMAIN#${id}`,
-  /** Generates DynamoDB key for a domain translation */
+    `COURSE_${courseId}_TRANSLATION_${languageCode}`,
+  /** Generates DynamoDB primary key for a domain. Example: DOMAIN("domain456") => "DOMAIN_domain456" */
+  DOMAIN: (id: string) => `DOMAIN_${id}`,
+  /** Generates DynamoDB sort key for a domain translation. Example: DOMAIN_TRANSLATION("domain456", "en") => "DOMAIN_domain456_TRANSLATION_en" */
   DOMAIN_TRANSLATION: (domainId: string, languageCode: LanguageCode) =>
-    `DOMAIN#${domainId}#TRANSLATION#${languageCode}`,
-  /** Generates DynamoDB key for a chapter */
-  CHAPTER: (id: string) => `CHAPTER#${id}`,
-  /** Generates DynamoDB key for a chapter translation */
+    `DOMAIN_${domainId}_TRANSLATION_${languageCode}`,
+  /** Generates DynamoDB primary key for a chapter. Example: CHAPTER("chapter789") => "CHAPTER_chapter789" */
+  CHAPTER: (id: string) => `CHAPTER_${id}`,
+  /** Generates DynamoDB sort key for a chapter translation. Example: CHAPTER_TRANSLATION("chapter789", "en") => "CHAPTER_chapter789_TRANSLATION_en" */
   CHAPTER_TRANSLATION: (chapterId: string, languageCode: LanguageCode) =>
-    `CHAPTER#${chapterId}#TRANSLATION#${languageCode}`,
-  /** Generates DynamoDB key for an exam */
-  EXAM: (courseId: string) => `EXAM#${courseId}`,
-  /** Generates DynamoDB key for an exam translation */
+    `CHAPTER_${chapterId}_TRANSLATION_${languageCode}`,
+  /** Generates DynamoDB primary key for an exam. Example: EXAM("exam101") => "EXAM_exam101" */
+  EXAM: (courseId: string) => `EXAM_${courseId}`,
+  /** Generates DynamoDB sort key for an exam translation. Example: EXAM_TRANSLATION("exam101", "en") => "EXAM_exam101_TRANSLATION_en" */
   EXAM_TRANSLATION: (examId: string, languageCode: LanguageCode) =>
-    `EXAM#${examId}#TRANSLATION#${languageCode}`,
-  /** Generates DynamoDB key for content */
-  CONTENT: (id: string) => `CONTENT#${id}`,
-  /** Generates DynamoDB key for a content translation */
+    `EXAM_${examId}_TRANSLATION_${languageCode}`,
+  /** Generates DynamoDB primary key for content. Example: CONTENT("content202") => "CONTENT_content202" */
+  CONTENT: (id: string) => `CONTENT_${id}`,
+  /** Generates DynamoDB sort key for a content translation. Example: CONTENT_TRANSLATION("content202", "en") => "CONTENT_content202_TRANSLATION_en" */
   CONTENT_TRANSLATION: (contentId: string, languageCode: LanguageCode) =>
-    `CONTENT#${contentId}#TRANSLATION#${languageCode}`,
-  /** Generates DynamoDB key for content details */
-  CONTENT_DETAILS: (id: string) => `CONTENT_DETAILS#${id}`,
+    `CONTENT_${contentId}_TRANSLATION_${languageCode}`,
+  /** Generates DynamoDB primary key for content details. Example: CONTENT_DETAILS("details303") => "CONTENT_DETAILS_details303" */
+  CONTENT_DETAILS: (id: string) => `CONTENT_DETAILS_${id}`,
 } as const;
 
 export type EntityType = "COURSE" | "DOMAIN" | "CHAPTER" | "EXAM" | "CONTENT";
