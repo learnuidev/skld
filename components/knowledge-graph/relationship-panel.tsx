@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { PANEL_DARK_BACKGROUND } from "./knowledge-graph.constants";
-import { Link } from "./knowledge-graph.types";
+import { Link } from "@/modules/knowledge-graph/knowledge-graph.types";
 
 export const RelationshipPanel = ({
   link,

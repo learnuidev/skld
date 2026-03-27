@@ -4,8 +4,7 @@
 import { appConfig } from "@/lib/app-config";
 import { fetchAuthSession } from "@aws-amplify/auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { KnowledgeGraph } from "./knowledge-graph.types";
-import { GraphData } from "@/components/knowledge-graph/knowledge-graph.types";
+import { GraphData, KnowledgeGraph } from "./knowledge-graph.types";
 
 export interface UpdateKnowledgeGraphParams {
   sk: string;

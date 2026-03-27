@@ -1,21 +1,21 @@
 "use client";
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
-import { useTheme } from "next-themes";
-import { UseMutationResult } from "@tanstack/react-query";
-import { ControlButtons } from "./control-buttons";
 import {
   GraphData,
-  Node,
-  Link,
   KnowledgeGraph as KG,
-} from "./knowledge-graph.types";
+  Link,
+  Node,
+} from "@/modules/knowledge-graph/knowledge-graph.types";
+import { UpdateKnowledgeGraphParams } from "@/modules/knowledge-graph/use-update-knowledge-graph-mutation";
+import { UseMutationResult } from "@tanstack/react-query";
+import { useTheme } from "next-themes";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ControlButtons } from "./control-buttons";
+import { EditControls, LinkEditor, NodeEditor } from "./edit-controls";
 import { RelationshipPanel } from "./relationship-panel";
 import { SidePanel } from "./side-panel";
 import { TitlePanel } from "./title-panel";
 import { useKnowledgeGraph } from "./use-knowledge-graph";
-import { EditControls, NodeEditor, LinkEditor } from "./edit-controls";
-import { UpdateKnowledgeGraphParams } from "@/modules/knowledge-graph/use-update-knowledge-graph-mutation";
 
 export function KnowledgeGraph({
   graphData,

@@ -2,7 +2,11 @@
 
 import * as d3 from "d3";
 
-import { GraphData, Link, Node } from "./knowledge-graph.types";
+import {
+  GraphData,
+  Link,
+  Node,
+} from "@/modules/knowledge-graph/knowledge-graph.types";
 
 const getNodeById = (
   graphData: GraphData,
@@ -12,8 +16,10 @@ const getNodeById = (
 };
 
 export const getLinkId = (link: Link): string => {
-  const sourceId = typeof link.source === "object" ? link.source.id : link.source;
-  const targetId = typeof link.target === "object" ? link.target.id : link.target;
+  const sourceId =
+    typeof link.source === "object" ? link.source.id : link.source;
+  const targetId =
+    typeof link.target === "object" ? link.target.id : link.target;
   return `${sourceId}-${targetId}`;
 };
 

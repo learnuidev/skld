@@ -1,6 +1,9 @@
 "use client";
 
-import type { ExamBank, QuestionOption } from "@/modules/exam-bank/exam-bank.types";
+import type {
+  ExamBank,
+  QuestionOption,
+} from "@/modules/exam-bank/exam-bank.types";
 import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { ArrowLeft, Check, Clock, XCircle } from "lucide-react";
 import Link from "next/link";
@@ -189,7 +192,9 @@ export function MockExamCompleted({
             </div>
             {overallAccuracy !== null && (
               <div className="flex flex-col gap-2">
-                <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Accuracy</h2>
+                <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
+                  Accuracy
+                </h2>
                 <div className="text-3xl font-semibold text-foreground">
                   {overallAccuracy}%
                 </div>
@@ -199,156 +204,155 @@ export function MockExamCompleted({
 
           <div className="h-px w-full bg-border mb-12" />
 
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-foreground mb-6">
-                Question Breakdown
-              </h2>
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-foreground mb-6">
+              Question Breakdown
+            </h2>
 
-              <div className="space-y-3">
-                {sortedAnswers.map(
-                  ([questionId, answer]: [string, any], index) => {
-                    const question = examBank.questions.find(
-                      (question) => question.id === questionId
-                    );
+            <div className="space-y-3">
+              {sortedAnswers.map(
+                ([questionId, answer]: [string, any], index) => {
+                  const question = examBank.questions.find(
+                    (question) => question.id === questionId
+                  );
 
-                    if (!question) return null;
+                  if (!question) return null;
 
-                    const status = getQuestionStatus(questionId, answer);
-                    const timeSpent = answer?.timeSpent || 0;
+                  const status = getQuestionStatus(questionId, answer);
+                  const timeSpent = answer?.timeSpent || 0;
 
-                    return (
+                  return (
+                    <div
+                      key={questionId}
+                      className="rounded-lg border border-border overflow-hidden"
+                    >
                       <div
-                        key={questionId}
-                        className="rounded-lg border border-border overflow-hidden"
+                        onClick={() => toggleAccordion(questionId)}
+                        className="flex items-start justify-between gap-4 p-6 cursor-pointer hover:bg-muted/50 transition-colors"
                       >
-                        <div
-                          onClick={() => toggleAccordion(questionId)}
-                          className="flex items-start justify-between gap-4 p-6 cursor-pointer hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-start gap-3 mb-3">
-                              <div className="w-8 h-8 bg-secondary/50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                {status.icon &&
-                                  React.createElement(status.icon, {
-                                    className: `w-5 h-5 ${
-                                      status.status === "correct"
-                                        ? "text-green-600"
-                                        : status.status === "incorrect"
-                                          ? "text-red-500"
-                                          : "text-muted-foreground"
-                                    }`,
-                                  })}
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-base text-foreground font-medium mb-2 leading-relaxed">
-                                  {question.question}
-                                </p>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="w-3 h-3" />
-                                    {formatTime(timeSpent)}
-                                  </span>
-                                  <span className="px-2 py-1 rounded bg-secondary text-secondary-foreground">
-                                    {status.status === "correct"
-                                      ? "Correct"
+                        <div className="flex-1">
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="w-8 h-8 bg-secondary/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                              {status.icon &&
+                                React.createElement(status.icon, {
+                                  className: `w-5 h-5 ${
+                                    status.status === "correct"
+                                      ? "text-green-600"
                                       : status.status === "incorrect"
-                                        ? "Incorrect"
-                                        : status.status === "skipped"
-                                          ? "Skipped"
-                                          : "Unknown"}
-                                  </span>
-                                </div>
+                                        ? "text-red-500"
+                                        : "text-muted-foreground"
+                                  }`,
+                                })}
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-base text-foreground font-medium mb-2 leading-relaxed">
+                                {question.question}
+                              </p>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {formatTime(timeSpent)}
+                                </span>
+                                <span className="px-2 py-1 rounded bg-secondary text-secondary-foreground">
+                                  {status.status === "correct"
+                                    ? "Correct"
+                                    : status.status === "incorrect"
+                                      ? "Incorrect"
+                                      : status.status === "skipped"
+                                        ? "Skipped"
+                                        : "Unknown"}
+                                </span>
                               </div>
                             </div>
-                          </div>
-                          <div className="text-right text-sm font-medium text-foreground">
-                            Q{index + 1}
                           </div>
                         </div>
-                        {expandedQuestion === questionId && (
-                          <div className="px-6 pb-6 pt-0 border-t border-border bg-muted/30">
-                            <div className="pt-4 space-y-4">
-                              <div>
-                                <h4 className="text-sm font-semibold text-foreground mb-2">
-                                  Options
-                                </h4>
-                                <div className="space-y-2">
-                                  {question.options.map(
-                                    (option: QuestionOption, idx: number) => {
-                                      let optionClass = "bg-muted/50";
-                                      let icon = null;
+                        <div className="text-right text-sm font-medium text-foreground">
+                          Q{index + 1}
+                        </div>
+                      </div>
+                      {expandedQuestion === questionId && (
+                        <div className="px-6 pb-6 pt-0 border-t border-border bg-muted/30">
+                          <div className="pt-4 space-y-4">
+                            <div>
+                              <h4 className="text-sm font-semibold text-foreground mb-2">
+                                Options
+                              </h4>
+                              <div className="space-y-2">
+                                {question.options.map(
+                                  (option: QuestionOption, idx: number) => {
+                                    let optionClass = "bg-muted/50";
+                                    let icon = null;
 
-                                      const isCorrect =
-                                        question.type ===
-                                          "SINGLE_SELECT_MULTIPLE_CHOICE" ||
-                                        question.type === "TRUE_FALSE"
-                                          ? option.id === question.correctOptionId
-                                          : question.correctOptionIds?.includes(
-                                              option.id
-                                            );
+                                    const isCorrect =
+                                      question.type ===
+                                        "SINGLE_SELECT_MULTIPLE_CHOICE" ||
+                                      question.type === "TRUE_FALSE"
+                                        ? option.id === question.correctOptionId
+                                        : question.correctOptionIds?.includes(
+                                            option.id
+                                          );
 
-                                      const isSelected =
-                                        question.type ===
-                                          "SINGLE_SELECT_MULTIPLE_CHOICE" ||
-                                        question.type === "TRUE_FALSE"
-                                          ? answer?.answer === option.id
-                                          : answer?.answers?.includes(option.id);
+                                    const isSelected =
+                                      question.type ===
+                                        "SINGLE_SELECT_MULTIPLE_CHOICE" ||
+                                      question.type === "TRUE_FALSE"
+                                        ? answer?.answer === option.id
+                                        : answer?.answers?.includes(option.id);
 
-                                      if (isCorrect) {
-                                        optionClass =
-                                          "bg-green-500/10 border-green-500/30 border";
-                                        icon = (
-                                          <Check className="w-4 h-4 text-green-600" />
-                                        );
-                                      } else if (isSelected) {
-                                        optionClass =
-                                          "bg-red-500/10 border-red-500/30 border";
-                                        icon = (
-                                          <XCircle className="w-4 h-4 text-red-500" />
-                                        );
-                                      }
-
-                                      return (
-                                        <div
-                                          key={option.id || idx}
-                                          className={`p-3 rounded-md flex items-start gap-3 ${optionClass}`}
-                                        >
-                                          <div className="flex-shrink-0 mt-0.5">
-                                            {icon}
-                                          </div>
-                                          <p className="text-sm text-foreground">
-                                            {option.text}
-                                          </p>
-                                        </div>
+                                    if (isCorrect) {
+                                      optionClass =
+                                        "bg-green-500/10 border-green-500/30 border";
+                                      icon = (
+                                        <Check className="w-4 h-4 text-green-600" />
+                                      );
+                                    } else if (isSelected) {
+                                      optionClass =
+                                        "bg-red-500/10 border-red-500/30 border";
+                                      icon = (
+                                        <XCircle className="w-4 h-4 text-red-500" />
                                       );
                                     }
-                                  )}
-                                </div>
+
+                                    return (
+                                      <div
+                                        key={option.id || idx}
+                                        className={`p-3 rounded-md flex items-start gap-3 ${optionClass}`}
+                                      >
+                                        <div className="flex-shrink-0 mt-0.5">
+                                          {icon}
+                                        </div>
+                                        <p className="text-sm text-foreground">
+                                          {option.text}
+                                        </p>
+                                      </div>
+                                    );
+                                  }
+                                )}
                               </div>
-                              {question.feedback && (
-                                <div className="my-12">
-                                  <h4 className="text-md font-semibold text-foreground mb-2">
-                                    Explanation
-                                  </h4>
-                                  <p className="text-sm text-muted-foreground leading-relaxed">
-                                    {parseExplanation(question.feedback)}
-                                  </p>
-                                </div>
-                              )}
-                              {question.contentId && (
-                                <LinkedContent
-                                  courseId={examBank.courseId}
-                                  contentId={question.contentId}
-                                />
-                              )}
                             </div>
+                            {question.feedback && (
+                              <div className="my-12">
+                                <h4 className="text-md font-semibold text-foreground mb-2">
+                                  Explanation
+                                </h4>
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                  {parseExplanation(question.feedback)}
+                                </p>
+                              </div>
+                            )}
+                            {question.contentId && (
+                              <LinkedContent
+                                courseId={examBank.courseId}
+                                contentId={question.contentId}
+                              />
+                            )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  }
-                )}
-              </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+              )}
             </div>
           </div>
         </div>
