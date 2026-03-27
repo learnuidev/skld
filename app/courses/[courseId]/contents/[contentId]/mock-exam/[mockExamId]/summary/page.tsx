@@ -3,7 +3,7 @@
 import type { Question } from "@/modules/exam-bank/exam-bank.types";
 import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
-import { useCreateMockExamMutation } from "@/modules/user-mock-exams/use-create-mock-exam-mutation";
+import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
 import { Check, Clock, XCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -28,20 +28,27 @@ export default function ContentQuizSummaryPage() {
   const router = useRouter();
 
   const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
-    params.mockExamId,
+    params.mockExamId
   );
 
   const { data: examBanks, isLoading: isExamBanksLoading } =
     useGetExamBanksQuery(params.courseId);
 
-  const createMockExamMutation = useCreateMockExamMutation();
+  const createContentQuizMutation = useCreateContentQuizMutation();
 
   const selectedContentId = params.contentId;
 
-  const contentQuestions: Question[] = useMemo(() => {
+  const contentQuestions = useMemo(() => {
     return (
       examBanks
-        ?.map((exam) => exam?.questions)
+        ?.map((exam) =>
+          exam?.questions.map((question) => {
+            return {
+              ...question,
+              examBankId: exam.id,
+            };
+          })
+        )
         ?.flat()
         ?.filter((question) => question?.contentId === selectedContentId) || []
     );
@@ -53,8 +60,9 @@ export default function ContentQuizSummaryPage() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const getFailedQuestionIds = useMemo(() => {
+  const getFaileIds = useMemo(() => {
     const failedIds: string[] = [];
+    const failedExamBankIds: string[] = [];
 
     contentQuestions.forEach((question) => {
       const answer = (mockExam?.answers || {})[question.id];
@@ -71,7 +79,7 @@ export default function ContentQuizSummaryPage() {
           userAnswers.length === correctAnswers.length &&
           userAnswers.every(
             (ans: AnswerItem) =>
-              typeof ans === "string" && correctAnswers.includes(ans),
+              typeof ans === "string" && correctAnswers.includes(ans)
           )
         ) {
           isCorrect = true;
@@ -81,12 +89,16 @@ export default function ContentQuizSummaryPage() {
       }
 
       if (!isCorrect) {
+        failedExamBankIds.push(question.examBankId);
         failedIds.push(question.id);
       }
     });
 
-    return failedIds;
+    return { failedIds, failedExamBankIds };
   }, [contentQuestions, mockExam?.answers]);
+
+  const failedQuestionIds = getFaileIds.failedIds;
+  const failedExamBankIds = [...new Set(getFaileIds.failedExamBankIds)];
 
   const stats = useMemo(() => {
     let correct = 0;
@@ -110,7 +122,7 @@ export default function ContentQuizSummaryPage() {
           userAnswers.length === correctAnswers.length &&
           userAnswers.every(
             (ans: AnswerItem) =>
-              typeof ans === "string" && correctAnswers.includes(ans),
+              typeof ans === "string" && correctAnswers.includes(ans)
           )
         ) {
           isCorrect = true;
@@ -129,26 +141,27 @@ export default function ContentQuizSummaryPage() {
     const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
     const totalTimeSpent = Object.values(mockExam?.answers || {}).reduce(
       (sum: number, ans: AnswerValue) => sum + (ans?.timeSpent || 0),
-      0,
+      0
     );
 
     return { correct, incorrect, total, accuracy, totalTimeSpent };
   }, [contentQuestions, mockExam?.answers]);
 
   const handleRetryFailed = async () => {
-    if (getFailedQuestionIds.length === 0) return;
+    if (failedQuestionIds.length === 0) return;
 
-    const result = await createMockExamMutation.mutateAsync({
+    const result = await createContentQuizMutation.mutateAsync({
       courseId: params.courseId,
+      contentId: params.contentId,
+
+      examBankIds: failedExamBankIds || [],
+      questionIds: failedQuestionIds,
       examType: "untimed",
       examVariant: "failed",
-      selectedDomains: mockExam?.selectedDomains || [],
-      totalTimeSeconds: 0,
-      examBankIds: mockExam?.examBankIds || [],
     });
 
     router.push(
-      `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${result.id}`,
+      `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${result.id}`
     );
   };
 
@@ -238,15 +251,15 @@ export default function ContentQuizSummaryPage() {
             <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
           </Link>
 
-          {getFailedQuestionIds.length > 0 && (
+          {failedQuestionIds.length > 0 && (
             <button
               onClick={handleRetryFailed}
-              disabled={createMockExamMutation.isPending}
+              disabled={createContentQuizMutation.isPending}
               className="group w-full flex items-center justify-between px-8 py-6 rounded-lg border border-border hover:border-foreground/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-foreground font-light">
-                Retry {getFailedQuestionIds.length} Failed Question
-                {getFailedQuestionIds.length !== 1 ? "s" : ""}
+                Retry {failedQuestionIds.length} Failed Question
+                {failedQuestionIds.length !== 1 ? "s" : ""}
               </span>
               <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
             </button>
