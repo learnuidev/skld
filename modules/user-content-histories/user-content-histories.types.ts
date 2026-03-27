@@ -20,6 +20,7 @@ export type QuizData = {
   submittedAt: number;
   overallAccuracy: number;
   isCorrect: boolean;
+  eliminatedAnswerIds?: string[];
 };
 
 interface NodesData {

@@ -31,7 +31,6 @@ export interface QuestionResult {
   userAnswer: unknown;
   correctAnswer: unknown;
   timeSpent: number;
-  eliminatedAnswerIds?: string[];
 }
 
 export interface SubmitContentQuizResponse {
