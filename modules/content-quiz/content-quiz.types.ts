@@ -22,6 +22,7 @@ export interface SubmitContentQuizParams {
   contentId: string;
   mockExamId: string;
   answers: Record<string, unknown>;
+  eliminatedAnswerIds: string[];
 }
 
 export interface QuestionResult {
@@ -30,6 +31,7 @@ export interface QuestionResult {
   userAnswer: unknown;
   correctAnswer: unknown;
   timeSpent: number;
+  eliminatedAnswerIds?: string[];
 }
 
 export interface SubmitContentQuizResponse {
