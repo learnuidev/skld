@@ -204,11 +204,11 @@ export interface ContentTranslationV2 {
   updatedAt: number;
 }
 
-export interface ListContent {
+export interface ChapterContent {
   /** Unique identifier for the list entry */
   id: string;
-  /** Sort key for DynamoDB. Example: "CONTENT_content202_LIST_list303" */
-  sk: string;
+  /** Sort key for DynamoDB. Example: "CHAPTER_123" */
+  chapterId: string;
   /** Reference to the parent content ID */
   contentId: string;
   /** Order/sequence of this content in the list */
