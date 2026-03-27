@@ -31,6 +31,8 @@ export interface CourseV2 {
   totalTimesRated: number;
   /** Total number of enrollments for the course */
   totalTimesEnrolled: number;
+
+  courseVisibility: "draft" | "public";
 }
 
 export interface CourseTranslationV2 {

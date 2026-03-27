@@ -50,8 +50,8 @@ function ContentQuizPageInner({
     Set<string>
   >(new Set());
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<boolean | null>(null);
-  const [eliminatedOptions, setEliminatedOptions] = useState<Set<number>>(
-    new Set()
+  const [eliminatedOptions, setEliminatedOptions] = useState<Set<string>>(
+    new Set(),
   );
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalTimeSpent, setTotalTimeSpent] = useState(0);
@@ -85,7 +85,7 @@ function ContentQuizPageInner({
               ...question,
               examBankId: exam.id,
             };
-          })
+          }),
         )
         ?.flat()
         ?.filter((question) => {
@@ -131,7 +131,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", firstQuestion.id);
         router.replace(
-          `${window.location.pathname}?${newSearchParams.toString()}`
+          `${window.location.pathname}?${newSearchParams.toString()}`,
         );
       }
     }
@@ -165,13 +165,13 @@ function ContentQuizPageInner({
     }
   };
 
-  const toggleEliminateOption = (e: React.MouseEvent, optionIndex: number) => {
+  const toggleEliminateOption = (e: React.MouseEvent, optionId: string) => {
     e.stopPropagation();
     const newEliminated = new Set(eliminatedOptions);
-    if (newEliminated.has(optionIndex)) {
-      newEliminated.delete(optionIndex);
+    if (newEliminated.has(optionId)) {
+      newEliminated.delete(optionId);
     } else {
-      newEliminated.add(optionIndex);
+      newEliminated.add(optionId);
     }
     setEliminatedOptions(newEliminated);
   };
@@ -257,7 +257,7 @@ function ContentQuizPageInner({
 
     queryClient.setQueryData(
       ["mockExam", params.mockExamId],
-      () => result.mockExam
+      () => result.mockExam,
     );
 
     setTotalTimeSpent(newTotalTimeSpent);
@@ -269,13 +269,13 @@ function ContentQuizPageInner({
 
     if (mockExam?.status === "completed") {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`,
       );
     }
 
     if (nextIndex >= totalQuestions) {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`,
       );
     } else {
       const nextQuestion = allQuestions[nextIndex];
@@ -284,7 +284,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", nextQuestionId);
         router.push(
-          `${window.location.pathname}?${newSearchParams.toString()}`
+          `${window.location.pathname}?${newSearchParams.toString()}`,
         );
       }
     }
@@ -304,7 +304,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", prevQuestionId);
         router.push(
-          `${window.location.pathname}?${newSearchParams.toString()}`
+          `${window.location.pathname}?${newSearchParams.toString()}`,
         );
       }
     }
@@ -323,7 +323,7 @@ function ContentQuizPageInner({
 
   const feedbackData = checkAnswerCorrectness(
     currentQuestion,
-    mockExam.answers[questionId]
+    mockExam.answers[questionId],
   );
 
   return (
@@ -377,7 +377,7 @@ function ContentQuizPageInner({
                             (index === 1 && trueFalseAnswer === false)
                           : false;
 
-                  const isEliminated = eliminatedOptions.has(index);
+                  const isEliminated = eliminatedOptions.has(optionId);
 
                   return (
                     <button
@@ -399,7 +399,7 @@ function ContentQuizPageInner({
                         {
                           <Button
                             disabled={isSelected}
-                            onClick={(e) => toggleEliminateOption(e, index)}
+                            onClick={(e) => toggleEliminateOption(e, optionId)}
                             title={
                               isEliminated
                                 ? "Un-eliminate option"
@@ -414,7 +414,7 @@ function ContentQuizPageInner({
                       </span>
                     </button>
                   );
-                }
+                },
               )}
             </div>
           </div>
@@ -455,7 +455,7 @@ function ContentQuizPageInner({
                           .map((optionId: string) => {
                             const optionIndex =
                               currentQuestion.options.findIndex(
-                                (opt: QuestionOption) => opt.id === optionId
+                                (opt: QuestionOption) => opt.id === optionId,
                               );
                             return optionIndex >= 0
                               ? String.fromCharCode(65 + optionIndex)
@@ -465,7 +465,7 @@ function ContentQuizPageInner({
                       : (() => {
                           const optionIndex = currentQuestion.options.findIndex(
                             (opt: QuestionOption) =>
-                              opt.id === (feedbackData.correctAnswer as string)
+                              opt.id === (feedbackData.correctAnswer as string),
                           );
                           return optionIndex >= 0
                             ? String.fromCharCode(65 + optionIndex)
@@ -577,11 +577,11 @@ export default function ContentQuizPage() {
           const newSearchParams = new URLSearchParams(searchParams.toString());
           newSearchParams.set("questionId", currentQuestionId);
           router.replace(
-            `${window.location.pathname}?${newSearchParams.toString()}`
+            `${window.location.pathname}?${newSearchParams.toString()}`,
           );
         }
       },
-    }
+    },
   );
   const { data: examBanks, isLoading: isExamBanksLoading } =
     useGetExamBanksQuery(mockExam?.courseId || "");
