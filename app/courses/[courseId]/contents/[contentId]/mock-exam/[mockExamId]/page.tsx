@@ -280,13 +280,13 @@ function ContentQuizPageInner({
 
     if (mockExam?.status === "completed") {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`
       );
     }
 
     if (nextIndex >= totalQuestions) {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/results`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`
       );
     } else {
       const nextQuestion = allQuestions[nextIndex];
