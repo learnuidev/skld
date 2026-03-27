@@ -267,7 +267,7 @@ export default function ContentPage() {
             </p>
             <Link
               href={`/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${ongoingContentQuiz.id}`}
-              className="text-sm font-medium hover:underline"
+              className="text-sm font-medium hover:underline  animate-pulse"
             >
               Continue Quiz →
             </Link>
