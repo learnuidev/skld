@@ -37,22 +37,22 @@ export default function NewExamBankPage() {
   const router = useRouter();
 
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId
+    params.courseId,
   );
 
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const selectedDomain = course?.domains?.find((domain) =>
-    domain.chapters?.find((chapter) => chapter.id === content?.chapterId)
+    domain.chapters?.find((chapter) => chapter.id === content?.chapterId),
   );
 
   const generateExamQuestionsMutation = useGenerateExamQuestionsMutation();
 
   const [questionType, setQuestionType] = useState<string>(
-    "SINGLE_SELECT_MULTIPLE_CHOICE"
+    "SINGLE_SELECT_MULTIPLE_CHOICE",
   );
   const [difficulty, setDifficulty] = useState<string>("hard");
   const [questionCategory, setQuestionCategory] = useState<string>("scenario");
@@ -62,11 +62,11 @@ export default function NewExamBankPage() {
   const [description, setDescription] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedSlideIndex, setSelectedSlideIndex] = useState<number | null>(
-    null
+    null,
   );
   const [activeTab, setActiveTab] = useState("general");
   const [previewSlideIndex, setPreviewSlideIndex] = useState<number | null>(
-    null
+    null,
   );
 
   const slides = (() => {
@@ -116,7 +116,9 @@ export default function NewExamBankPage() {
         },
       });
 
-      router.push(`/studio/${params.courseId}/exam-banks/${examBank.id}`);
+      router.push(
+        `/courses/${params.courseId}/contents/${params.contentId}/exam-bank/${examBank.id}/options`,
+      );
     } catch (error) {
       console.error("Failed to generate exam questions:", error);
       alert("Failed to generate exam questions. Please try again.");
@@ -593,7 +595,7 @@ export default function NewExamBankPage() {
               variant="outline"
               onClick={() =>
                 router.push(
-                  `/courses/${params.courseId}/contents/${params.contentId}`
+                  `/courses/${params.courseId}/contents/${params.contentId}`,
                 )
               }
               className="flex-1 h-14 text-base border-border/40 hover:bg-muted/40"
