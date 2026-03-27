@@ -12,10 +12,10 @@ export interface CourseV2 {
   defaultLanguage: LanguageCode;
   /** List of languages supported by this course */
   supportedLanguages: LanguageCode[];
-  /** Title of the course */
-  title: string;
-  /** Detailed description of the course */
-  description?: string;
+  /** Title of the course (language-keyed) */
+  title: Record<LanguageCode, string>;
+  /** Detailed description of the course (language-keyed) */
+  description?: Record<LanguageCode, string>;
   /** Level of the course */
   courseLevel: CourseLevel;
   /** Whether the course offers certification upon completion */
@@ -55,10 +55,10 @@ export interface DomainV2 {
   id: string;
   /** Reference to the parent course ID */
   courseId: string;
-  /** Title of the domain */
-  title: string;
-  /** Description of the domain */
-  description: string;
+  /** Title of the domain (language-keyed) */
+  title: Record<LanguageCode, string>;
+  /** Description of the domain (language-keyed) */
+  description: Record<LanguageCode, string>;
 }
 
 export interface DomainTranslationV2 {
@@ -81,8 +81,8 @@ export interface ChapterV2 {
   id: string;
   /** Reference to the parent domain ID */
   domainId: string;
-  /** Title of the chapter */
-  title: string;
+  /** Title of the chapter (language-keyed) */
+  title: Record<LanguageCode, string>;
 }
 
 export interface ChapterTranslationV2 {
@@ -105,8 +105,8 @@ export interface ExamV2 {
   courseId: string;
   /** Default language for the exam content */
   defaultLanguage: LanguageCode;
-  /** Title of the exam */
-  title: string;
+  /** Title of the exam (language-keyed) */
+  title: Record<LanguageCode, string>;
   /** Total number of questions in the exam */
   totalQuestions: number;
   /** Time limit for the exam in minutes */
@@ -177,10 +177,10 @@ export interface ContentV2 {
   contentVariants?: CourseContentVariants[];
   /** ID of the user who created the content */
   userId: string;
-  /** Title of the content */
-  title: string;
-  /** Description of the content */
-  description?: string;
+  /** Title of the content (language-keyed) */
+  title: Record<LanguageCode, string>;
+  /** Description of the content (language-keyed) */
+  description?: Record<LanguageCode, string>;
   /** Timestamp when the content was created (Unix epoch in seconds) */
   createdAt: number;
   /** Timestamp when the content was last updated (Unix epoch in seconds) */
