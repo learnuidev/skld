@@ -5,7 +5,12 @@ import { fetchAuthSession } from "@aws-amplify/auth";
 import { appConfig } from "@/lib/app-config";
 import { EnrollmentStatsResponse } from "./enrollment.types";
 
-export function useListUserEnrollmentStatsQuery(courseId: string) {
+export function useListUserEnrollmentStatsQuery(
+  courseId: string,
+  props?: {
+    onSuccess?: (resp: EnrollmentStatsResponse) => void;
+  }
+) {
   return useQuery({
     queryKey: ["enrollmentStats", courseId],
     queryFn: async (): Promise<EnrollmentStatsResponse> => {
@@ -30,7 +35,13 @@ export function useListUserEnrollmentStatsQuery(courseId: string) {
         throw new Error(error.error || "Failed to fetch enrollment stats");
       }
 
-      return response.json();
+      const resp = await response.json();
+
+      if (props?.onSuccess) {
+        props?.onSuccess(resp);
+      }
+
+      return resp;
     },
     enabled: !!courseId,
   });
