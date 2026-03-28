@@ -108,6 +108,13 @@ export function NavBar() {
           >
             studio
           </Link>
+          <Link
+            className="font-light"
+            href="/dashboard"
+            onClick={() => setIsOpen(false)}
+          >
+            dashboard
+          </Link>
 
           <Link
             className="font-light"
