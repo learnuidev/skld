@@ -22,7 +22,7 @@ export function useGetEnrollmentQuery(courseId: string) {
           headers: {
             Authorization: token,
           },
-        },
+        }
       );
 
       if (response.status === 404) {
@@ -40,7 +40,9 @@ export function useGetEnrollmentQuery(courseId: string) {
   });
 }
 
-export function useGetEnrollmentsQuery() {
+export function useGetEnrollmentsQuery(props?: {
+  onSuccess?: (enrollment: Enrollment[]) => void;
+}) {
   return useQuery({
     queryKey: ["enrollments"],
     queryFn: async (): Promise<Enrollment[]> => {
@@ -57,7 +59,7 @@ export function useGetEnrollmentsQuery() {
           headers: {
             Authorization: token,
           },
-        },
+        }
       );
 
       if (!response.ok) {
@@ -65,7 +67,13 @@ export function useGetEnrollmentsQuery() {
         throw new Error(error.error || "Failed to fetch enrollments");
       }
 
-      return response.json();
+      const enrollments = (await response.json()) as Enrollment[];
+
+      if (props?.onSuccess) {
+        props?.onSuccess(enrollments);
+      }
+
+      return enrollments;
     },
   });
 }

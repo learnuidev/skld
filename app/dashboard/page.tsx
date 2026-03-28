@@ -22,37 +22,67 @@ import Link from "next/link";
 import { ProgressByDomainChart } from "./components/progress-by-domain-chart";
 import { CourseActivityGraph } from "./components/course-activity-graph";
 import { UserContentStat } from "@/modules/skld/skld.types";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getDashboardUrl } from "@/lib/utils";
 
 export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<"monthly" | "yearly">("monthly");
+
+  const searchParams = useSearchParams();
+
+  const localSelectedCourseId = searchParams.get("courseId") || "";
+
+  const setLocalSelectedCourseId = (id: string) => {
+    router.push(getDashboardUrl(id));
+  };
+
+  const router = useRouter();
+
   const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
   const { data: enrollments, isLoading: enrollmentsLoading } =
-    useGetEnrollmentsQuery();
+    useGetEnrollmentsQuery({
+      onSuccess: (enrollments) => {
+        const lastEnrolled = Math.max(
+          ...enrollments.map((enrollment) => {
+            return enrollment.enrolledAt;
+          })
+        );
+
+        const lastInteractedCourse = enrollments.find(
+          (enrollment) => enrollment.enrolledAt === lastEnrolled
+        );
+
+        if (!localSelectedCourseId && lastInteractedCourse) {
+          setLocalSelectedCourseId(lastInteractedCourse.courseId);
+        }
+      },
+    });
+
   const { data: allCourses } = useListPublicCoursesQuery();
 
   const defaultEnrollmentId =
     enrollments && enrollments.length > 0
       ? [...enrollments].sort((a, b) => b.enrolledAt - a.enrolledAt)[0].id
       : "";
-  const [localSelectedEnrollmentId, setLocalSelectedEnrollmentId] =
-    useState<string>(() => defaultEnrollmentId);
+
+  console.log("local", localSelectedCourseId);
 
   const selectedEnrollment = enrollments?.find(
-    (e) => e.id === localSelectedEnrollmentId,
+    (e) => e.courseId === localSelectedCourseId
   );
   const { data: selectedCourse } = useGetCourseQuery(
-    selectedEnrollment?.courseId || "",
+    localSelectedCourseId || ""
   );
   const { data: enrollmentStats } = useListUserEnrollmentStatsQuery(
-    selectedEnrollment?.courseId || "",
+    localSelectedCourseId || ""
   );
   const { data: courseContents } = useListCourseContentsQuery(
-    selectedEnrollment?.courseId || "",
+    localSelectedCourseId || ""
   );
   const { data: activityData } = useUserActivityGraph(
-    selectedEnrollment?.courseId || "",
-    localSelectedEnrollmentId || "",
-    viewMode,
+    localSelectedCourseId || "",
+    selectedEnrollment?.id || "",
+    viewMode
   );
 
   if (enrollmentsLoading) {
@@ -100,9 +130,9 @@ export default function DashboardPage() {
             Select Enrollment
           </label>
           <Select
-            value={localSelectedEnrollmentId}
+            value={localSelectedCourseId}
             onValueChange={(value) => {
-              setLocalSelectedEnrollmentId(value);
+              setLocalSelectedCourseId(value);
               setExpandedDomain(null);
             }}
           >
@@ -112,10 +142,13 @@ export default function DashboardPage() {
             <SelectContent>
               {enrollments.map((enrollment) => {
                 const course = allCourses?.find(
-                  (c) => c.id === enrollment.courseId,
+                  (c) => c.id === enrollment.courseId
                 );
                 return (
-                  <SelectItem key={enrollment.id} value={enrollment.id}>
+                  <SelectItem
+                    key={enrollment.courseId}
+                    value={enrollment.courseId}
+                  >
                     {course?.title || "Loading..."}
                   </SelectItem>
                 );

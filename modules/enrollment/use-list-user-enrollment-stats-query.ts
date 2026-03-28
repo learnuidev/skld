@@ -35,7 +35,7 @@ export function useListUserEnrollmentStatsQuery(
         throw new Error(error.error || "Failed to fetch enrollment stats");
       }
 
-      const resp = await response.json();
+      const resp = (await response.json()) as EnrollmentStatsResponse;
 
       if (props?.onSuccess) {
         props?.onSuccess(resp);

@@ -1,9 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import { signOut } from "@aws-amplify/auth";
-import { Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,8 +7,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getDashboardUrl } from "@/lib/utils";
+import { signOut } from "@aws-amplify/auth";
+import { Menu, User, X } from "lucide-react";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
+import { useState } from "react";
 import { SkldLogo } from "./skld-logo";
-import { usePathname } from "next/navigation";
 
 const contentPathRegex = /courses\/[A-Z0-9]+\/contents\/[A-Z0-9]+/;
 
@@ -20,6 +21,7 @@ export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const pathName = usePathname();
+  const params = useParams<{ courseId: string }>();
   const containsKnowledgeGraph = pathName.includes("knowledge-graph");
   const isContentPage = contentPathRegex.test(pathName);
 
@@ -36,6 +38,8 @@ export function NavBar() {
     }
   };
 
+  const dashboardUrl = getDashboardUrl(params.courseId);
+
   return (
     <nav className="my-0 sm:my-4 flex justify-between items-center sm:mb-12 mb-0">
       <Link href="/" className="font-bold">
@@ -43,7 +47,7 @@ export function NavBar() {
       </Link>
 
       <div className="hidden md:flex gap-8 items-center">
-        <Link className="font-light" href="/dashboard">
+        <Link className="font-light" href={dashboardUrl}>
           dashboard
         </Link>
 
@@ -110,7 +114,7 @@ export function NavBar() {
           </Link>
           <Link
             className="font-light"
-            href="/dashboard"
+            href={dashboardUrl}
             onClick={() => setIsOpen(false)}
           >
             dashboard
