@@ -62,11 +62,11 @@ export function ProgressByDomainChart({
 
     const chapterIds = domain.chapters.map((chapter) => chapter.id);
     const domainContents = courseContents.filter((content) =>
-      chapterIds.includes(content.chapterId || "")
+      chapterIds.includes(content.chapterId || ""),
     );
     const totalContents = domainContents.length;
     const domainStats = enrollmentStats.enrollmentStats.filter((stat) =>
-      domainContents.some((c) => c.id === stat.contentId)
+      domainContents.some((c) => c.id === stat.contentId),
     );
     const completedContents = domainStats.length;
 
@@ -75,12 +75,12 @@ export function ProgressByDomainChart({
         sum +
         (stat.metadata.totalCorrect || 0) +
         (stat.metadata.totalIncorrect || 0),
-      0
+      0,
     );
 
     const totalCorrect = domainStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalCorrect || 0),
-      0
+      0,
     );
 
     const performancePercentage =
@@ -90,11 +90,11 @@ export function ProgressByDomainChart({
 
     const totalTimeSpent = domainStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalTimeSpent || 0),
-      0
+      0,
     );
 
     const readContents = domainStats.filter(
-      (stat) => (stat.metadata.timesRead || 0) > 0
+      (stat) => (stat.metadata.timesRead || 0) > 0,
     );
 
     const coveragePercentage =
@@ -107,8 +107,8 @@ export function ProgressByDomainChart({
         ? Math.round(
             readContents.reduce(
               (sum, stat) => sum + (stat.metadata.timesRead || 0),
-              0
-            ) / readContents.length
+              0,
+            ) / readContents.length,
           )
         : 0;
 
@@ -129,7 +129,7 @@ export function ProgressByDomainChart({
 
   const calculateChapterProgress = (
     chapterId: string,
-    domainContents: CourseContent[]
+    domainContents: CourseContent[],
   ) => {
     if (!enrollmentStats || !courseContents)
       return {
@@ -144,11 +144,11 @@ export function ProgressByDomainChart({
       };
 
     const chapterContent = domainContents.filter(
-      (c) => c.chapterId === chapterId
+      (c) => c.chapterId === chapterId,
     );
     const totalContents = chapterContent.length;
     const chapterStats = enrollmentStats.enrollmentStats.filter((stat) =>
-      chapterContent.some((c) => c.id === stat.contentId)
+      chapterContent.some((c) => c.id === stat.contentId),
     );
     const completedContents = chapterStats.length;
 
@@ -157,12 +157,12 @@ export function ProgressByDomainChart({
         sum +
         (stat.metadata.totalCorrect || 0) +
         (stat.metadata.totalIncorrect || 0),
-      0
+      0,
     );
 
     const totalCorrect = chapterStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalCorrect || 0),
-      0
+      0,
     );
 
     const performancePercentage =
@@ -172,11 +172,11 @@ export function ProgressByDomainChart({
 
     const totalTimeSpent = chapterStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalTimeSpent || 0),
-      0
+      0,
     );
 
     const readContents = chapterStats.filter(
-      (stat) => (stat.metadata.timesRead || 0) > 0
+      (stat) => (stat.metadata.timesRead || 0) > 0,
     );
 
     const coveragePercentage =
@@ -189,8 +189,8 @@ export function ProgressByDomainChart({
         ? Math.round(
             readContents.reduce(
               (sum, stat) => sum + (stat.metadata.timesRead || 0),
-              0
-            ) / readContents.length
+              0,
+            ) / readContents.length,
           )
         : 0;
 
@@ -211,12 +211,12 @@ export function ProgressByDomainChart({
 
   const calculateContentPerformance = (
     chapterId: string,
-    domainContents: CourseContent[]
+    domainContents: CourseContent[],
   ) => {
     if (!courseContents) return [];
 
     const chapterContent = domainContents.filter(
-      (c) => c.chapterId === chapterId
+      (c) => c.chapterId === chapterId,
     );
 
     interface ContentPerformance {
@@ -230,7 +230,7 @@ export function ProgressByDomainChart({
 
     return chapterContent.map((content): ContentPerformance => {
       const stat = enrollmentStats?.enrollmentStats.find(
-        (s) => s.contentId === content.id
+        (s) => s.contentId === content.id,
       );
       const totalCorrect = stat?.metadata.totalCorrect || 0;
       const totalIncorrect = stat?.metadata.totalIncorrect || 0;
@@ -260,7 +260,7 @@ export function ProgressByDomainChart({
           const isExpanded = expandedDomain === domain.id;
           const chapterIds = domain.chapters.map((chapter) => chapter.id);
           const domainContents = courseContents?.filter((content) =>
-            chapterIds.includes(content.chapterId || "")
+            chapterIds.includes(content.chapterId || ""),
           );
 
           return (
@@ -272,14 +272,25 @@ export function ProgressByDomainChart({
                 onClick={() => setExpandedDomain(isExpanded ? null : domain.id)}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  {isExpanded ? (
-                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                  )}
-                  <span className="font-medium">{domain.name}</span>
-                </div>
+                <Tooltip
+                  content={
+                    <div>
+                      <div className="font-semibold mb-1">{domain.name}</div>
+                      <div className="text-xs">
+                        Click to expand and view chapter-level progress
+                      </div>
+                    </div>
+                  }
+                >
+                  <div className="flex items-center gap-3">
+                    {isExpanded ? (
+                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    )}
+                    <span className="font-medium">{domain.name}</span>
+                  </div>
+                </Tooltip>
                 <div className="flex items-center gap-4 text-sm">
                   <Tooltip
                     content={
@@ -419,11 +430,11 @@ export function ProgressByDomainChart({
                     {domain.chapters.map((chapter) => {
                       const chapterProgress = calculateChapterProgress(
                         chapter.id,
-                        domainContents
+                        domainContents,
                       );
                       let contentPerformance = calculateContentPerformance(
                         chapter.id,
-                        domainContents
+                        domainContents,
                       );
 
                       contentPerformance = [...contentPerformance].sort(
@@ -440,10 +451,10 @@ export function ProgressByDomainChart({
                               return (b.accuracy || 0) - (a.accuracy || 0);
                             case "order":
                               const contentA = domainContents.find(
-                                (c) => c.id === a.contentId
+                                (c) => c.id === a.contentId,
                               );
                               const contentB = domainContents.find(
-                                (c) => c.id === b.contentId
+                                (c) => c.id === b.contentId,
                               );
                               return (
                                 (contentA?.order || 0) - (contentB?.order || 0)
@@ -451,7 +462,7 @@ export function ProgressByDomainChart({
                             default:
                               return 0;
                           }
-                        }
+                        },
                       );
 
                       return (
@@ -582,7 +593,7 @@ export function ProgressByDomainChart({
                                   <Clock className="w-3 h-3" />
                                   <span className="font-semibold text-foreground">
                                     {Math.round(
-                                      chapterProgress.totalTimeSpent / 60
+                                      chapterProgress.totalTimeSpent / 60,
                                     )}
                                     m
                                   </span>
@@ -637,7 +648,7 @@ export function ProgressByDomainChart({
                                           <Clock className="w-3 h-3" />
                                           <span>
                                             {Math.round(
-                                              perf.totalTimeSpent / 60
+                                              perf.totalTimeSpent / 60,
                                             )}
                                           </span>
                                         </div>
