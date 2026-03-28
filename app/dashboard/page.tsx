@@ -10,7 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUserActivityGraph } from "@/hooks/use-user-activity-graph";
+import {
+  useUserActivityGraph,
+  useActivityData,
+} from "@/hooks/use-user-activity-graph";
 import { getDashboardUrl } from "@/lib/utils";
 import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
@@ -26,6 +29,10 @@ import { ProgressByDomainChart } from "./components/progress-by-domain-chart";
 
 export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<"monthly" | "yearly">("monthly");
+  const [currentDate, setCurrentDate] = useState({
+    month: new Date().getMonth(),
+    year: new Date().getFullYear(),
+  });
 
   const searchParams = useSearchParams();
 
@@ -78,11 +85,13 @@ export default function DashboardPage() {
   const { data: courseContents } = useListCourseContentsQuery(
     localSelectedCourseId || "",
   );
-  const { data: activityData } = useUserActivityGraph(
+  const { data: histories } = useUserActivityGraph(
     localSelectedCourseId || "",
     selectedEnrollment?.id || "",
-    viewMode,
   );
+  const activityData = useActivityData(histories, viewMode, currentDate);
+
+  console.log("ACTIVITY DATA", activityData);
 
   if (enrollmentsLoading) {
     return (
@@ -171,6 +180,8 @@ export default function DashboardPage() {
               data={activityData}
               viewMode={viewMode}
               setViewMode={setViewMode}
+              currentDate={currentDate}
+              setCurrentDate={setCurrentDate}
             />
           </>
         )}
