@@ -222,16 +222,18 @@ export function ProgressByDomainChart({
     interface ContentPerformance {
       contentId: string;
       title: string;
-      timesRead: number;
-      totalTimeSpent: number;
+      coveragePercentage: number;
+      contentDepth: number;
+      questionsAnswered: number;
       accuracy: number;
-      lastReviewed: number;
+      totalTimeSpent: number;
     }
 
     return chapterContent.map((content): ContentPerformance => {
       const stat = enrollmentStats?.enrollmentStats.find(
         (s) => s.contentId === content.id,
       );
+      const timesRead = stat?.metadata.timesRead || 0;
       const totalCorrect = stat?.metadata.totalCorrect || 0;
       const totalIncorrect = stat?.metadata.totalIncorrect || 0;
       const totalAttempts = totalCorrect + totalIncorrect;
@@ -239,14 +241,16 @@ export function ProgressByDomainChart({
         totalAttempts > 0
           ? Math.round((totalCorrect / totalAttempts) * 100)
           : 0;
+      const coveragePercentage = timesRead > 0 ? 100 : 0;
 
       return {
         contentId: content.id,
         title: content.title || "Unknown Content",
-        timesRead: stat?.metadata.timesRead || 0,
-        totalTimeSpent: stat?.metadata.totalTimeSpent || 0,
+        coveragePercentage,
+        contentDepth: timesRead,
+        questionsAnswered: totalAttempts,
         accuracy,
-        lastReviewed: stat?.metadata.lastReviewedAt || 0,
+        totalTimeSpent: stat?.metadata.totalTimeSpent || 0,
       };
     });
   };
@@ -441,7 +445,9 @@ export function ProgressByDomainChart({
                         (a, b) => {
                           switch (sortOption) {
                             case "reads":
-                              return (b.timesRead || 0) - (a.timesRead || 0);
+                              return (
+                                (b.contentDepth || 0) - (a.contentDepth || 0)
+                              );
                             case "time":
                               return (
                                 (b.totalTimeSpent || 0) -
@@ -602,7 +608,7 @@ export function ProgressByDomainChart({
                             </div>
                           </div>
                           <div className="space-y-2">
-                            {contentPerformance.map((perf: any) => (
+                            {contentPerformance.map((perf) => (
                               <Link
                                 key={perf.contentId}
                                 href={`/courses/${courseId}/contents/${perf.contentId}`}
@@ -618,39 +624,53 @@ export function ProgressByDomainChart({
                                         content={
                                           <div>
                                             <div className="font-semibold mb-1">
-                                              Reads
+                                              Coverage
                                             </div>
                                             <div className="text-xs">
-                                              Times content has been read
+                                              Percentage of unique content read
+                                              at least once
                                             </div>
                                           </div>
                                         }
                                       >
-                                        <div className="w-16 flex items-center gap-1">
-                                          <BookOpen className="w-3 h-3" />
-                                          <span>{perf.timesRead}</span>
+                                        <div className="w-16 text-right">
+                                          <span>
+                                            {perf.coveragePercentage}%
+                                          </span>
                                         </div>
                                       </Tooltip>
+                                      {perf.contentDepth > 0 && (
+                                        <Tooltip
+                                          content={
+                                            <div>
+                                              <div className="font-semibold mb-1">
+                                                Content Depth
+                                              </div>
+                                              <div className="text-xs">
+                                                Times content has been read
+                                              </div>
+                                            </div>
+                                          }
+                                        >
+                                          <div className="w-12 text-right">
+                                            <span>{perf.contentDepth}x</span>
+                                          </div>
+                                        </Tooltip>
+                                      )}
                                       <Tooltip
                                         content={
                                           <div>
                                             <div className="font-semibold mb-1">
-                                              Time Spent
+                                              Questions
                                             </div>
                                             <div className="text-xs">
-                                              Time spent on this content
-                                              (minutes)
+                                              Total questions answered
                                             </div>
                                           </div>
                                         }
                                       >
-                                        <div className="w-12 flex items-center gap-1">
-                                          <Clock className="w-3 h-3" />
-                                          <span>
-                                            {Math.round(
-                                              perf.totalTimeSpent / 60,
-                                            )}
-                                          </span>
+                                        <div className="w-12 text-right">
+                                          <span>{perf.questionsAnswered}</span>
                                         </div>
                                       </Tooltip>
                                       <Tooltip
@@ -667,7 +687,7 @@ export function ProgressByDomainChart({
                                         }
                                       >
                                         <div
-                                          className={`w-12 flex items-center gap-1 ${
+                                          className={`w-12 text-right ${
                                             perf.accuracy === 0
                                               ? "text-gray-400"
                                               : perf.accuracy >= 70
@@ -675,8 +695,28 @@ export function ProgressByDomainChart({
                                                 : "text-orange-600"
                                           }`}
                                         >
-                                          <Target className="w-3 h-3" />
                                           <span>{perf.accuracy}%</span>
+                                        </div>
+                                      </Tooltip>
+                                      <Tooltip
+                                        content={
+                                          <div>
+                                            <div className="font-semibold mb-1">
+                                              Time Spent
+                                            </div>
+                                            <div className="text-xs">
+                                              Time spent on this content
+                                              (minutes)
+                                            </div>
+                                          </div>
+                                        }
+                                      >
+                                        <div className="w-12 text-right">
+                                          <span>
+                                            {Math.round(
+                                              perf.totalTimeSpent / 60,
+                                            )}
+                                          </span>
                                         </div>
                                       </Tooltip>
                                     </div>
