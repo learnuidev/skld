@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useDeleteExamBankMutation } from "@/modules/exam-bank/use-exam-bank-mutations";
+import { useRetryExamBankMutation } from "@/modules/exam-bank/use-retry-exam-bank-mutation";
 import { ExamBank } from "@/modules/exam-bank/exam-bank.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import {
   Dialog,
@@ -26,9 +27,10 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
   const queryClient = useQueryClient();
   const { data: examBanks, isLoading } = useGetExamBanksQuery(courseId);
   const deleteExamBankMutation = useDeleteExamBankMutation(courseId);
+  const retryExamBankMutation = useRetryExamBankMutation();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [examBankToDelete, setExamBankToDelete] = useState<ExamBank | null>(
-    null
+    null,
   );
 
   if (isLoading) {
@@ -135,6 +137,17 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
     }
   };
 
+  const handleRetry = async (examBank: ExamBank) => {
+    try {
+      await retryExamBankMutation.mutateAsync({
+        courseId,
+        examBankId: examBank.id,
+      });
+    } catch (error) {
+      console.error("Failed to retry exam bank:", error);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -166,6 +179,8 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
               key={examBank.id}
               examBank={examBank}
               onDelete={() => handleDelete(examBank)}
+              onRetry={() => handleRetry(examBank)}
+              isRetrying={retryExamBankMutation.isPending}
             />
           ))}
         </div>
@@ -210,24 +225,49 @@ function EmptyState({ courseId }: { courseId: string }) {
 function ExamBankCard({
   examBank,
   onDelete,
+  onRetry,
+  isRetrying,
 }: {
   examBank: ExamBank;
   onDelete: () => void;
+  onRetry?: () => void;
+  isRetrying?: boolean;
 }) {
   const questionCount = examBank.questions?.length || 0;
+  const isFailed = examBank.status === "failed";
 
   return (
     <div className="bg-white dark:bg-black border-b border-slate-100 dark:border-slate-900 py-6 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer group block">
       <div className="flex items-start justify-between">
         <Link href={`/studio/${examBank.courseId}/exam-banks/${examBank.id}`}>
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-light text-slate-900 dark:text-white mb-1 whitespace-normal break-words">
-              {examBank.title}
-            </h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-base font-light text-slate-900 dark:text-white whitespace-normal break-words">
+                {examBank.title}
+              </h3>
+              {examBank.status === "processing" && (
+                <span className="text-xs text-amber-600 dark:text-amber-400">
+                  Generating...
+                </span>
+              )}
+              {isFailed && (
+                <span className="text-xs text-red-600 dark:text-red-400">
+                  Failed
+                </span>
+              )}
+            </div>
 
-            <p className="text-sm text-slate-400 dark:text-slate-600 line-clamp-2">
-              {examBank.description || "No description"}
-            </p>
+            {isFailed && examBank.error && (
+              <p className="text-sm text-red-500 dark:text-red-400 line-clamp-2">
+                {examBank.error}
+              </p>
+            )}
+
+            {!isFailed && (
+              <p className="text-sm text-slate-400 dark:text-slate-600 line-clamp-2">
+                {examBank.description || "No description"}
+              </p>
+            )}
 
             <div className="mt-3">
               <span className="text-xs text-slate-400 dark:text-slate-600">
@@ -237,29 +277,48 @@ function ExamBankCard({
           </div>
         </Link>
 
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          className="text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="flex items-center gap-2">
+          {isFailed && onRetry && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRetry();
+              }}
+              disabled={isRetrying}
+              className="text-slate-400 dark:text-slate-600 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg"
+              title="Retry generation"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${isRetrying ? "animate-spin" : ""}`}
+              />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-            />
-          </svg>
-        </Button>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          </Button>
+        </div>
       </div>
     </div>
   );
