@@ -174,6 +174,7 @@ export default function DashboardPage() {
               setExpandedDomain={setExpandedDomain}
               enrollmentStats={enrollmentStats}
               courseContents={courseContents}
+              userContentHistories={histories}
             />
 
             <CourseActivityGraph

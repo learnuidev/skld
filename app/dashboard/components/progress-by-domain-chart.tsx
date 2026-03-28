@@ -9,6 +9,7 @@ import {
 import { Tooltip } from "@/components/ui/tooltip";
 import {
   BookOpen,
+  Calendar,
   ChevronDown,
   ChevronRight,
   Clock,
@@ -20,6 +21,7 @@ import {
 import Link from "next/link";
 import { EnrollmentStatsResponse } from "@/modules/enrollment/enrollment.types";
 import { CourseContent } from "@/modules/course-content/course-content.types";
+import { UserContentHistory } from "@/modules/user-content-histories/user-content-histories.types";
 
 interface Domain {
   id: string;
@@ -34,6 +36,7 @@ interface ProgressByDomainChartProps {
   setExpandedDomain: (domainId: string | null) => void;
   enrollmentStats: EnrollmentStatsResponse | undefined;
   courseContents: CourseContent[] | undefined;
+  userContentHistories: UserContentHistory[] | undefined;
 }
 
 type SortOption = "reads" | "time" | "accuracy" | "order";
@@ -45,8 +48,27 @@ export function ProgressByDomainChart({
   setExpandedDomain,
   enrollmentStats,
   courseContents,
+  userContentHistories,
 }: ProgressByDomainChartProps) {
   const [sortOption, setSortOption] = useState<SortOption>("reads");
+
+  const calculateDaysSpent = (contentId: string): number => {
+    if (!userContentHistories || userContentHistories.length === 0) return 0;
+
+    const contentHistories = userContentHistories.filter(
+      (h) => h.contentId === contentId
+    );
+
+    if (contentHistories.length === 0) return 0;
+
+    const uniqueDays = new Set<string>();
+    for (const history of contentHistories) {
+      const dateKey = new Date(history.createdAt).toISOString().split("T")[0];
+      uniqueDays.add(dateKey);
+    }
+
+    return uniqueDays.size;
+  };
   const calculateDomainProgress = (domain: Domain) => {
     if (!enrollmentStats || !courseContents)
       return {
@@ -56,6 +78,7 @@ export function ProgressByDomainChart({
         questionsAnswered: 0,
         performancePercentage: 0,
         totalTimeSpent: 0,
+        totalDaysSpent: 0,
         coveragePercentage: 0,
         averageContentDepth: 0,
       };
@@ -93,6 +116,11 @@ export function ProgressByDomainChart({
       0
     );
 
+    const totalDaysSpent = domainContents.reduce(
+      (sum: number, content) => sum + calculateDaysSpent(content.id),
+      0
+    );
+
     const readContents = domainStats.filter(
       (stat) => (stat.metadata.timesRead || 0) > 0
     );
@@ -122,6 +150,7 @@ export function ProgressByDomainChart({
       questionsAnswered: totalQuestionsAnswered,
       performancePercentage,
       totalTimeSpent,
+      totalDaysSpent,
       coveragePercentage,
       averageContentDepth,
     };
@@ -139,6 +168,7 @@ export function ProgressByDomainChart({
         questionsAnswered: 0,
         performancePercentage: 0,
         totalTimeSpent: 0,
+        totalDaysSpent: 0,
         coveragePercentage: 0,
         averageContentDepth: 0,
       };
@@ -175,6 +205,11 @@ export function ProgressByDomainChart({
       0
     );
 
+    const totalDaysSpent = chapterContent.reduce(
+      (sum: number, content) => sum + calculateDaysSpent(content.id),
+      0
+    );
+
     const readContents = chapterStats.filter(
       (stat) => (stat.metadata.timesRead || 0) > 0
     );
@@ -204,6 +239,7 @@ export function ProgressByDomainChart({
       questionsAnswered: totalQuestionsAnswered,
       performancePercentage,
       totalTimeSpent,
+      totalDaysSpent,
       coveragePercentage,
       averageContentDepth,
     };
@@ -227,6 +263,7 @@ export function ProgressByDomainChart({
       questionsAnswered: number;
       accuracy: number;
       totalTimeSpent: number;
+      totalDaysSpent: number;
     }
 
     return chapterContent.map((content): ContentPerformance => {
@@ -242,6 +279,8 @@ export function ProgressByDomainChart({
           ? Math.round((totalCorrect / totalAttempts) * 100)
           : 0;
       const coveragePercentage = timesRead > 0 ? 100 : 0;
+      const totalTimeSpent = stat?.metadata.totalTimeSpent || 0;
+      const totalDaysSpent = calculateDaysSpent(content.id);
 
       return {
         contentId: content.id,
@@ -250,7 +289,8 @@ export function ProgressByDomainChart({
         contentDepth: timesRead,
         questionsAnswered: totalAttempts,
         accuracy,
-        totalTimeSpent: stat?.metadata.totalTimeSpent || 0,
+        totalTimeSpent,
+        totalDaysSpent,
       };
     });
   };
@@ -308,34 +348,30 @@ export function ProgressByDomainChart({
                       </div>
                     }
                   >
-                    <div className="flex items-center gap-1 text-muted-foreground">
+                    <div className="flex items-center gap-1 text-muted-foreground w-20 justify-end">
                       <Eye className="w-4 h-4" />
                       <span className="font-semibold text-foreground">
                         {progress.coveragePercentage}%
                       </span>
                     </div>
                   </Tooltip>
-                  {progress.averageContentDepth > 0 && (
-                    <Tooltip
-                      content={
-                        <div>
-                          <div className="font-semibold mb-1">
-                            Content Depth
-                          </div>
-                          <div className="text-xs">
-                            Average times content has been read
-                          </div>
+                  <Tooltip
+                    content={
+                      <div>
+                        <div className="font-semibold mb-1">Content Depth</div>
+                        <div className="text-xs">
+                          Average times content has been read
                         </div>
-                      }
-                    >
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Layers className="w-4 h-4" />
-                        <span className="font-semibold text-foreground">
-                          {progress.averageContentDepth}x
-                        </span>
                       </div>
-                    </Tooltip>
-                  )}
+                    }
+                  >
+                    <div className="flex items-center gap-1 text-muted-foreground w-20 justify-end">
+                      <Layers className="w-4 h-4" />
+                      <span className="font-semibold text-foreground">
+                        {progress.averageContentDepth}x
+                      </span>
+                    </div>
+                  </Tooltip>
                   <Tooltip
                     content={
                       <div>
@@ -344,48 +380,46 @@ export function ProgressByDomainChart({
                       </div>
                     }
                   >
-                    <div className="flex items-center gap-1 text-muted-foreground">
+                    <div className="flex items-center gap-1 text-muted-foreground w-20 justify-end">
                       <HelpCircle className="w-4 h-4" />
                       <span className="font-semibold text-foreground">
                         {progress.questionsAnswered}
                       </span>
                     </div>
                   </Tooltip>
-                  {progress.questionsAnswered > 0 && (
-                    <Tooltip
-                      content={
-                        <div>
-                          <div className="font-semibold mb-1">Accuracy</div>
-                          <div className="text-xs">
-                            Percentage of correctly answered questions
-                          </div>
+                  <Tooltip
+                    content={
+                      <div>
+                        <div className="font-semibold mb-1">Accuracy</div>
+                        <div className="text-xs">
+                          Percentage of correctly answered questions
                         </div>
-                      }
-                    >
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Target
-                          className={`w-4 h-4 ${
-                            progress.performancePercentage === 0
-                              ? "text-gray-400"
-                              : progress.performancePercentage >= 70
-                                ? "text-green-600"
-                                : "text-orange-600"
-                          }`}
-                        />
-                        <span
-                          className={`font-semibold ${
-                            progress.performancePercentage === 0
-                              ? "text-gray-400"
-                              : progress.performancePercentage >= 70
-                                ? "text-green-600"
-                                : "text-orange-600"
-                          }`}
-                        >
-                          {progress.performancePercentage}%
-                        </span>
                       </div>
-                    </Tooltip>
-                  )}
+                    }
+                  >
+                    <div className="flex items-center gap-1 text-muted-foreground w-20 justify-end">
+                      <Target
+                        className={`w-4 h-4 ${
+                          progress.performancePercentage === 0
+                            ? "text-gray-400"
+                            : progress.performancePercentage >= 70
+                              ? "text-green-600"
+                              : "text-orange-600"
+                        }`}
+                      />
+                      <span
+                        className={`font-semibold ${
+                          progress.performancePercentage === 0
+                            ? "text-gray-400"
+                            : progress.performancePercentage >= 70
+                              ? "text-green-600"
+                              : "text-orange-600"
+                        }`}
+                      >
+                        {progress.performancePercentage}%
+                      </span>
+                    </div>
+                  </Tooltip>
                   <Tooltip
                     content={
                       <div>
@@ -396,10 +430,25 @@ export function ProgressByDomainChart({
                       </div>
                     }
                   >
-                    <div className="flex items-center gap-1 text-muted-foreground">
+                    <div className="flex items-center gap-1 text-muted-foreground w-20 justify-end">
                       <Clock className="w-4 h-4" />
                       <span className="font-semibold text-foreground">
                         {Math.round(progress.totalTimeSpent / 60)}m
+                      </span>
+                    </div>
+                  </Tooltip>
+                  <Tooltip
+                    content={
+                      <div>
+                        <div className="font-semibold mb-1">Days Spent</div>
+                        <div className="text-xs">Total days spent learning</div>
+                      </div>
+                    }
+                  >
+                    <div className="flex items-center gap-1 text-muted-foreground w-20 justify-end">
+                      <Calendar className="w-4 h-4" />
+                      <span className="font-semibold text-foreground">
+                        {progress.totalDaysSpent.toFixed(1)}d
                       </span>
                     </div>
                   </Tooltip>
@@ -585,6 +634,24 @@ export function ProgressByDomainChart({
                                   </span>
                                 </div>
                               </Tooltip>
+                              <Tooltip
+                                content={
+                                  <div>
+                                    <div className="font-semibold mb-1">
+                                      Days Spent
+                                    </div>
+                                    <div className="text-xs">
+                                      Total days spent learning
+                                    </div>
+                                  </div>
+                                }
+                              >
+                                <div className="w-12 text-right">
+                                  <span className="font-semibold text-foreground">
+                                    {chapterProgress.totalDaysSpent.toFixed(1)}d
+                                  </span>
+                                </div>
+                              </Tooltip>
                             </div>
                           </div>
                           <div className="space-y-2">
@@ -604,7 +671,7 @@ export function ProgressByDomainChart({
                                         content={
                                           <div>
                                             <div className="font-semibold mb-1">
-                                              Coverage
+                                              Content Coverage
                                             </div>
                                             <div className="text-xs">
                                               Percentage of unique content read
@@ -694,6 +761,24 @@ export function ProgressByDomainChart({
                                             {Math.round(
                                               perf.totalTimeSpent / 60
                                             )}
+                                          </span>
+                                        </div>
+                                      </Tooltip>
+                                      <Tooltip
+                                        content={
+                                          <div>
+                                            <div className="font-semibold mb-1">
+                                              Days Spent
+                                            </div>
+                                            <div className="text-xs">
+                                              Total days spent on this content
+                                            </div>
+                                          </div>
+                                        }
+                                      >
+                                        <div className="w-12 text-right">
+                                          <span>
+                                            {perf.totalDaysSpent.toFixed(1)}
                                           </span>
                                         </div>
                                       </Tooltip>
