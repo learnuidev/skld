@@ -33,7 +33,26 @@ export function CourseActivityGraph({
     return "bg-green-400 dark:bg-green-600/60";
   };
 
-  const weeks = Math.ceil(data.length / 7);
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const circleSize = viewMode === "monthly" ? "w-6 h-6" : "w-3 h-3";
+  const circleShape = viewMode === "monthly" ? "rounded-full" : "rounded-sm";
+  const circlesPerRow = viewMode === "monthly" ? 10 : 7;
+
+  const now = new Date();
+  const daysToShow = data.length;
+  const startDate =
+    viewMode === "monthly"
+      ? new Date(now.getFullYear(), now.getMonth(), 1)
+      : new Date(now.getTime() - daysToShow * 24 * 60 * 60 * 1000);
+
+  const rows = Math.ceil(data.length / circlesPerRow);
 
   return (
     <div>
@@ -61,18 +80,23 @@ export function CourseActivityGraph({
       </div>
 
       <div className="bg-muted/50 rounded-lg p-4">
-        <div className="flex gap-1">
-          {Array.from({ length: weeks }, (_, weekIndex) => (
-            <div key={weekIndex} className="flex flex-col gap-1">
-              {Array.from({ length: 7 }, (_, dayIndex) => {
-                const dataIndex = weekIndex * 7 + dayIndex;
-                const value = data[dataIndex] || 0;
+        <div className="flex gap-1 justify-center flex-wrap">
+          {Array.from({ length: rows }, (_, rowIndex) => (
+            <div key={rowIndex} className="flex gap-1">
+              {Array.from({ length: circlesPerRow }, (_, colIndex) => {
+                const dataIndex = rowIndex * circlesPerRow + colIndex;
+                if (dataIndex >= data.length) return null;
+
+                const value = data[dataIndex];
+                const date = new Date(
+                  startDate.getTime() + dataIndex * 24 * 60 * 60 * 1000,
+                );
 
                 return (
                   <div
-                    key={dayIndex}
-                    className={`w-3 h-3 rounded-sm ${getColor(value)} transition-colors`}
-                    title={`${value} activities`}
+                    key={colIndex}
+                    className={`${circleSize} ${circleShape} ${getColor(value)} transition-colors hover:scale-110 cursor-pointer`}
+                    title={`${formatDate(date)}\n${value} activities`}
                   />
                 );
               })}
@@ -81,12 +105,20 @@ export function CourseActivityGraph({
         </div>
         <div className="flex items-center justify-end gap-2 mt-4 text-xs text-muted-foreground">
           <span>Less</span>
-          <div className="flex gap-1">
-            <div className="w-3 h-3 rounded-sm bg-muted" />
-            <div className="w-3 h-3 rounded-sm bg-green-100 dark:bg-green-900/30" />
-            <div className="w-3 h-3 rounded-sm bg-green-200 dark:bg-green-800/40" />
-            <div className="w-3 h-3 rounded-sm bg-green-300 dark:bg-green-700/50" />
-            <div className="w-3 h-3 rounded-sm bg-green-400 dark:bg-green-600/60" />
+          <div className={`flex gap-1`}>
+            <div className={`w-3 h-3 rounded-sm bg-muted`} />
+            <div
+              className={`w-3 h-3 rounded-sm bg-green-100 dark:bg-green-900/30`}
+            />
+            <div
+              className={`w-3 h-3 rounded-sm bg-green-200 dark:bg-green-800/40`}
+            />
+            <div
+              className={`w-3 h-3 rounded-sm bg-green-300 dark:bg-green-700/50`}
+            />
+            <div
+              className={`w-3 h-3 rounded-sm bg-green-400 dark:bg-green-600/60`}
+            />
           </div>
           <span>More</span>
         </div>

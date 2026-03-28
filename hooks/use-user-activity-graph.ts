@@ -47,10 +47,15 @@ export function useUserActivityGraph(
       }
 
       const now = new Date();
-      const daysToShow = viewMode === "monthly" ? 28 : 365;
-      const startDate = new Date(
-        now.getTime() - daysToShow * 24 * 60 * 60 * 1000,
-      );
+      const startDate =
+        viewMode === "monthly"
+          ? new Date(now.getFullYear(), now.getMonth(), 1)
+          : new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+
+      const daysToShow =
+        viewMode === "monthly"
+          ? new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+          : 365;
 
       const activityMap = new Map<string, number>();
 
