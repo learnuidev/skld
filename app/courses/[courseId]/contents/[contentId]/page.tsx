@@ -512,6 +512,7 @@ export default function ContentPage() {
           contents={contents || []}
           domains={course?.domains || []}
           enrollmentStats={enrollmentStats?.enrollmentStats || []}
+          mockExams={mockExams}
           onClose={() => setShowContentNavigator(false)}
         />
       )}

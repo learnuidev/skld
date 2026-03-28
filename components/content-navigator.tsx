@@ -2,6 +2,7 @@
 
 import { CourseContent } from "@/modules/course-content/course-content.types";
 import { Domain } from "@/modules/course/course.types";
+import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { UserContentStat } from "@/modules/skld/skld.types";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, ChevronDown, Clock, Eye, Target } from "lucide-react";
@@ -14,6 +15,7 @@ interface ContentNavigatorProps {
   contents: CourseContent[];
   domains: Domain[];
   enrollmentStats: UserContentStat[];
+  mockExams?: MockExam[];
   onClose: () => void;
 }
 
@@ -32,6 +34,7 @@ export function ContentNavigator({
   contents,
   domains,
   enrollmentStats,
+  mockExams,
   onClose,
 }: ContentNavigatorProps) {
   const [search, setSearch] = useState("");
@@ -53,7 +56,7 @@ export function ContentNavigator({
   const defaultDomainId =
     currentDomainId || (domains.length > 0 ? domains[0].id : null);
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(
-    defaultDomainId
+    defaultDomainId,
   );
   const [domainOpen, setDomainOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -61,7 +64,7 @@ export function ContentNavigator({
 
   const selectedDomain = useMemo(
     () => domains.find((d) => d.id === selectedDomainId) || null,
-    [domains, selectedDomainId]
+    [domains, selectedDomainId],
   );
 
   const statsByContentId = useMemo(() => {
@@ -71,6 +74,19 @@ export function ContentNavigator({
     }
     return map;
   }, [enrollmentStats]);
+
+  const ongoingQuizContentIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (!mockExams) return ids;
+    for (const exam of mockExams) {
+      if (exam.status === "in_progress" && exam.selectedContentIds) {
+        for (const cid of exam.selectedContentIds) {
+          ids.add(cid);
+        }
+      }
+    }
+    return ids;
+  }, [mockExams]);
 
   const contentsByChapter = useMemo(() => {
     const map = new Map<string, CourseContent[]>();
@@ -101,7 +117,7 @@ export function ContentNavigator({
     }[] = [];
     for (const [chapterId, list] of map) {
       const chapter = selectedDomain?.chapters.find(
-        (ch) => ch.id === chapterId
+        (ch) => ch.id === chapterId,
       );
       result.push({
         chapterId,
@@ -124,7 +140,7 @@ export function ContentNavigator({
     return contents.filter(
       (c) =>
         c.title.toLowerCase().includes(q) ||
-        (c.description && c.description.toLowerCase().includes(q))
+        (c.description && c.description.toLowerCase().includes(q)),
     );
   }, [contents, search]);
 
@@ -156,6 +172,7 @@ export function ContentNavigator({
   const renderCard = (c: CourseContent, idx: number, delayOffset: number) => {
     const stat = statsByContentId.get(c.id);
     const isActive = c.id === contentId;
+    const hasOngoingQuiz = ongoingQuizContentIds.has(c.id);
 
     return (
       <motion.button
@@ -164,12 +181,18 @@ export function ContentNavigator({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.15, delay: delayOffset + idx * 0.02 }}
         onClick={() => handleNavigate(c.id)}
-        className={`p-4 rounded-lg border text-left transition-all hover:border-primary/40 ${
+        className={`relative p-4 rounded-lg border text-left transition-all hover:border-primary/40 ${
           isActive
             ? "border-primary bg-primary/5"
             : "border-border bg-background"
         }`}
       >
+        {hasOngoingQuiz && (
+          <span className="absolute top-2 right-2 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
+          </span>
+        )}
         <div
           className={`text-sm font-medium line-clamp-2 mb-2 h-16 ${
             isActive ? "text-primary" : "text-foreground"
@@ -344,7 +367,7 @@ export function ContentNavigator({
                     )}
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                       {group.contents.map((c, idx) =>
-                        renderCard(c, idx, groupIdx * 0.04)
+                        renderCard(c, idx, groupIdx * 0.04),
                       )}
                     </div>
                   </motion.div>
