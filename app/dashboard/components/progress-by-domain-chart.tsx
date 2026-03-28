@@ -1,11 +1,19 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { EnrollmentStatsResponse } from "@/modules/enrollment/enrollment.types";
+import { CourseContent } from "@/modules/course-content/course-content.types";
+
+interface Domain {
+  id: string;
+  name: string;
+  chapters: Array<{ id: string; name: string }>;
+}
 
 interface ProgressByDomainChartProps {
-  domains: Array<{ id: string; name: string }> | undefined;
+  domains: Domain[] | undefined;
   expandedDomain: string | null;
   setExpandedDomain: (domainId: string | null) => void;
-  enrollmentStats: any;
-  courseContents: any;
+  enrollmentStats: EnrollmentStatsResponse | undefined;
+  courseContents: CourseContent[] | undefined;
 }
 
 export function ProgressByDomainChart({
@@ -15,7 +23,7 @@ export function ProgressByDomainChart({
   enrollmentStats,
   courseContents,
 }: ProgressByDomainChartProps) {
-  const calculateDomainProgress = (domainId: string) => {
+  const calculateDomainProgress = (domain: Domain) => {
     if (!enrollmentStats || !courseContents)
       return {
         total: 0,
@@ -26,17 +34,18 @@ export function ProgressByDomainChart({
         totalTimeSpent: 0,
       };
 
-    const domainContents = courseContents.filter(
-      (c: any) => c.chapterId === domainId,
+    const chapterIds = domain.chapters.map((chapter) => chapter.id);
+    const domainContents = courseContents.filter((content) =>
+      chapterIds.includes(content.chapterId || ""),
     );
     const totalContents = domainContents.length;
-    const domainStats = enrollmentStats.enrollmentStats.filter((stat: any) =>
-      domainContents.some((c: any) => c.id === stat.contentId),
+    const domainStats = enrollmentStats.enrollmentStats.filter((stat) =>
+      domainContents.some((c) => c.id === stat.contentId),
     );
     const completedContents = domainStats.length;
 
     const totalQuestionsAnswered = domainStats.reduce(
-      (sum: number, stat: any) =>
+      (sum: number, stat) =>
         sum +
         (stat.metadata.totalCorrect || 0) +
         (stat.metadata.totalIncorrect || 0),
@@ -44,7 +53,7 @@ export function ProgressByDomainChart({
     );
 
     const totalCorrect = domainStats.reduce(
-      (sum: number, stat: any) => sum + (stat.metadata.totalCorrect || 0),
+      (sum: number, stat) => sum + (stat.metadata.totalCorrect || 0),
       0,
     );
 
@@ -54,7 +63,7 @@ export function ProgressByDomainChart({
         : 0;
 
     const totalTimeSpent = domainStats.reduce(
-      (sum: number, stat: any) => sum + (stat.metadata.totalTimeSpent || 0),
+      (sum: number, stat) => sum + (stat.metadata.totalTimeSpent || 0),
       0,
     );
 
@@ -71,16 +80,26 @@ export function ProgressByDomainChart({
     };
   };
 
-  const calculateChapterPerformance = (chapterId: string) => {
-    if (!enrollmentStats) return [];
+  const calculateChapterPerformance = (domain: Domain) => {
+    if (!enrollmentStats || !courseContents) return [];
 
-    const chapterStats = enrollmentStats.enrollmentStats.filter((stat: any) => {
-      const content = courseContents?.find((c: any) => c.id === stat.contentId);
-      return content?.chapterId === chapterId;
+    const chapterIds = domain.chapters.map((chapter) => chapter.id);
+    const chapterStats = enrollmentStats.enrollmentStats.filter((stat) => {
+      const content = courseContents.find((c) => c.id === stat.contentId);
+      return content?.chapterId && chapterIds.includes(content.chapterId);
     });
 
-    return chapterStats.map((stat: any) => {
-      const content = courseContents?.find((c: any) => c.id === stat.contentId);
+    interface ChapterPerformance {
+      contentId: string;
+      title: string;
+      timesRead: number;
+      totalTimeSpent: number;
+      accuracy: number;
+      lastReviewed: number;
+    }
+
+    return chapterStats.map((stat): ChapterPerformance => {
+      const content = courseContents.find((c) => c.id === stat.contentId);
       const totalCorrect = stat.metadata.totalCorrect || 0;
       const totalIncorrect = stat.metadata.totalIncorrect || 0;
       const totalAttempts = totalCorrect + totalIncorrect;
@@ -105,10 +124,10 @@ export function ProgressByDomainChart({
       <h2 className="text-lg font-semibold mb-4">Progress by Domain</h2>
       <div className="space-y-3">
         {domains?.map((domain) => {
-          const progress = calculateDomainProgress(domain.id);
+          const progress = calculateDomainProgress(domain);
           const isExpanded = expandedDomain === domain.id;
           const chapterPerformance = isExpanded
-            ? calculateChapterPerformance(domain.id)
+            ? calculateChapterPerformance(domain)
             : [];
 
           return (
@@ -135,18 +154,22 @@ export function ProgressByDomainChart({
                     </span>{" "}
                     questions
                   </div>
-                  <div className="text-muted-foreground">
-                    <span
-                      className={`font-semibold ${
-                        progress.performancePercentage >= 70
-                          ? "text-green-600"
-                          : "text-orange-600"
-                      }`}
-                    >
-                      {progress.performancePercentage}%
-                    </span>{" "}
-                    accuracy
-                  </div>
+                  {progress.questionsAnswered > 0 && (
+                    <div className="text-muted-foreground">
+                      <span
+                        className={`font-semibold ${
+                          progress.performancePercentage === 0
+                            ? "text-gray-400"
+                            : progress.performancePercentage >= 70
+                              ? "text-green-600"
+                              : "text-orange-600"
+                        }`}
+                      >
+                        {progress.performancePercentage}%
+                      </span>{" "}
+                      accuracy
+                    </div>
+                  )}
                   <div className="text-muted-foreground">
                     <span className="font-semibold text-foreground">
                       {Math.round(progress.totalTimeSpent / 60)}m
@@ -159,7 +182,7 @@ export function ProgressByDomainChart({
               {isExpanded && (
                 <div className="px-4 pb-4 pt-2 border-t border-border">
                   <div className="space-y-3">
-                    {chapterPerformance.map((perf: any) => (
+                    {chapterPerformance.map((perf) => (
                       <div
                         key={perf.contentId}
                         className="pl-8 py-2 border-l-2 border-muted"
@@ -173,9 +196,11 @@ export function ProgressByDomainChart({
                             <span>{Math.round(perf.totalTimeSpent / 60)}m</span>
                             <span
                               className={
-                                perf.accuracy >= 70
-                                  ? "text-green-600"
-                                  : "text-orange-600"
+                                perf.accuracy === 0
+                                  ? "text-gray-400"
+                                  : perf.accuracy >= 70
+                                    ? "text-green-600"
+                                    : "text-orange-600"
                               }
                             >
                               {perf.accuracy}% accuracy
