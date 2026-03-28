@@ -22,6 +22,7 @@ import { useSkldMutation } from "@/modules/skld/use-skld-mutation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useGetUserContentStatsQuery } from "@/modules/user-content-stats/use-get-user-content-stats-query";
+import { useListUserEnrollmentStatsQuery } from "@/modules/enrollment/use-list-user-enrollment-stats-query";
 import { useListMockExamsQuery } from "@/modules/user-mock-exams/use-list-mock-exams-query";
 import { useTimeTrackingStore } from "@/stores/time-tracking";
 import { fetchAuthSession } from "aws-amplify/auth";
@@ -64,6 +65,9 @@ export default function ContentPage() {
   );
 
   const { data: mockExams } = useListMockExamsQuery(params.courseId);
+  const { data: enrollmentStats } = useListUserEnrollmentStatsQuery(
+    params.courseId,
+  );
 
   const ongoingContentQuiz = mockExams?.find(
     (exam) =>
@@ -507,6 +511,7 @@ export default function ContentPage() {
           contentId={params.contentId}
           contents={contents || []}
           domains={course?.domains || []}
+          enrollmentStats={enrollmentStats?.enrollmentStats || []}
           onClose={() => setShowContentNavigator(false)}
         />
       )}

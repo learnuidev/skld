@@ -15,6 +15,8 @@ export interface UserContentStat {
     lastReviewedAt: number;
     createdAt: number;
     updatedAt: number;
+    totalCorrect?: number;
+    totalIncorrect?: number;
   };
 }
 

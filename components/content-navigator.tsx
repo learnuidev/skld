@@ -2,8 +2,9 @@
 
 import { CourseContent } from "@/modules/course-content/course-content.types";
 import { Domain } from "@/modules/course/course.types";
+import { UserContentStat } from "@/modules/skld/skld.types";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, ChevronDown } from "lucide-react";
+import { X, Search, ChevronDown, Clock, Eye, Target } from "lucide-react";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 
@@ -12,7 +13,17 @@ interface ContentNavigatorProps {
   contentId: string;
   contents: CourseContent[];
   domains: Domain[];
+  enrollmentStats: UserContentStat[];
   onClose: () => void;
+}
+
+function formatTime(seconds: number): string {
+  if (!seconds || !Number.isFinite(seconds) || seconds <= 0) return "0s";
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+  const h = Math.floor(seconds / 3600);
+  const m = Math.round((seconds % 3600) / 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 export function ContentNavigator({
@@ -20,6 +31,7 @@ export function ContentNavigator({
   contentId,
   contents,
   domains,
+  enrollmentStats,
   onClose,
 }: ContentNavigatorProps) {
   const [search, setSearch] = useState("");
@@ -41,7 +53,7 @@ export function ContentNavigator({
   const defaultDomainId =
     currentDomainId || (domains.length > 0 ? domains[0].id : null);
   const [selectedDomainId, setSelectedDomainId] = useState<string | null>(
-    defaultDomainId,
+    defaultDomainId
   );
   const [domainOpen, setDomainOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -49,8 +61,16 @@ export function ContentNavigator({
 
   const selectedDomain = useMemo(
     () => domains.find((d) => d.id === selectedDomainId) || null,
-    [domains, selectedDomainId],
+    [domains, selectedDomainId]
   );
+
+  const statsByContentId = useMemo(() => {
+    const map = new Map<string, UserContentStat>();
+    for (const stat of enrollmentStats) {
+      map.set(stat.contentId, stat);
+    }
+    return map;
+  }, [enrollmentStats]);
 
   const contentsByChapter = useMemo(() => {
     const map = new Map<string, CourseContent[]>();
@@ -81,7 +101,7 @@ export function ContentNavigator({
     }[] = [];
     for (const [chapterId, list] of map) {
       const chapter = selectedDomain?.chapters.find(
-        (ch) => ch.id === chapterId,
+        (ch) => ch.id === chapterId
       );
       result.push({
         chapterId,
@@ -104,7 +124,7 @@ export function ContentNavigator({
     return contents.filter(
       (c) =>
         c.title.toLowerCase().includes(q) ||
-        (c.description && c.description.toLowerCase().includes(q)),
+        (c.description && c.description.toLowerCase().includes(q))
     );
   }, [contents, search]);
 
@@ -131,6 +151,74 @@ export function ContentNavigator({
     if (targetContentId !== contentId) {
       router.push(`/courses/${courseId}/contents/${targetContentId}`);
     }
+  };
+
+  const renderCard = (c: CourseContent, idx: number, delayOffset: number) => {
+    const stat = statsByContentId.get(c.id);
+    const isActive = c.id === contentId;
+
+    return (
+      <motion.button
+        key={c.id}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.15, delay: delayOffset + idx * 0.02 }}
+        onClick={() => handleNavigate(c.id)}
+        className={`p-4 rounded-lg border text-left transition-all hover:border-primary/40 ${
+          isActive
+            ? "border-primary bg-primary/5"
+            : "border-border bg-background"
+        }`}
+      >
+        <div
+          className={`text-sm font-medium line-clamp-2 mb-2 ${
+            isActive ? "text-primary" : "text-foreground"
+          }`}
+        >
+          {c.title}
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          {stat && (
+            <>
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {formatTime(stat.metadata.totalTimeSpent)}
+              </span>
+              <span className="flex items-center gap-1">
+                <Eye className="w-3 h-3" />
+                {stat.metadata.timesRead ?? 0}
+              </span>
+              {(() => {
+                const tc = stat.metadata.totalCorrect ?? 0;
+                const ti = stat.metadata.totalIncorrect ?? 0;
+                const total = tc + ti;
+                if (total > 0) {
+                  const perf = Math.round((tc / total) * 100);
+                  return (
+                    <span
+                      className={`flex items-center gap-1 font-medium ${
+                        perf >= 70
+                          ? "text-green-600"
+                          : perf >= 40
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                      }`}
+                    >
+                      <Target className="w-3 h-3" />
+                      {perf}%
+                    </span>
+                  );
+                }
+                return null;
+              })()}
+            </>
+          )}
+          {!stat && (
+            <span className="text-muted-foreground/50">No activity</span>
+          )}
+        </div>
+      </motion.button>
+    );
   };
 
   return (
@@ -225,24 +313,7 @@ export function ContentNavigator({
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {searchResults.map((c, idx) => (
-                    <motion.button
-                      key={c.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.15, delay: idx * 0.02 }}
-                      onClick={() => handleNavigate(c.id)}
-                      className={`p-4 rounded-lg border text-left transition-all hover:border-primary/40 ${
-                        c.id === contentId
-                          ? "border-primary bg-primary/5"
-                          : "border-border bg-background"
-                      }`}
-                    >
-                      <div className="text-sm font-medium line-clamp-2 text-foreground">
-                        {c.title}
-                      </div>
-                    </motion.button>
-                  ))}
+                  {searchResults.map((c, idx) => renderCard(c, idx, 0))}
                 </div>
               )
             ) : contentsByChapter.length === 0 ? (
@@ -252,7 +323,7 @@ export function ContentNavigator({
                 </p>
               </div>
             ) : (
-              <div className="space-y-10">
+              <div className="space-y-24 mt-12">
                 {contentsByChapter.map((group, groupIdx) => (
                   <motion.div
                     key={group.chapterId || `ungrouped-${groupIdx}`}
@@ -272,33 +343,9 @@ export function ContentNavigator({
                       </div>
                     )}
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {group.contents.map((c, idx) => (
-                        <motion.button
-                          key={c.id}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: 0.15,
-                            delay: groupIdx * 0.04 + idx * 0.02,
-                          }}
-                          onClick={() => handleNavigate(c.id)}
-                          className={`p-4 rounded-lg border text-left transition-all hover:border-primary/40 ${
-                            c.id === contentId
-                              ? "border-primary bg-primary/5"
-                              : "border-border bg-background"
-                          }`}
-                        >
-                          <div
-                            className={`text-sm font-medium line-clamp-2 ${
-                              c.id === contentId
-                                ? "text-primary"
-                                : "text-foreground"
-                            }`}
-                          >
-                            {c.title}
-                          </div>
-                        </motion.button>
-                      ))}
+                      {group.contents.map((c, idx) =>
+                        renderCard(c, idx, groupIdx * 0.04)
+                      )}
                     </div>
                   </motion.div>
                 ))}
