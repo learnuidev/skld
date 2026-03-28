@@ -33,6 +33,14 @@ export function useGetExamBankQuery(courseId: string, examBankId: string) {
       return response.json();
     },
     enabled: !!courseId && !!examBankId,
+    refetchInterval: (query) => {
+      const data = query.state.data as ExamBank | undefined;
+      if (!data) return false;
+      if (data.status === "completed" || data.status === "failed") {
+        return false;
+      }
+      return 5000;
+    },
   });
 }
 

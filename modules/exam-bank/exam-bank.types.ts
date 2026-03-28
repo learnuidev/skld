@@ -64,10 +64,23 @@ export interface ExamBank {
   createdAt: number;
   updatedAt: number;
 
-  // This is the index of the content slide
+  // This is index of the content slide
   slideIndex?: number;
 
+  contentId?: string;
+  specification?: {
+    type?: string;
+    difficulty?: string;
+    questionType?: string;
+    totalQuestions: number;
+    domain?: string;
+    title?: string;
+    description?: string;
+  };
+  filterQuestions?: Array<{ question: string }>;
+
   status?: ResourceStatus;
+  error?: string;
 }
 
 export interface CreateExamBankParams {

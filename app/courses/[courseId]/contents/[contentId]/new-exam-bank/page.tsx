@@ -16,15 +16,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useGenerateExamQuestionsMutation } from "@/modules/exam-bank/use-generate-exam-questions-mutation";
+import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { QUESTION_TYPES } from "@/modules/exam-bank/exam-bank.types";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CoffeeIcon, Loader2 } from "lucide-react";
 import Link from "next/link";
 import {
   parseContentToSlides,
-  isStructuredContent,
   ParsedSlide,
   ContentNode,
 } from "@/lib/content-parser";
@@ -45,10 +45,6 @@ export default function NewExamBankPage() {
     params.contentId,
   );
 
-  const selectedDomain = course?.domains?.find((domain) =>
-    domain.chapters?.find((chapter) => chapter.id === content?.chapterId),
-  );
-
   const generateExamQuestionsMutation = useGenerateExamQuestionsMutation();
 
   const [questionType, setQuestionType] = useState<string>(
@@ -61,6 +57,9 @@ export default function NewExamBankPage() {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedExamBankId, setGeneratedExamBankId] = useState<string | null>(
+    null,
+  );
   const [selectedSlideIndex, setSelectedSlideIndex] = useState<number | null>(
     null,
   );
@@ -68,6 +67,29 @@ export default function NewExamBankPage() {
   const [previewSlideIndex, setPreviewSlideIndex] = useState<number | null>(
     null,
   );
+
+  const { data: generatedExamBank } = useGetExamBankQuery(
+    params.courseId,
+    generatedExamBankId || "",
+  );
+
+  useEffect(() => {
+    if (generatedExamBank) {
+      if (generatedExamBank.status === "completed") {
+        router.push(
+          `/courses/${params.courseId}/contents/${params.contentId}/exam-bank/${generatedExamBank.id}/options`,
+        );
+      } else if (generatedExamBank.status === "failed") {
+        setTimeout(() => {
+          setIsGenerating(false);
+          setGeneratedExamBankId(null);
+          alert(
+            `Failed to generate exam questions: ${generatedExamBank.error || "Unknown error"}`,
+          );
+        }, 0);
+      }
+    }
+  }, [generatedExamBank, router, params.courseId, params.contentId]);
 
   const slides = (() => {
     return parseContentToSlides(content?.content?.content || []);
@@ -103,7 +125,6 @@ export default function NewExamBankPage() {
       const examBank = await generateExamQuestionsMutation.mutateAsync({
         courseId: params.courseId,
         contentId: params.contentId,
-        domainId: selectedDomain?.id,
         slideIndex: selectedSlideIndex !== null ? selectedSlideIndex + 1 : null,
         specification: {
           type: questionType || undefined,
@@ -116,9 +137,7 @@ export default function NewExamBankPage() {
         },
       });
 
-      router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/exam-bank/${examBank.id}/options`,
-      );
+      setGeneratedExamBankId(examBank.id);
     } catch (error) {
       console.error("Failed to generate exam questions:", error);
       alert("Failed to generate exam questions. Please try again.");

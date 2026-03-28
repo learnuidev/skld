@@ -8,7 +8,6 @@ import { ExamBank } from "./exam-bank.types";
 export interface GenerateExamQuestionsParams {
   courseId: string;
   contentId: string;
-  domainId?: string;
   specification: {
     type?: string;
     difficulty?: string;
@@ -25,7 +24,7 @@ export interface GenerateExamQuestionsParams {
 export function useGenerateExamQuestionsMutation() {
   return useMutation({
     mutationFn: async (
-      params: GenerateExamQuestionsParams
+      params: GenerateExamQuestionsParams,
     ): Promise<ExamBank> => {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
@@ -47,7 +46,7 @@ export function useGenerateExamQuestionsMutation() {
             slideIndex: params.slideIndex,
             filterQuestions: params.filterQuestions,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
