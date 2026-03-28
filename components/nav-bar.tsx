@@ -43,6 +43,10 @@ export function NavBar() {
       </Link>
 
       <div className="hidden md:flex gap-8 items-center">
+        <Link className="font-light" href="/dashboard">
+          dashboard
+        </Link>
+
         <Link className="font-light" href="/courses">
           courses
         </Link>
@@ -81,6 +85,14 @@ export function NavBar() {
 
       {isOpen && (
         <div className="absolute top-16 left-0 right-0 bg-background border-b md:hidden flex flex-col gap-4 p-4">
+          <Link
+            className="font-light"
+            href="/dashboard"
+            onClick={() => setIsOpen(false)}
+          >
+            dashboard
+          </Link>
+
           <Link
             className="font-light"
             href="/courses"
