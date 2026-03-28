@@ -6,7 +6,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BookOpen, ChevronDown, ChevronRight, Target } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
+import {
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Eye,
+  HelpCircle,
+  Layers,
+  Target,
+} from "lucide-react";
 import Link from "next/link";
 import { EnrollmentStatsResponse } from "@/modules/enrollment/enrollment.types";
 import { CourseContent } from "@/modules/course-content/course-content.types";
@@ -52,11 +62,11 @@ export function ProgressByDomainChart({
 
     const chapterIds = domain.chapters.map((chapter) => chapter.id);
     const domainContents = courseContents.filter((content) =>
-      chapterIds.includes(content.chapterId || ""),
+      chapterIds.includes(content.chapterId || "")
     );
     const totalContents = domainContents.length;
     const domainStats = enrollmentStats.enrollmentStats.filter((stat) =>
-      domainContents.some((c) => c.id === stat.contentId),
+      domainContents.some((c) => c.id === stat.contentId)
     );
     const completedContents = domainStats.length;
 
@@ -65,12 +75,12 @@ export function ProgressByDomainChart({
         sum +
         (stat.metadata.totalCorrect || 0) +
         (stat.metadata.totalIncorrect || 0),
-      0,
+      0
     );
 
     const totalCorrect = domainStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalCorrect || 0),
-      0,
+      0
     );
 
     const performancePercentage =
@@ -80,11 +90,11 @@ export function ProgressByDomainChart({
 
     const totalTimeSpent = domainStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalTimeSpent || 0),
-      0,
+      0
     );
 
     const readContents = domainStats.filter(
-      (stat) => (stat.metadata.timesRead || 0) > 0,
+      (stat) => (stat.metadata.timesRead || 0) > 0
     );
 
     const coveragePercentage =
@@ -97,8 +107,8 @@ export function ProgressByDomainChart({
         ? Math.round(
             readContents.reduce(
               (sum, stat) => sum + (stat.metadata.timesRead || 0),
-              0,
-            ) / readContents.length,
+              0
+            ) / readContents.length
           )
         : 0;
 
@@ -119,7 +129,7 @@ export function ProgressByDomainChart({
 
   const calculateChapterProgress = (
     chapterId: string,
-    domainContents: CourseContent[],
+    domainContents: CourseContent[]
   ) => {
     if (!enrollmentStats || !courseContents)
       return {
@@ -134,11 +144,11 @@ export function ProgressByDomainChart({
       };
 
     const chapterContent = domainContents.filter(
-      (c) => c.chapterId === chapterId,
+      (c) => c.chapterId === chapterId
     );
     const totalContents = chapterContent.length;
     const chapterStats = enrollmentStats.enrollmentStats.filter((stat) =>
-      chapterContent.some((c) => c.id === stat.contentId),
+      chapterContent.some((c) => c.id === stat.contentId)
     );
     const completedContents = chapterStats.length;
 
@@ -147,12 +157,12 @@ export function ProgressByDomainChart({
         sum +
         (stat.metadata.totalCorrect || 0) +
         (stat.metadata.totalIncorrect || 0),
-      0,
+      0
     );
 
     const totalCorrect = chapterStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalCorrect || 0),
-      0,
+      0
     );
 
     const performancePercentage =
@@ -162,11 +172,11 @@ export function ProgressByDomainChart({
 
     const totalTimeSpent = chapterStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalTimeSpent || 0),
-      0,
+      0
     );
 
     const readContents = chapterStats.filter(
-      (stat) => (stat.metadata.timesRead || 0) > 0,
+      (stat) => (stat.metadata.timesRead || 0) > 0
     );
 
     const coveragePercentage =
@@ -179,8 +189,8 @@ export function ProgressByDomainChart({
         ? Math.round(
             readContents.reduce(
               (sum, stat) => sum + (stat.metadata.timesRead || 0),
-              0,
-            ) / readContents.length,
+              0
+            ) / readContents.length
           )
         : 0;
 
@@ -201,12 +211,12 @@ export function ProgressByDomainChart({
 
   const calculateContentPerformance = (
     chapterId: string,
-    domainContents: CourseContent[],
+    domainContents: CourseContent[]
   ) => {
     if (!courseContents) return [];
 
     const chapterContent = domainContents.filter(
-      (c) => c.chapterId === chapterId,
+      (c) => c.chapterId === chapterId
     );
 
     interface ContentPerformance {
@@ -220,7 +230,7 @@ export function ProgressByDomainChart({
 
     return chapterContent.map((content): ContentPerformance => {
       const stat = enrollmentStats?.enrollmentStats.find(
-        (s) => s.contentId === content.id,
+        (s) => s.contentId === content.id
       );
       const totalCorrect = stat?.metadata.totalCorrect || 0;
       const totalIncorrect = stat?.metadata.totalIncorrect || 0;
@@ -250,7 +260,7 @@ export function ProgressByDomainChart({
           const isExpanded = expandedDomain === domain.id;
           const chapterIds = domain.chapters.map((chapter) => chapter.id);
           const domainContents = courseContents?.filter((content) =>
-            chapterIds.includes(content.chapterId || ""),
+            chapterIds.includes(content.chapterId || "")
           );
 
           return (
@@ -271,48 +281,113 @@ export function ProgressByDomainChart({
                   <span className="font-medium">{domain.name}</span>
                 </div>
                 <div className="flex items-center gap-4 text-sm">
-                  <div className="text-muted-foreground">
-                    <span className="font-semibold text-foreground">
-                      {progress.coveragePercentage}%
-                    </span>{" "}
-                    coverage
-                  </div>
-                  {progress.averageContentDepth > 0 && (
-                    <div className="text-muted-foreground">
+                  <Tooltip
+                    content={
+                      <div>
+                        <div className="font-semibold mb-1">
+                          Content Coverage
+                        </div>
+                        <div className="text-xs">
+                          Percentage of unique content read at least once
+                        </div>
+                      </div>
+                    }
+                  >
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Eye className="w-4 h-4" />
                       <span className="font-semibold text-foreground">
-                        {progress.averageContentDepth}x
-                      </span>{" "}
-                      depth
+                        {progress.coveragePercentage}%
+                      </span>
                     </div>
+                  </Tooltip>
+                  {progress.averageContentDepth > 0 && (
+                    <Tooltip
+                      content={
+                        <div>
+                          <div className="font-semibold mb-1">
+                            Content Depth
+                          </div>
+                          <div className="text-xs">
+                            Average times content has been read
+                          </div>
+                        </div>
+                      }
+                    >
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Layers className="w-4 h-4" />
+                        <span className="font-semibold text-foreground">
+                          {progress.averageContentDepth}x
+                        </span>
+                      </div>
+                    </Tooltip>
                   )}
-                  <div className="text-muted-foreground">
-                    <span className="font-semibold text-foreground">
-                      {progress.questionsAnswered}
-                    </span>{" "}
-                    questions
-                  </div>
+                  <Tooltip
+                    content={
+                      <div>
+                        <div className="font-semibold mb-1">Questions</div>
+                        <div className="text-xs">Total questions answered</div>
+                      </div>
+                    }
+                  >
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <HelpCircle className="w-4 h-4" />
+                      <span className="font-semibold text-foreground">
+                        {progress.questionsAnswered}
+                      </span>
+                    </div>
+                  </Tooltip>
                   {progress.questionsAnswered > 0 && (
-                    <div className="text-muted-foreground">
-                      <span
-                        className={`font-semibold ${
-                          progress.performancePercentage === 0
-                            ? "text-gray-400"
-                            : progress.performancePercentage >= 70
-                              ? "text-green-600"
-                              : "text-orange-600"
-                        }`}
-                      >
-                        {progress.performancePercentage}%
-                      </span>{" "}
-                      accuracy
-                    </div>
+                    <Tooltip
+                      content={
+                        <div>
+                          <div className="font-semibold mb-1">Accuracy</div>
+                          <div className="text-xs">
+                            Percentage of correctly answered questions
+                          </div>
+                        </div>
+                      }
+                    >
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Target
+                          className={`w-4 h-4 ${
+                            progress.performancePercentage === 0
+                              ? "text-gray-400"
+                              : progress.performancePercentage >= 70
+                                ? "text-green-600"
+                                : "text-orange-600"
+                          }`}
+                        />
+                        <span
+                          className={`font-semibold ${
+                            progress.performancePercentage === 0
+                              ? "text-gray-400"
+                              : progress.performancePercentage >= 70
+                                ? "text-green-600"
+                                : "text-orange-600"
+                          }`}
+                        >
+                          {progress.performancePercentage}%
+                        </span>
+                      </div>
+                    </Tooltip>
                   )}
-                  <div className="text-muted-foreground">
-                    <span className="font-semibold text-foreground">
-                      {Math.round(progress.totalTimeSpent / 60)}m
-                    </span>{" "}
-                    spent
-                  </div>
+                  <Tooltip
+                    content={
+                      <div>
+                        <div className="font-semibold mb-1">Time Spent</div>
+                        <div className="text-xs">
+                          Total time spent learning (minutes)
+                        </div>
+                      </div>
+                    }
+                  >
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span className="font-semibold text-foreground">
+                        {Math.round(progress.totalTimeSpent / 60)}m
+                      </span>
+                    </div>
+                  </Tooltip>
                 </div>
               </button>
 
@@ -344,11 +419,11 @@ export function ProgressByDomainChart({
                     {domain.chapters.map((chapter) => {
                       const chapterProgress = calculateChapterProgress(
                         chapter.id,
-                        domainContents,
+                        domainContents
                       );
                       let contentPerformance = calculateContentPerformance(
                         chapter.id,
-                        domainContents,
+                        domainContents
                       );
 
                       contentPerformance = [...contentPerformance].sort(
@@ -365,10 +440,10 @@ export function ProgressByDomainChart({
                               return (b.accuracy || 0) - (a.accuracy || 0);
                             case "order":
                               const contentA = domainContents.find(
-                                (c) => c.id === a.contentId,
+                                (c) => c.id === a.contentId
                               );
                               const contentB = domainContents.find(
-                                (c) => c.id === b.contentId,
+                                (c) => c.id === b.contentId
                               );
                               return (
                                 (contentA?.order || 0) - (contentB?.order || 0)
@@ -376,7 +451,7 @@ export function ProgressByDomainChart({
                             default:
                               return 0;
                           }
-                        },
+                        }
                       );
 
                       return (
@@ -389,44 +464,130 @@ export function ProgressByDomainChart({
                               {chapter.name}
                             </span>
                             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                              <span className="font-semibold text-foreground">
-                                {chapterProgress.coveragePercentage}%
-                              </span>{" "}
-                              coverage
-                              {chapterProgress.averageContentDepth > 0 && (
-                                <>
+                              <Tooltip
+                                content={
+                                  <div>
+                                    <div className="font-semibold mb-1">
+                                      Coverage
+                                    </div>
+                                    <div className="text-xs">
+                                      Percentage of unique content read at least
+                                      once
+                                    </div>
+                                  </div>
+                                }
+                              >
+                                <div className="flex items-center gap-1">
+                                  <Eye className="w-3 h-3" />
                                   <span className="font-semibold text-foreground">
-                                    {chapterProgress.averageContentDepth}x
-                                  </span>{" "}
-                                  depth
-                                </>
-                              )}
-                              <span className="font-semibold text-foreground">
-                                {chapterProgress.questionsAnswered}
-                              </span>{" "}
-                              questions
-                              {chapterProgress.questionsAnswered > 0 && (
-                                <span
-                                  className={`font-semibold ${
-                                    chapterProgress.performancePercentage === 0
-                                      ? "text-gray-400"
-                                      : chapterProgress.performancePercentage >=
-                                          70
-                                        ? "text-green-600"
-                                        : "text-orange-600"
-                                  }`}
+                                    {chapterProgress.coveragePercentage}%
+                                  </span>
+                                </div>
+                              </Tooltip>
+                              {chapterProgress.averageContentDepth > 0 && (
+                                <Tooltip
+                                  content={
+                                    <div>
+                                      <div className="font-semibold mb-1">
+                                        Content Depth
+                                      </div>
+                                      <div className="text-xs">
+                                        Average times content has been read
+                                      </div>
+                                    </div>
+                                  }
                                 >
-                                  {chapterProgress.performancePercentage}%
-                                </span>
-                              )}{" "}
-                              accuracy
-                              <span className="font-semibold text-foreground">
-                                {Math.round(
-                                  chapterProgress.totalTimeSpent / 60,
-                                )}
-                                m
-                              </span>{" "}
-                              spent
+                                  <div className="flex items-center gap-1">
+                                    <Layers className="w-3 h-3" />
+                                    <span className="font-semibold text-foreground">
+                                      {chapterProgress.averageContentDepth}x
+                                    </span>
+                                  </div>
+                                </Tooltip>
+                              )}
+                              <Tooltip
+                                content={
+                                  <div>
+                                    <div className="font-semibold mb-1">
+                                      Questions
+                                    </div>
+                                    <div className="text-xs">
+                                      Total questions answered
+                                    </div>
+                                  </div>
+                                }
+                              >
+                                <div className="flex items-center gap-1">
+                                  <HelpCircle className="w-3 h-3" />
+                                  <span className="font-semibold text-foreground">
+                                    {chapterProgress.questionsAnswered}
+                                  </span>
+                                </div>
+                              </Tooltip>
+                              {chapterProgress.questionsAnswered > 0 && (
+                                <Tooltip
+                                  content={
+                                    <div>
+                                      <div className="font-semibold mb-1">
+                                        Accuracy
+                                      </div>
+                                      <div className="text-xs">
+                                        Percentage of correctly answered
+                                        questions
+                                      </div>
+                                    </div>
+                                  }
+                                >
+                                  <div className="flex items-center gap-1">
+                                    <Target
+                                      className={`w-3 h-3 ${
+                                        chapterProgress.performancePercentage ===
+                                        0
+                                          ? "text-gray-400"
+                                          : chapterProgress.performancePercentage >=
+                                              70
+                                            ? "text-green-600"
+                                            : "text-orange-600"
+                                      }`}
+                                    />
+                                    <span
+                                      className={`font-semibold ${
+                                        chapterProgress.performancePercentage ===
+                                        0
+                                          ? "text-gray-400"
+                                          : chapterProgress.performancePercentage >=
+                                              70
+                                            ? "text-green-600"
+                                            : "text-orange-600"
+                                      }`}
+                                    >
+                                      {chapterProgress.performancePercentage}%
+                                    </span>
+                                  </div>
+                                </Tooltip>
+                              )}
+                              <Tooltip
+                                content={
+                                  <div>
+                                    <div className="font-semibold mb-1">
+                                      Time Spent
+                                    </div>
+                                    <div className="text-xs">
+                                      Total time spent learning (minutes)
+                                    </div>
+                                  </div>
+                                }
+                              >
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  <span className="font-semibold text-foreground">
+                                    {Math.round(
+                                      chapterProgress.totalTimeSpent / 60
+                                    )}
+                                    m
+                                  </span>
+                                </div>
+                              </Tooltip>
                             </div>
                           </div>
                           <div className="space-y-2">
@@ -442,25 +603,71 @@ export function ProgressByDomainChart({
                                       {perf.title}
                                     </span>
                                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                      <div className="w-16 flex items-center gap-1">
-                                        <BookOpen className="w-3 h-3" />
-                                        <span>{perf.timesRead}</span>
-                                      </div>
-                                      <div className="w-12">
-                                        {Math.round(perf.totalTimeSpent / 60)}m
-                                      </div>
-                                      <div
-                                        className={`w-12 flex items-center gap-1 ${
-                                          perf.accuracy === 0
-                                            ? "text-gray-400"
-                                            : perf.accuracy >= 70
-                                              ? "text-green-600"
-                                              : "text-orange-600"
-                                        }`}
+                                      <Tooltip
+                                        content={
+                                          <div>
+                                            <div className="font-semibold mb-1">
+                                              Reads
+                                            </div>
+                                            <div className="text-xs">
+                                              Times content has been read
+                                            </div>
+                                          </div>
+                                        }
                                       >
-                                        <Target className="w-3 h-3" />
-                                        <span>{perf.accuracy}%</span>
-                                      </div>
+                                        <div className="w-16 flex items-center gap-1">
+                                          <BookOpen className="w-3 h-3" />
+                                          <span>{perf.timesRead}</span>
+                                        </div>
+                                      </Tooltip>
+                                      <Tooltip
+                                        content={
+                                          <div>
+                                            <div className="font-semibold mb-1">
+                                              Time Spent
+                                            </div>
+                                            <div className="text-xs">
+                                              Time spent on this content
+                                              (minutes)
+                                            </div>
+                                          </div>
+                                        }
+                                      >
+                                        <div className="w-12 flex items-center gap-1">
+                                          <Clock className="w-3 h-3" />
+                                          <span>
+                                            {Math.round(
+                                              perf.totalTimeSpent / 60
+                                            )}
+                                          </span>
+                                        </div>
+                                      </Tooltip>
+                                      <Tooltip
+                                        content={
+                                          <div>
+                                            <div className="font-semibold mb-1">
+                                              Accuracy
+                                            </div>
+                                            <div className="text-xs">
+                                              Percentage of correctly answered
+                                              questions
+                                            </div>
+                                          </div>
+                                        }
+                                      >
+                                        <div
+                                          className={`w-12 flex items-center gap-1 ${
+                                            perf.accuracy === 0
+                                              ? "text-gray-400"
+                                              : perf.accuracy >= 70
+                                                ? "text-green-600"
+                                                : "text-orange-600"
+                                          }`}
+                                        >
+                                          <Target className="w-3 h-3" />
+                                          <span>{perf.accuracy}%</span>
+                                        </div>
+                                      </Tooltip>
                                     </div>
                                   </div>
                                 </div>
