@@ -17,8 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, ChevronRight, BookOpen, TrendingUp } from "lucide-react";
+import { BookOpen, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { ProgressByDomainChart } from "./components/progress-by-domain-chart";
 
 export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<"monthly" | "yearly">("monthly");
@@ -61,91 +62,6 @@ export default function DashboardPage() {
   }
 
   const hasEnrollments = enrollments && enrollments.length > 0;
-
-  const calculateDomainProgress = (domainId: string) => {
-    if (!enrollmentStats || !courseContents)
-      return {
-        total: 0,
-        completed: 0,
-        percentage: 0,
-        questionsAnswered: 0,
-        performancePercentage: 0,
-        totalTimeSpent: 0,
-      };
-
-    const domainContents = courseContents.filter(
-      (c) => c.chapterId === domainId,
-    );
-    const totalContents = domainContents.length;
-    const domainStats = enrollmentStats.enrollmentStats.filter((stat) =>
-      domainContents.some((c) => c.id === stat.contentId),
-    );
-    const completedContents = domainStats.length;
-
-    const totalQuestionsAnswered = domainStats.reduce(
-      (sum, stat) =>
-        sum +
-        (stat.metadata.totalCorrect || 0) +
-        (stat.metadata.totalIncorrect || 0),
-      0,
-    );
-
-    const totalCorrect = domainStats.reduce(
-      (sum, stat) => sum + (stat.metadata.totalCorrect || 0),
-      0,
-    );
-
-    const performancePercentage =
-      totalQuestionsAnswered > 0
-        ? Math.round((totalCorrect / totalQuestionsAnswered) * 100)
-        : 0;
-
-    const totalTimeSpent = domainStats.reduce(
-      (sum, stat) => sum + (stat.metadata.totalTimeSpent || 0),
-      0,
-    );
-
-    return {
-      total: totalContents,
-      completed: completedContents,
-      percentage:
-        totalContents > 0
-          ? Math.round((completedContents / totalContents) * 100)
-          : 0,
-      questionsAnswered: totalQuestionsAnswered,
-      performancePercentage,
-      totalTimeSpent,
-    };
-  };
-
-  const calculateChapterPerformance = (chapterId: string) => {
-    if (!enrollmentStats) return [];
-
-    const chapterStats = enrollmentStats.enrollmentStats.filter((stat) => {
-      const content = courseContents?.find((c) => c.id === stat.contentId);
-      return content?.chapterId === chapterId;
-    });
-
-    return chapterStats.map((stat) => {
-      const content = courseContents?.find((c) => c.id === stat.contentId);
-      const totalCorrect = stat.metadata.totalCorrect || 0;
-      const totalIncorrect = stat.metadata.totalIncorrect || 0;
-      const totalAttempts = totalCorrect + totalIncorrect;
-      const accuracy =
-        totalAttempts > 0
-          ? Math.round((totalCorrect / totalAttempts) * 100)
-          : 0;
-
-      return {
-        contentId: stat.contentId,
-        title: content?.title || "Unknown Content",
-        timesRead: stat.metadata.timesRead || 0,
-        totalTimeSpent: stat.metadata.totalTimeSpent || 0,
-        accuracy,
-        lastReviewed: stat.metadata.lastReviewedAt,
-      };
-    });
-  };
 
   if (!hasEnrollments) {
     return (
@@ -206,113 +122,13 @@ export default function DashboardPage() {
 
         {selectedEnrollment && selectedCourse && (
           <>
-            {/* Domain Progress Accordion */}
-            <div>
-              <h2 className="text-lg font-semibold mb-4">Progress by Domain</h2>
-              <div className="space-y-3">
-                {selectedCourse.domains?.map((domain) => {
-                  const progress = calculateDomainProgress(domain.id);
-                  const isExpanded = expandedDomain === domain.id;
-                  const chapterPerformance = isExpanded
-                    ? calculateChapterPerformance(domain.id)
-                    : [];
-
-                  return (
-                    <div
-                      key={domain.id}
-                      className="border border-border rounded-lg overflow-hidden"
-                    >
-                      <button
-                        onClick={() =>
-                          setExpandedDomain(isExpanded ? null : domain.id)
-                        }
-                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          {isExpanded ? (
-                            <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                          )}
-                          <span className="font-medium">{domain.name}</span>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="text-muted-foreground">
-                            <span className="font-semibold text-foreground">
-                              {progress.questionsAnswered}
-                            </span>{" "}
-                            questions
-                          </div>
-                          <div className="text-muted-foreground">
-                            <span
-                              className={`font-semibold ${
-                                progress.performancePercentage >= 70
-                                  ? "text-green-600"
-                                  : "text-orange-600"
-                              }`}
-                            >
-                              {progress.performancePercentage}%
-                            </span>{" "}
-                            accuracy
-                          </div>
-                          <div className="text-muted-foreground">
-                            <span className="font-semibold text-foreground">
-                              {Math.round(progress.totalTimeSpent / 60)}m
-                            </span>{" "}
-                            spent
-                          </div>
-                        </div>
-                      </button>
-
-                      {isExpanded && (
-                        <div className="px-4 pb-4 pt-2 border-t border-border">
-                          <div className="space-y-3">
-                            {chapterPerformance.map((perf) => (
-                              <div
-                                key={perf.contentId}
-                                className="pl-8 py-2 border-l-2 border-muted"
-                              >
-                                <div className="flex justify-between items-start mb-1">
-                                  <span className="text-sm font-medium">
-                                    {perf.title}
-                                  </span>
-                                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                    <span>{perf.timesRead} reads</span>
-                                    <span>
-                                      {Math.round(perf.totalTimeSpent / 60)}m
-                                    </span>
-                                    <span
-                                      className={
-                                        perf.accuracy >= 70
-                                          ? "text-green-600"
-                                          : "text-orange-600"
-                                      }
-                                    >
-                                      {perf.accuracy}% accuracy
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                            {chapterPerformance.length === 0 && (
-                              <p className="text-sm text-muted-foreground pl-8">
-                                No performance data available yet
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                {(!selectedCourse.domains ||
-                  selectedCourse.domains.length === 0) && (
-                  <p className="text-sm text-muted-foreground">
-                    No domains available for this course
-                  </p>
-                )}
-              </div>
-            </div>
+            <ProgressByDomainChart
+              domains={selectedCourse.domains}
+              expandedDomain={expandedDomain}
+              setExpandedDomain={setExpandedDomain}
+              enrollmentStats={enrollmentStats}
+              courseContents={courseContents}
+            />
 
             {/* Activity Graph */}
             <div>
