@@ -1,4 +1,12 @@
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { BookOpen, ChevronDown, ChevronRight, Target } from "lucide-react";
 import Link from "next/link";
 import { EnrollmentStatsResponse } from "@/modules/enrollment/enrollment.types";
 import { CourseContent } from "@/modules/course-content/course-content.types";
@@ -18,6 +26,8 @@ interface ProgressByDomainChartProps {
   courseContents: CourseContent[] | undefined;
 }
 
+type SortOption = "reads" | "time" | "accuracy" | "order";
+
 export function ProgressByDomainChart({
   courseId,
   domains,
@@ -26,6 +36,7 @@ export function ProgressByDomainChart({
   enrollmentStats,
   courseContents,
 }: ProgressByDomainChartProps) {
+  const [sortOption, setSortOption] = useState<SortOption>("reads");
   const calculateDomainProgress = (domain: Domain) => {
     if (!enrollmentStats || !courseContents)
       return {
@@ -41,11 +52,11 @@ export function ProgressByDomainChart({
 
     const chapterIds = domain.chapters.map((chapter) => chapter.id);
     const domainContents = courseContents.filter((content) =>
-      chapterIds.includes(content.chapterId || "")
+      chapterIds.includes(content.chapterId || ""),
     );
     const totalContents = domainContents.length;
     const domainStats = enrollmentStats.enrollmentStats.filter((stat) =>
-      domainContents.some((c) => c.id === stat.contentId)
+      domainContents.some((c) => c.id === stat.contentId),
     );
     const completedContents = domainStats.length;
 
@@ -54,12 +65,12 @@ export function ProgressByDomainChart({
         sum +
         (stat.metadata.totalCorrect || 0) +
         (stat.metadata.totalIncorrect || 0),
-      0
+      0,
     );
 
     const totalCorrect = domainStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalCorrect || 0),
-      0
+      0,
     );
 
     const performancePercentage =
@@ -69,11 +80,11 @@ export function ProgressByDomainChart({
 
     const totalTimeSpent = domainStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalTimeSpent || 0),
-      0
+      0,
     );
 
     const readContents = domainStats.filter(
-      (stat) => (stat.metadata.timesRead || 0) > 0
+      (stat) => (stat.metadata.timesRead || 0) > 0,
     );
 
     const coveragePercentage =
@@ -86,8 +97,8 @@ export function ProgressByDomainChart({
         ? Math.round(
             readContents.reduce(
               (sum, stat) => sum + (stat.metadata.timesRead || 0),
-              0
-            ) / readContents.length
+              0,
+            ) / readContents.length,
           )
         : 0;
 
@@ -106,16 +117,99 @@ export function ProgressByDomainChart({
     };
   };
 
-  const calculateChapterPerformance = (domain: Domain) => {
-    if (!enrollmentStats || !courseContents) return [];
+  const calculateChapterProgress = (
+    chapterId: string,
+    domainContents: CourseContent[],
+  ) => {
+    if (!enrollmentStats || !courseContents)
+      return {
+        total: 0,
+        completed: 0,
+        percentage: 0,
+        questionsAnswered: 0,
+        performancePercentage: 0,
+        totalTimeSpent: 0,
+        coveragePercentage: 0,
+        averageContentDepth: 0,
+      };
 
-    const chapterIds = domain.chapters.map((chapter) => chapter.id);
-    const chapterStats = enrollmentStats.enrollmentStats.filter((stat) => {
-      const content = courseContents.find((c) => c.id === stat.contentId);
-      return content?.chapterId && chapterIds.includes(content.chapterId);
-    });
+    const chapterContent = domainContents.filter(
+      (c) => c.chapterId === chapterId,
+    );
+    const totalContents = chapterContent.length;
+    const chapterStats = enrollmentStats.enrollmentStats.filter((stat) =>
+      chapterContent.some((c) => c.id === stat.contentId),
+    );
+    const completedContents = chapterStats.length;
 
-    interface ChapterPerformance {
+    const totalQuestionsAnswered = chapterStats.reduce(
+      (sum: number, stat) =>
+        sum +
+        (stat.metadata.totalCorrect || 0) +
+        (stat.metadata.totalIncorrect || 0),
+      0,
+    );
+
+    const totalCorrect = chapterStats.reduce(
+      (sum: number, stat) => sum + (stat.metadata.totalCorrect || 0),
+      0,
+    );
+
+    const performancePercentage =
+      totalQuestionsAnswered > 0
+        ? Math.round((totalCorrect / totalQuestionsAnswered) * 100)
+        : 0;
+
+    const totalTimeSpent = chapterStats.reduce(
+      (sum: number, stat) => sum + (stat.metadata.totalTimeSpent || 0),
+      0,
+    );
+
+    const readContents = chapterStats.filter(
+      (stat) => (stat.metadata.timesRead || 0) > 0,
+    );
+
+    const coveragePercentage =
+      totalContents > 0
+        ? Math.round((readContents.length / totalContents) * 100)
+        : 0;
+
+    const averageContentDepth =
+      readContents.length > 0
+        ? Math.round(
+            readContents.reduce(
+              (sum, stat) => sum + (stat.metadata.timesRead || 0),
+              0,
+            ) / readContents.length,
+          )
+        : 0;
+
+    return {
+      total: totalContents,
+      completed: completedContents,
+      percentage:
+        totalContents > 0
+          ? Math.round((completedContents / totalContents) * 100)
+          : 0,
+      questionsAnswered: totalQuestionsAnswered,
+      performancePercentage,
+      totalTimeSpent,
+      coveragePercentage,
+      averageContentDepth,
+    };
+  };
+
+  const calculateContentPerformance = (
+    chapterId: string,
+    domainContents: CourseContent[],
+  ) => {
+    if (!courseContents) return [];
+
+    const chapterContent = domainContents.filter(
+      (c) => c.chapterId === chapterId,
+    );
+
+    interface ContentPerformance {
       contentId: string;
       title: string;
       timesRead: number;
@@ -124,10 +218,12 @@ export function ProgressByDomainChart({
       lastReviewed: number;
     }
 
-    return chapterStats.map((stat): ChapterPerformance => {
-      const content = courseContents.find((c) => c.id === stat.contentId);
-      const totalCorrect = stat.metadata.totalCorrect || 0;
-      const totalIncorrect = stat.metadata.totalIncorrect || 0;
+    return chapterContent.map((content): ContentPerformance => {
+      const stat = enrollmentStats?.enrollmentStats.find(
+        (s) => s.contentId === content.id,
+      );
+      const totalCorrect = stat?.metadata.totalCorrect || 0;
+      const totalIncorrect = stat?.metadata.totalIncorrect || 0;
       const totalAttempts = totalCorrect + totalIncorrect;
       const accuracy =
         totalAttempts > 0
@@ -135,12 +231,12 @@ export function ProgressByDomainChart({
           : 0;
 
       return {
-        contentId: stat.contentId,
-        title: content?.title || "Unknown Content",
-        timesRead: stat.metadata.timesRead || 0,
-        totalTimeSpent: stat.metadata.totalTimeSpent || 0,
+        contentId: content.id,
+        title: content.title || "Unknown Content",
+        timesRead: stat?.metadata.timesRead || 0,
+        totalTimeSpent: stat?.metadata.totalTimeSpent || 0,
         accuracy,
-        lastReviewed: stat.metadata.lastReviewedAt,
+        lastReviewed: stat?.metadata.lastReviewedAt || 0,
       };
     });
   };
@@ -152,9 +248,10 @@ export function ProgressByDomainChart({
         {domains?.map((domain) => {
           const progress = calculateDomainProgress(domain);
           const isExpanded = expandedDomain === domain.id;
-          const chapterPerformance = isExpanded
-            ? calculateChapterPerformance(domain)
-            : [];
+          const chapterIds = domain.chapters.map((chapter) => chapter.id);
+          const domainContents = courseContents?.filter((content) =>
+            chapterIds.includes(content.chapterId || ""),
+          );
 
           return (
             <div
@@ -219,44 +316,168 @@ export function ProgressByDomainChart({
                 </div>
               </button>
 
-              {isExpanded && (
+              {isExpanded && domainContents && (
                 <div className="px-4 pb-4 pt-2 border-t border-border">
-                  <div className="space-y-3">
-                    {chapterPerformance.map((perf) => (
-                      <Link
-                        key={perf.contentId}
-                        href={`/courses/${courseId}/contents/${perf.contentId}`}
-                        className="block"
-                      >
-                        <div className="pl-8 py-2 border-l-2 border-muted hover:bg-muted/50 transition-colors cursor-pointer">
-                          <div className="flex justify-between items-start mb-1">
-                            <span className="text-sm font-medium">
-                              {perf.title}
+                  <div className="mb-4">
+                    <Select
+                      value={sortOption}
+                      onValueChange={(value) =>
+                        setSortOption(value as SortOption)
+                      }
+                    >
+                      <SelectTrigger className="w-full max-w-xs">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="reads">Sort by Reads</SelectItem>
+                        <SelectItem value="time">Sort by Time Spent</SelectItem>
+                        <SelectItem value="accuracy">
+                          Sort by Accuracy
+                        </SelectItem>
+                        <SelectItem value="order">
+                          Sort by Content Order
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-4">
+                    {domain.chapters.map((chapter) => {
+                      const chapterProgress = calculateChapterProgress(
+                        chapter.id,
+                        domainContents,
+                      );
+                      let contentPerformance = calculateContentPerformance(
+                        chapter.id,
+                        domainContents,
+                      );
+
+                      contentPerformance = [...contentPerformance].sort(
+                        (a, b) => {
+                          switch (sortOption) {
+                            case "reads":
+                              return (b.timesRead || 0) - (a.timesRead || 0);
+                            case "time":
+                              return (
+                                (b.totalTimeSpent || 0) -
+                                (a.totalTimeSpent || 0)
+                              );
+                            case "accuracy":
+                              return (b.accuracy || 0) - (a.accuracy || 0);
+                            case "order":
+                              const contentA = domainContents.find(
+                                (c) => c.id === a.contentId,
+                              );
+                              const contentB = domainContents.find(
+                                (c) => c.id === b.contentId,
+                              );
+                              return (
+                                (contentA?.order || 0) - (contentB?.order || 0)
+                              );
+                            default:
+                              return 0;
+                          }
+                        },
+                      );
+
+                      return (
+                        <div
+                          key={chapter.id}
+                          className="border border-border rounded-lg p-3"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="font-medium text-sm">
+                              {chapter.name}
                             </span>
                             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                              <span>{perf.timesRead} reads</span>
-                              <span>
-                                {Math.round(perf.totalTimeSpent / 60)}m
-                              </span>
-                              <span
-                                className={
-                                  perf.accuracy === 0
-                                    ? "text-gray-400"
-                                    : perf.accuracy >= 70
-                                      ? "text-green-600"
-                                      : "text-orange-600"
-                                }
-                              >
-                                {perf.accuracy}% accuracy
-                              </span>
+                              <span className="font-semibold text-foreground">
+                                {chapterProgress.coveragePercentage}%
+                              </span>{" "}
+                              coverage
+                              {chapterProgress.averageContentDepth > 0 && (
+                                <>
+                                  <span className="font-semibold text-foreground">
+                                    {chapterProgress.averageContentDepth}x
+                                  </span>{" "}
+                                  depth
+                                </>
+                              )}
+                              <span className="font-semibold text-foreground">
+                                {chapterProgress.questionsAnswered}
+                              </span>{" "}
+                              questions
+                              {chapterProgress.questionsAnswered > 0 && (
+                                <span
+                                  className={`font-semibold ${
+                                    chapterProgress.performancePercentage === 0
+                                      ? "text-gray-400"
+                                      : chapterProgress.performancePercentage >=
+                                          70
+                                        ? "text-green-600"
+                                        : "text-orange-600"
+                                  }`}
+                                >
+                                  {chapterProgress.performancePercentage}%
+                                </span>
+                              )}{" "}
+                              accuracy
+                              <span className="font-semibold text-foreground">
+                                {Math.round(
+                                  chapterProgress.totalTimeSpent / 60,
+                                )}
+                                m
+                              </span>{" "}
+                              spent
                             </div>
                           </div>
+                          <div className="space-y-2">
+                            {contentPerformance.map((perf: any) => (
+                              <Link
+                                key={perf.contentId}
+                                href={`/courses/${courseId}/contents/${perf.contentId}`}
+                                className="block"
+                              >
+                                <div className="pl-4 py-2 border-l-2 border-muted hover:bg-muted/50 transition-colors cursor-pointer">
+                                  <div className="flex justify-between items-start">
+                                    <span className="text-sm">
+                                      {perf.title}
+                                    </span>
+                                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                      <div className="w-16 flex items-center gap-1">
+                                        <BookOpen className="w-3 h-3" />
+                                        <span>{perf.timesRead}</span>
+                                      </div>
+                                      <div className="w-12">
+                                        {Math.round(perf.totalTimeSpent / 60)}m
+                                      </div>
+                                      <div
+                                        className={`w-12 flex items-center gap-1 ${
+                                          perf.accuracy === 0
+                                            ? "text-gray-400"
+                                            : perf.accuracy >= 70
+                                              ? "text-green-600"
+                                              : "text-orange-600"
+                                        }`}
+                                      >
+                                        <Target className="w-3 h-3" />
+                                        <span>{perf.accuracy}%</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </Link>
+                            ))}
+                            {contentPerformance.length === 0 && (
+                              <p className="text-sm text-muted-foreground pl-4">
+                                No content available in this chapter
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </Link>
-                    ))}
-                    {chapterPerformance.length === 0 && (
-                      <p className="text-sm text-muted-foreground pl-8">
-                        No performance data available yet
+                      );
+                    })}
+                    {domain.chapters.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        No chapters available in this domain
                       </p>
                     )}
                   </div>
