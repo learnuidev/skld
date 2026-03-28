@@ -171,7 +171,7 @@ export function ContentNavigator({
         }`}
       >
         <div
-          className={`text-sm font-medium line-clamp-2 mb-2 ${
+          className={`text-sm font-medium line-clamp-2 mb-2 h-16 ${
             isActive ? "text-primary" : "text-foreground"
           }`}
         >
