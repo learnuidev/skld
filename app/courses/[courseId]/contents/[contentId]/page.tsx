@@ -4,6 +4,7 @@ import { TiptapEditor } from "@/components/editor/tiptap-editor";
 import { FloatingMenu } from "@/components/floating-menu";
 import { KnowledgeGraphStatus } from "@/components/knowledge-graph/knowledge-graph-status";
 import { PresentationMode } from "@/components/presentation-mode";
+import { ContentNavigator } from "@/components/content-navigator";
 import { AuthorActions } from "@/components/author-actions";
 import { useAutoSizeTextarea } from "@/hooks/ui/use-auto-size-textarea";
 
@@ -40,16 +41,16 @@ export default function ContentPage() {
   const params = useParams<{ courseId: string; contentId: string }>();
   const router = useRouter();
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId
+    params.courseId,
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
   const { data: contents } = useListCourseContentsQuery(params.courseId);
   const updateContentMutation = useUpdateCourseContentMutation(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const { data: knowledgeGraph, isLoading: kgLoading } =
@@ -59,7 +60,7 @@ export default function ContentPage() {
 
   const { data: userContentStats } = useGetUserContentStatsQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const { data: mockExams } = useListMockExamsQuery(params.courseId);
@@ -67,7 +68,7 @@ export default function ContentPage() {
   const ongoingContentQuiz = mockExams?.find(
     (exam) =>
       exam.status === "in_progress" &&
-      exam.selectedContentIds?.includes(params.contentId)
+      exam.selectedContentIds?.includes(params.contentId),
   );
 
   const [isEditing, setIsEditing] = useState(false);
@@ -82,6 +83,7 @@ export default function ContentPage() {
   >(null);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [showPresentation, setShowPresentation] = useState(false);
+  const [showContentNavigator, setShowContentNavigator] = useState(false);
 
   const {
     startTracking,
@@ -230,7 +232,7 @@ export default function ContentPage() {
 
   const handleStartQuiz = () => {
     router.push(
-      `/courses/${params.courseId}/contents/${params.contentId}/new-mock-exam`
+      `/courses/${params.courseId}/contents/${params.contentId}/new-mock-exam`,
     );
   };
 
@@ -256,7 +258,7 @@ export default function ContentPage() {
     <div
       className={cn(
         "min-h-screen bg-background",
-        ongoingContentQuiz ? "mt-24" : "mt-8"
+        ongoingContentQuiz ? "mt-24" : "mt-8",
       )}
     >
       {ongoingContentQuiz && (
@@ -382,7 +384,7 @@ export default function ContentPage() {
                       chapters.length > 0 &&
                       (() => {
                         const chapter = chapters.find(
-                          (ch) => ch.id === content.chapterId
+                          (ch) => ch.id === content.chapterId,
                         );
                         return chapter ? (
                           <div className="text-xs font-medium text-gray-500 mb-2">
@@ -456,6 +458,7 @@ export default function ContentPage() {
               knowledgeGraph={knowledgeGraph || undefined}
               onStartQuiz={handleStartQuiz}
               onPresentation={() => setShowPresentation(true)}
+              onOpenNavigator={() => setShowContentNavigator(true)}
               ongoingContentQuiz={!!ongoingContentQuiz}
             />
 
@@ -495,6 +498,16 @@ export default function ContentPage() {
           isCreatingKnowledgeGraph={createKnowledgeGraphMutation.isPending}
           onRetryKnowledgeGraph={handleRetryKnowledgeGraph}
           isRetryingKnowledgeGraph={retryKnowledgeGraphMutation.isPending}
+        />
+      )}
+
+      {showContentNavigator && (
+        <ContentNavigator
+          courseId={params.courseId}
+          contentId={params.contentId}
+          contents={contents || []}
+          domains={course?.domains || []}
+          onClose={() => setShowContentNavigator(false)}
         />
       )}
 

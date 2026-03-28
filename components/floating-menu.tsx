@@ -1,11 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { isStructuredContent } from "@/lib/content-parser";
 import { CourseContent } from "@/modules/course-content/course-content.types";
 import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
@@ -28,6 +23,7 @@ interface FloatingMenuProps {
   knowledgeGraph?: KnowledgeGraph;
   onStartQuiz?: () => void;
   onPresentation?: () => void;
+  onOpenNavigator?: () => void;
   ongoingContentQuiz: boolean;
 }
 
@@ -39,6 +35,7 @@ export function FloatingMenu({
   knowledgeGraph,
   onStartQuiz,
   onPresentation,
+  onOpenNavigator,
   ongoingContentQuiz,
 }: FloatingMenuProps) {
   const { data: examBanks } = useGetExamBanksQuery(courseId);
@@ -51,48 +48,13 @@ export function FloatingMenu({
 
   return (
     <div className="flex items-center gap-2">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            size="icon-lg"
-            className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
-          >
-            <List className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="end" className="w-80 p-0 shadow-2xl" side="top">
-          <div className="p-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-foreground">
-              Course Contents
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              {contents.length} content{contents.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <div className="max-h-80 overflow-y-auto">
-            <div className="p-2 space-y-1">
-              {contents.map((content) => (
-                <Link
-                  key={content.id}
-                  href={`/courses/${courseId}/contents/${content.id}`}
-                  className={`block px-3 py-2.5 rounded-lg text-sm transition-all ${
-                    content.id === contentId
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-accent hover:text-accent-foreground text-foreground"
-                  }`}
-                >
-                  <div className="font-medium truncate">{content.title}</div>
-                  {content.description && (
-                    <div className="text-xs mt-0.5 opacity-80 truncate">
-                      {content.description}
-                    </div>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+      <Button
+        size="icon-lg"
+        onClick={onOpenNavigator}
+        className="rounded-full bg-background border-2 border-border hover:border-foreground/20 hover:bg-accent shadow-lg hover:shadow-xl transition-all duration-200 group"
+      >
+        <List className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+      </Button>
 
       <Link href={`/courses/${courseId}/contents/${contentId}/history`}>
         <Button
