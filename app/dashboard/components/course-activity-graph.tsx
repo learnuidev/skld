@@ -33,10 +33,10 @@ export function CourseActivityGraph({
   const getColor = (value: number) => {
     const intensity = value / maxActivity;
     if (intensity === 0) return "bg-muted";
-    if (intensity < 0.25) return "bg-green-100 dark:bg-green-900/30";
-    if (intensity < 0.5) return "bg-green-200 dark:bg-green-800/40";
-    if (intensity < 0.75) return "bg-green-300 dark:bg-green-700/50";
-    return "bg-green-400 dark:bg-green-600/60";
+    if (intensity < 0.25) return "bg-rose-100 dark:bg-rose-900/30";
+    if (intensity < 0.5) return "bg-rose-200 dark:bg-rose-800/40";
+    if (intensity < 0.75) return "bg-rose-300 dark:bg-rose-700/50";
+    return "bg-rose-400 dark:bg-rose-600/60";
   };
 
   const formatDate = (date: Date) => {
@@ -92,7 +92,7 @@ export function CourseActivityGraph({
   };
 
   return (
-    <div>
+    <div className="mt-20">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <TrendingUp className="w-5 h-5" />
@@ -127,7 +127,7 @@ export function CourseActivityGraph({
           {viewMode === "monthly"
             ? new Date(currentDate.year, currentDate.month).toLocaleDateString(
                 "en-US",
-                { month: "long", year: "numeric" },
+                { month: "long", year: "numeric" }
               )
             : currentDate.year.toString()}
         </div>
@@ -137,7 +137,7 @@ export function CourseActivityGraph({
             {Array.from({ length: 12 }, (_, monthIndex) => {
               const daysInMonth = getDaysInMonth(monthIndex);
               const monthStartDay = Array.from({ length: monthIndex }, (_, m) =>
-                getDaysInMonth(m),
+                getDaysInMonth(m)
               ).reduce((a, b) => a + b, 0);
 
               const monthEndDay = monthStartDay + daysInMonth;
@@ -156,7 +156,7 @@ export function CourseActivityGraph({
 
                         const value = data[dataIndex];
                         const date = new Date(
-                          startDate.getTime() + dataIndex * 24 * 60 * 60 * 1000,
+                          startDate.getTime() + dataIndex * 24 * 60 * 60 * 1000
                         );
 
                         return (
@@ -185,7 +185,7 @@ export function CourseActivityGraph({
 
                       const value = data[dataIndex];
                       const date = new Date(
-                        startDate.getTime() + dataIndex * 24 * 60 * 60 * 1000,
+                        startDate.getTime() + dataIndex * 24 * 60 * 60 * 1000
                       );
 
                       return (
@@ -197,7 +197,7 @@ export function CourseActivityGraph({
                       );
                     })}
                   </div>
-                ),
+                )
               )}
             </div>
           </div>
@@ -207,16 +207,16 @@ export function CourseActivityGraph({
           <div className={`flex gap-1`}>
             <div className={`w-3 h-3 rounded-sm bg-muted`} />
             <div
-              className={`w-3 h-3 rounded-sm bg-green-100 dark:bg-green-900/30`}
+              className={`w-3 h-3 rounded-sm bg-rose-100 dark:bg-rose-900/30`}
             />
             <div
-              className={`w-3 h-3 rounded-sm bg-green-200 dark:bg-green-800/40`}
+              className={`w-3 h-3 rounded-sm bg-rose-200 dark:bg-rose-800/40`}
             />
             <div
-              className={`w-3 h-3 rounded-sm bg-green-300 dark:bg-green-700/50`}
+              className={`w-3 h-3 rounded-sm bg-rose-300 dark:bg-rose-700/50`}
             />
             <div
-              className={`w-3 h-3 rounded-sm bg-green-400 dark:bg-green-600/60`}
+              className={`w-3 h-3 rounded-sm bg-rose-400 dark:bg-rose-600/60`}
             />
           </div>
           <span>More</span>
