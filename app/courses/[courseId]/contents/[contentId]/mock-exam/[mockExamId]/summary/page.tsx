@@ -244,6 +244,13 @@ export default function ContentQuizSummaryPage() {
 
         <div className="space-y-4 pt-8">
           <Link
+            href={`/courses/${params.courseId}/contents/${params.contentId}/history`}
+            className="group w-full flex items-center justify-between px-8 py-6 rounded-lg border border-border hover:border-foreground/30 transition-all duration-300"
+          >
+            <span className="text-foreground font-light">Content History</span>
+            <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          </Link>
+          <Link
             href={`/courses/${params.courseId}/contents/${params.contentId}`}
             className="group w-full flex items-center justify-between px-8 py-6 rounded-lg border border-border hover:border-foreground/30 transition-all duration-300"
           >
