@@ -35,15 +35,17 @@ export function ProgressByDomainChart({
         questionsAnswered: 0,
         performancePercentage: 0,
         totalTimeSpent: 0,
+        coveragePercentage: 0,
+        averageContentDepth: 0,
       };
 
     const chapterIds = domain.chapters.map((chapter) => chapter.id);
     const domainContents = courseContents.filter((content) =>
-      chapterIds.includes(content.chapterId || ""),
+      chapterIds.includes(content.chapterId || "")
     );
     const totalContents = domainContents.length;
     const domainStats = enrollmentStats.enrollmentStats.filter((stat) =>
-      domainContents.some((c) => c.id === stat.contentId),
+      domainContents.some((c) => c.id === stat.contentId)
     );
     const completedContents = domainStats.length;
 
@@ -52,12 +54,12 @@ export function ProgressByDomainChart({
         sum +
         (stat.metadata.totalCorrect || 0) +
         (stat.metadata.totalIncorrect || 0),
-      0,
+      0
     );
 
     const totalCorrect = domainStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalCorrect || 0),
-      0,
+      0
     );
 
     const performancePercentage =
@@ -67,8 +69,27 @@ export function ProgressByDomainChart({
 
     const totalTimeSpent = domainStats.reduce(
       (sum: number, stat) => sum + (stat.metadata.totalTimeSpent || 0),
-      0,
+      0
     );
+
+    const readContents = domainStats.filter(
+      (stat) => (stat.metadata.timesRead || 0) > 0
+    );
+
+    const coveragePercentage =
+      domainContents?.length > 0
+        ? Math.round((readContents.length / domainContents?.length) * 100)
+        : 0;
+
+    const averageContentDepth =
+      readContents.length > 0
+        ? Math.round(
+            readContents.reduce(
+              (sum, stat) => sum + (stat.metadata.timesRead || 0),
+              0
+            ) / readContents.length
+          )
+        : 0;
 
     return {
       total: totalContents,
@@ -80,6 +101,8 @@ export function ProgressByDomainChart({
       questionsAnswered: totalQuestionsAnswered,
       performancePercentage,
       totalTimeSpent,
+      coveragePercentage,
+      averageContentDepth,
     };
   };
 
@@ -151,6 +174,20 @@ export function ProgressByDomainChart({
                   <span className="font-medium">{domain.name}</span>
                 </div>
                 <div className="flex items-center gap-4 text-sm">
+                  <div className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">
+                      {progress.coveragePercentage}%
+                    </span>{" "}
+                    coverage
+                  </div>
+                  {progress.averageContentDepth > 0 && (
+                    <div className="text-muted-foreground">
+                      <span className="font-semibold text-foreground">
+                        {progress.averageContentDepth}x
+                      </span>{" "}
+                      depth
+                    </div>
+                  )}
                   <div className="text-muted-foreground">
                     <span className="font-semibold text-foreground">
                       {progress.questionsAnswered}
