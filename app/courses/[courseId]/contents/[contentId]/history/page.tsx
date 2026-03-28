@@ -47,7 +47,7 @@ export default function ContentHistoryPage() {
   const { data: course } = useGetCourseQuery(params.courseId);
   const { data: historiesData, isLoading } = useListUserContentHistoriesQuery(
     params.courseId,
-    params.contentId
+    params.contentId,
   );
 
   const [filter, setFilter] = useState<FilterType>("all");
@@ -130,6 +130,24 @@ export default function ContentHistoryPage() {
     };
   }, [historiesData]);
 
+  const questionFormDots = useMemo(() => {
+    const map = new Map<string, boolean[]>();
+    if (!historiesData?.userContentHistories) return map;
+    const sorted = [...historiesData.userContentHistories].sort(
+      (a, b) => a.createdAt - b.createdAt,
+    );
+    for (const h of sorted) {
+      if (!h.quizData?.questionId) continue;
+      const arr = map.get(h.quizData.questionId) || [];
+      arr.push(h.quizData.isCorrect);
+      map.set(h.quizData.questionId, arr);
+    }
+    for (const [id, arr] of map) {
+      map.set(id, arr.slice(-5));
+    }
+    return map;
+  }, [historiesData]);
+
   const filteredAndSortedHistories = useMemo(() => {
     if (!historiesData?.userContentHistories) return [];
 
@@ -190,12 +208,12 @@ export default function ContentHistoryPage() {
       const firstDay = new Date(
         currentDate.getFullYear(),
         currentDate.getMonth(),
-        1
+        1,
       );
       const lastDay = new Date(
         currentDate.getFullYear(),
         currentDate.getMonth() + 1,
-        0
+        0,
       );
       firstDay.setHours(0, 0, 0, 0);
       lastDay.setHours(23, 59, 59, 999);
@@ -261,7 +279,7 @@ export default function ContentHistoryPage() {
       }
 
       const filteredHistories = histories.filter(
-        (h) => h.createdAt >= startTime && h.createdAt < endTime
+        (h) => h.createdAt >= startTime && h.createdAt < endTime,
       );
       filteredHistories.forEach((history) => {
         const date = new Date(history.createdAt);
@@ -306,7 +324,7 @@ export default function ContentHistoryPage() {
             (buckets[label].totalQuestions > 0
               ? (buckets[label].correct / buckets[label].totalQuestions) * 100
               : 0
-            ).toFixed(0)
+            ).toFixed(0),
           ),
         }));
       }
@@ -319,7 +337,7 @@ export default function ContentHistoryPage() {
         const daysInMonth = new Date(
           startDate.getFullYear(),
           startDate.getMonth() + 1,
-          0
+          0,
         ).getDate();
 
         const chartData = [];
@@ -332,7 +350,7 @@ export default function ContentHistoryPage() {
               (buckets[label]?.totalQuestions > 0
                 ? (buckets[label].correct / buckets[label].totalQuestions) * 100
                 : 0
-              ).toFixed(0)
+              ).toFixed(0),
             ),
           });
         }
@@ -346,7 +364,7 @@ export default function ContentHistoryPage() {
           (data.totalQuestions > 0
             ? (data.correct / data.totalQuestions) * 100
             : 0
-          ).toFixed(0)
+          ).toFixed(0),
         ),
       }));
     };
@@ -363,7 +381,7 @@ export default function ContentHistoryPage() {
     }
 
     const quizHistories = historiesData.userContentHistories.filter(
-      (h) => h.quizData?.mockExamId
+      (h) => h.quizData?.mockExamId,
     );
 
     const examMap = new Map<
@@ -562,7 +580,7 @@ export default function ContentHistoryPage() {
                             ? "Weekly"
                             : "Monthly"}
                       </button>
-                    )
+                    ),
                   )}
                 </div>
               </div>
@@ -687,7 +705,7 @@ export default function ContentHistoryPage() {
                               ? "Content"
                               : "Quiz"}
                         </button>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
@@ -790,6 +808,33 @@ export default function ContentHistoryPage() {
                             )}
                           </div>
 
+                          {isQuiz(history) && history.quizData?.questionId && (
+                            <div className="flex items-center gap-1.5 mt-2">
+                              {(() => {
+                                const h =
+                                  questionFormDots.get(
+                                    history.quizData!.questionId,
+                                  ) || [];
+                                const dots: (boolean | null)[] = [
+                                  ...Array(5 - h.length).fill(null),
+                                  ...h,
+                                ];
+                                return dots.map((correct, i) => (
+                                  <span
+                                    key={i}
+                                    className={`inline-block w-2 h-2 rounded-full ${
+                                      correct === null
+                                        ? "bg-foreground/10"
+                                        : correct
+                                          ? "bg-emerald-500"
+                                          : "bg-red-500"
+                                    }`}
+                                  />
+                                ));
+                              })()}
+                            </div>
+                          )}
+
                           <div className="flex items-center gap-8 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
                               <Clock className="w-3.5 h-3.5" />
@@ -797,7 +842,7 @@ export default function ContentHistoryPage() {
                                 {formatDuration(
                                   isQuiz(history)
                                     ? history.quizData?.timeSpent || 0
-                                    : history.totalTimeSpent || 0
+                                    : history.totalTimeSpent || 0,
                                 )}
                               </span>
                             </div>
@@ -810,7 +855,7 @@ export default function ContentHistoryPage() {
                                   </span>
                                   <span className="text-foreground">
                                     {Math.round(
-                                      history.quizData.overallAccuracy
+                                      history.quizData.overallAccuracy,
                                     )}
                                     %
                                   </span>
@@ -988,7 +1033,7 @@ export default function ContentHistoryPage() {
                               <td className="px-8 py-6 text-right">
                                 <span className="text-sm text-muted-foreground">
                                   {formatDuration(
-                                    Math.round(exam.avgTimeSpent)
+                                    Math.round(exam.avgTimeSpent),
                                   )}
                                 </span>
                               </td>
