@@ -1,4 +1,5 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { EnrollmentStatsResponse } from "@/modules/enrollment/enrollment.types";
 import { CourseContent } from "@/modules/course-content/course-content.types";
 
@@ -9,6 +10,7 @@ interface Domain {
 }
 
 interface ProgressByDomainChartProps {
+  courseId: string;
   domains: Domain[] | undefined;
   expandedDomain: string | null;
   setExpandedDomain: (domainId: string | null) => void;
@@ -17,6 +19,7 @@ interface ProgressByDomainChartProps {
 }
 
 export function ProgressByDomainChart({
+  courseId,
   domains,
   expandedDomain,
   setExpandedDomain,
@@ -183,31 +186,36 @@ export function ProgressByDomainChart({
                 <div className="px-4 pb-4 pt-2 border-t border-border">
                   <div className="space-y-3">
                     {chapterPerformance.map((perf) => (
-                      <div
+                      <Link
                         key={perf.contentId}
-                        className="pl-8 py-2 border-l-2 border-muted"
+                        href={`/courses/${courseId}/contents/${perf.contentId}`}
+                        className="block"
                       >
-                        <div className="flex justify-between items-start mb-1">
-                          <span className="text-sm font-medium">
-                            {perf.title}
-                          </span>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <span>{perf.timesRead} reads</span>
-                            <span>{Math.round(perf.totalTimeSpent / 60)}m</span>
-                            <span
-                              className={
-                                perf.accuracy === 0
-                                  ? "text-gray-400"
-                                  : perf.accuracy >= 70
-                                    ? "text-green-600"
-                                    : "text-orange-600"
-                              }
-                            >
-                              {perf.accuracy}% accuracy
+                        <div className="pl-8 py-2 border-l-2 border-muted hover:bg-muted/50 transition-colors cursor-pointer">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="text-sm font-medium">
+                              {perf.title}
                             </span>
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                              <span>{perf.timesRead} reads</span>
+                              <span>
+                                {Math.round(perf.totalTimeSpent / 60)}m
+                              </span>
+                              <span
+                                className={
+                                  perf.accuracy === 0
+                                    ? "text-gray-400"
+                                    : perf.accuracy >= 70
+                                      ? "text-green-600"
+                                      : "text-orange-600"
+                                }
+                              >
+                                {perf.accuracy}% accuracy
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                     {chapterPerformance.length === 0 && (
                       <p className="text-sm text-muted-foreground pl-8">

@@ -1,12 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useGetEnrollmentsQuery } from "@/modules/enrollment/use-get-enrollment-query";
-import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { useListPublicCoursesQuery } from "@/modules/course/use-list-public-courses-query";
-import { useListUserEnrollmentStatsQuery } from "@/modules/enrollment/use-list-user-enrollment-stats-query";
-import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
-import { useUserActivityGraph } from "@/hooks/use-user-activity-graph";
 import { PageContainer } from "@/components/page-container";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -17,13 +10,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useUserActivityGraph } from "@/hooks/use-user-activity-graph";
+import { getDashboardUrl } from "@/lib/utils";
+import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
+import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { useListPublicCoursesQuery } from "@/modules/course/use-list-public-courses-query";
+import { useGetEnrollmentsQuery } from "@/modules/enrollment/use-get-enrollment-query";
+import { useListUserEnrollmentStatsQuery } from "@/modules/enrollment/use-list-user-enrollment-stats-query";
 import { BookOpen } from "lucide-react";
 import Link from "next/link";
-import { ProgressByDomainChart } from "./components/progress-by-domain-chart";
-import { CourseActivityGraph } from "./components/course-activity-graph";
-import { UserContentStat } from "@/modules/skld/skld.types";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getDashboardUrl } from "@/lib/utils";
+import { useState } from "react";
+import { CourseActivityGraph } from "./components/course-activity-graph";
+import { ProgressByDomainChart } from "./components/progress-by-domain-chart";
 
 export default function DashboardPage() {
   const [viewMode, setViewMode] = useState<"monthly" | "yearly">("monthly");
@@ -45,11 +44,11 @@ export default function DashboardPage() {
         const lastEnrolled = Math.max(
           ...enrollments.map((enrollment) => {
             return enrollment.enrolledAt;
-          })
+          }),
         );
 
         const lastInteractedCourse = enrollments.find(
-          (enrollment) => enrollment.enrolledAt === lastEnrolled
+          (enrollment) => enrollment.enrolledAt === lastEnrolled,
         );
 
         if (!localSelectedCourseId && lastInteractedCourse) {
@@ -68,21 +67,21 @@ export default function DashboardPage() {
   console.log("local", localSelectedCourseId);
 
   const selectedEnrollment = enrollments?.find(
-    (e) => e.courseId === localSelectedCourseId
+    (e) => e.courseId === localSelectedCourseId,
   );
   const { data: selectedCourse } = useGetCourseQuery(
-    localSelectedCourseId || ""
+    localSelectedCourseId || "",
   );
   const { data: enrollmentStats } = useListUserEnrollmentStatsQuery(
-    localSelectedCourseId || ""
+    localSelectedCourseId || "",
   );
   const { data: courseContents } = useListCourseContentsQuery(
-    localSelectedCourseId || ""
+    localSelectedCourseId || "",
   );
   const { data: activityData } = useUserActivityGraph(
     localSelectedCourseId || "",
     selectedEnrollment?.id || "",
-    viewMode
+    viewMode,
   );
 
   if (enrollmentsLoading) {
@@ -142,7 +141,7 @@ export default function DashboardPage() {
             <SelectContent>
               {enrollments.map((enrollment) => {
                 const course = allCourses?.find(
-                  (c) => c.id === enrollment.courseId
+                  (c) => c.id === enrollment.courseId,
                 );
                 return (
                   <SelectItem
@@ -160,6 +159,7 @@ export default function DashboardPage() {
         {selectedEnrollment && selectedCourse && (
           <>
             <ProgressByDomainChart
+              courseId={localSelectedCourseId}
               domains={selectedCourse.domains}
               expandedDomain={expandedDomain}
               setExpandedDomain={setExpandedDomain}
