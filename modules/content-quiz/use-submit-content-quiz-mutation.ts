@@ -31,6 +31,7 @@ export function useSubmitContentQuizMutation() {
           body: JSON.stringify({
             answers: params.answers,
             eliminatedAnswerIds: params.eliminatedAnswerIds,
+            questionId: params.questionId,
           }),
         }
       );

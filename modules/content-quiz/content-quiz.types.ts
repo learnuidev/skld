@@ -21,6 +21,7 @@ export interface SubmitContentQuizParams {
   courseId: string;
   contentId: string;
   mockExamId: string;
+  questionId: string;
   answers: Record<string, unknown>;
   eliminatedAnswerIds: string[];
 }

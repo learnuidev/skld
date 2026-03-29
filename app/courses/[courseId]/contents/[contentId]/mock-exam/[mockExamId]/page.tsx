@@ -210,6 +210,7 @@ function ContentQuizPageInner({
     const newTotalTimeSpent = totalTimeSpent + elapsedTime;
 
     const result = await submitContentQuizMutation.mutateAsync({
+      questionId,
       courseId: params.courseId,
       contentId: params.contentId,
       mockExamId: params.mockExamId,
