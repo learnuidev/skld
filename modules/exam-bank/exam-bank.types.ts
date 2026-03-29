@@ -57,6 +57,14 @@ export interface Question {
 export type QuestionV2 = Question & {
   examBankId: string;
   contentId: string;
+
+  // Basic Stats
+  totalCorrect: number;
+  totalIncorrect: number;
+  totalMockExams: number;
+
+  createdAt: number;
+  updatedAt: number;
 };
 
 export interface ExamBank {
