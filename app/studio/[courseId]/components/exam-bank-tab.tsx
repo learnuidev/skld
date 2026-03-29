@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import { useListExamBanksV2Query } from "@/modules/exam-bank-v2/use-list-exam-banks-v2-query";
 import { useDeleteExamBankMutation } from "@/modules/exam-bank/use-exam-bank-mutations";
 import { useRetryExamBankMutation } from "@/modules/exam-bank/use-retry-exam-bank-mutation";
-import { ExamBank } from "@/modules/exam-bank/exam-bank.types";
+import { ExamBankV2 } from "@/modules/exam-bank-v2/exam-bank-v2.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertTriangle, RefreshCw } from "lucide-react";
@@ -25,12 +25,15 @@ interface ExamBankTabProps {
 
 export function ExamBankTab({ courseId }: ExamBankTabProps) {
   const queryClient = useQueryClient();
-  const { data: examBanks, isLoading } = useGetExamBanksQuery(courseId);
+  const { data: examBanksData, isLoading } = useListExamBanksV2Query({
+    courseId,
+  });
+  const examBanks = examBanksData?.items;
   const deleteExamBankMutation = useDeleteExamBankMutation(courseId);
   const retryExamBankMutation = useRetryExamBankMutation();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [examBankToDelete, setExamBankToDelete] = useState<ExamBank | null>(
-    null,
+  const [examBankToDelete, setExamBankToDelete] = useState<ExamBankV2 | null>(
+    null
   );
 
   if (isLoading) {
@@ -117,7 +120,7 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
     );
   }
 
-  const handleDelete = (examBank: ExamBank) => {
+  const handleDelete = (examBank: ExamBankV2) => {
     setExamBankToDelete(examBank);
     setDeleteDialogOpen(true);
   };
@@ -137,7 +140,7 @@ export function ExamBankTab({ courseId }: ExamBankTabProps) {
     }
   };
 
-  const handleRetry = async (examBank: ExamBank) => {
+  const handleRetry = async (examBank: ExamBankV2) => {
     try {
       await retryExamBankMutation.mutateAsync({
         courseId,
@@ -228,12 +231,12 @@ function ExamBankCard({
   onRetry,
   isRetrying,
 }: {
-  examBank: ExamBank;
+  examBank: ExamBankV2;
   onDelete: () => void;
   onRetry?: () => void;
   isRetrying?: boolean;
 }) {
-  const questionCount = examBank.questions?.length || 0;
+  const questionCount = examBank.totalQuestions || 0;
   const isFailed = examBank.status === "failed";
 
   return (

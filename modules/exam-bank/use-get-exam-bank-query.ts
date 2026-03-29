@@ -22,7 +22,7 @@ export function useGetExamBankQuery(courseId: string, examBankId: string) {
           headers: {
             Authorization: token,
           },
-        },
+        }
       );
 
       if (!response.ok) {
@@ -36,6 +36,7 @@ export function useGetExamBankQuery(courseId: string, examBankId: string) {
     refetchInterval: (query) => {
       const data = query.state.data as ExamBank | undefined;
       if (!data) return false;
+      if (!data.status) return false;
       if (data.status === "completed" || data.status === "failed") {
         return false;
       }
@@ -61,7 +62,7 @@ export function useGetExamBanksQuery(courseId: string) {
           headers: {
             Authorization: token,
           },
-        },
+        }
       );
 
       if (!response.ok) {

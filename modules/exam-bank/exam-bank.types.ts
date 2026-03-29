@@ -71,6 +71,7 @@ export type QuestionV2 = Question & {
 export interface ExamBankBase {
   id: string;
   courseId: string;
+  contentId?: string;
   userId: string;
   title: string;
   description?: string;
@@ -80,7 +81,6 @@ export interface ExamBankBase {
   // This is index of the content slide
   slideIndex?: number;
 
-  contentId?: string;
   specification?: {
     type?: string;
     difficulty?: string;
