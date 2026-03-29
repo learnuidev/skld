@@ -56,7 +56,7 @@ export function useListQuestionsQuery({
       mockExamId,
       lastEvaluatedKey,
       limit,
-    ],
+    ].filter(Boolean),
     queryFn: async (): Promise<ListQuestionsResponse> => {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
