@@ -1,13 +1,13 @@
 "use client";
 
 import type { Question } from "@/modules/exam-bank/exam-bank.types";
-import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
 import { Check, Clock, XCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
 
 type AnswerItem = number | string | boolean | null;
 
@@ -32,7 +32,7 @@ export default function ContentQuizSummaryPage() {
   );
 
   const { data: examBanks, isLoading: isExamBanksLoading } =
-    useGetExamBanksQuery(params.courseId);
+    useListExamBanksQuery(params.courseId);
 
   const createContentQuizMutation = useCreateContentQuizMutation();
 

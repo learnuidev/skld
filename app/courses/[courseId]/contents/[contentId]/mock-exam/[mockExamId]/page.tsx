@@ -1,31 +1,21 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { useSubmitContentQuizMutation } from "@/modules/content-quiz/use-submit-content-quiz-mutation";
+import { Course } from "@/modules/course/course.types";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import type {
   Question,
   QuestionOption,
 } from "@/modules/exam-bank/exam-bank.types";
-import {
-  useGetExamBankQuery,
-  useGetExamBanksQuery,
-} from "@/modules/exam-bank/use-get-exam-bank-query";
+import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
-import { useSubmitContentQuizMutation } from "@/modules/content-quiz/use-submit-content-quiz-mutation";
+import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  Ban,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Ban, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
-import { Course } from "@/modules/course/course.types";
-import { Button } from "@/components/ui/button";
 import { checkAnswerCorrectness } from "../utils/check-answer-correctness";
 
 const shuffleArray = <T,>(array: T[]): T[] => {
@@ -74,7 +64,7 @@ function ContentQuizPageInner({
 
   const submitContentQuizMutation = useSubmitContentQuizMutation();
 
-  const { data: examBanks } = useGetExamBanksQuery(mockExam.courseId);
+  const { data: examBanks } = useListExamBanksQuery(mockExam.courseId);
 
   const selectedContentId = mockExam?.selectedContentIds?.[0];
 
@@ -595,7 +585,7 @@ export default function ContentQuizPage() {
     }
   );
   const { data: examBanks, isLoading: isExamBanksLoading } =
-    useGetExamBanksQuery(mockExam?.courseId || "");
+    useListExamBanksQuery(mockExam?.courseId || "");
 
   const isLoading = mockExamLoading || isExamBanksLoading;
 

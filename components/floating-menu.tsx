@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { isStructuredContent } from "@/lib/content-parser";
 import { CourseContent } from "@/modules/course-content/course-content.types";
-import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
 
 import {
@@ -38,7 +38,7 @@ export function FloatingMenu({
   onOpenNavigator,
   ongoingContentQuiz,
 }: FloatingMenuProps) {
-  const { data: examBanks } = useGetExamBanksQuery(courseId);
+  const { data: examBanks } = useListExamBanksQuery(courseId);
 
   const containQuestions =
     examBanks

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useCreateMockExamMutation } from "@/modules/user-mock-exams/use-create-mock-exam-mutation";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -15,6 +14,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
+import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
 
 export default function ExamLauncherPage() {
   const params = useParams<{ courseId: string }>();
@@ -48,9 +48,8 @@ export default function ExamLauncherPage() {
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
     params.courseId
   );
-  const { data: examBanks, isLoading: examBanksLoading } = useGetExamBanksQuery(
-    params.courseId
-  );
+  const { data: examBanks, isLoading: examBanksLoading } =
+    useListExamBanksQuery(params.courseId);
   const createMockExamMutation = useCreateMockExamMutation();
 
   const isLoading = courseLoading || examBanksLoading;

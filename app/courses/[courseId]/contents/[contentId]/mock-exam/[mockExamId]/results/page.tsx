@@ -4,7 +4,7 @@ import type {
   Question,
   QuestionOption,
 } from "@/modules/exam-bank/exam-bank.types";
-import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { ArrowLeft, Check, Clock, XCircle } from "lucide-react";
@@ -354,7 +354,7 @@ export default function ContentQuizResultsPage() {
   );
 
   const { data: examBanks, isLoading: isExamBanksLoading } =
-    useGetExamBanksQuery(params.courseId);
+    useListExamBanksQuery(params.courseId);
 
   const selectedContentId = params.contentId;
 

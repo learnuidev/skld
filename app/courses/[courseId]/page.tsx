@@ -21,7 +21,8 @@ import { cn } from "@/lib/utils";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useCreateEnrollmentMutation } from "@/modules/enrollment/use-create-enrollment-mutation";
 import { useGetEnrollmentQuery } from "@/modules/enrollment/use-get-enrollment-query";
-import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
+
 import { useGetUserCourseRatingQuery } from "@/modules/user-course-rating/use-get-user-course-rating-query";
 import { useDeleteMockExamMutation } from "@/modules/user-mock-exams/use-delete-mock-exam-mutation";
 import { useListMockExamsQuery } from "@/modules/user-mock-exams/use-list-mock-exams-query";
@@ -127,7 +128,7 @@ function MyMockExamsTab({
   course: any;
 }) {
   const { data: mockExams, isLoading } = useListMockExamsQuery(courseId);
-  const { data: examBanks } = useGetExamBanksQuery(courseId);
+  const { data: examBanks } = useListExamBanksQuery(courseId);
   const { data: enrollment } = useGetEnrollmentQuery(courseId);
   const { mutateAsync: createEnrollment } = useCreateEnrollmentMutation();
   const router = useRouter();

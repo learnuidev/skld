@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
-import { useGetExamBanksQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
 import { useListMockExamsQuery } from "@/modules/user-mock-exams/use-list-mock-exams-query";
 import type { Answer } from "@/modules/user-mock-exams/user-mock-exams.types";
@@ -21,6 +20,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
 
 type AnswerItem = number | string | boolean | null;
 
@@ -30,7 +30,7 @@ function checkCorrect(
     correctOptionId?: string;
     correctOptionIds?: string[];
   },
-  answer: Answer,
+  answer: Answer
 ): boolean {
   if (question.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
     return answer.answer === question.correctOptionId;
@@ -42,7 +42,7 @@ function checkCorrect(
       userAnswers.length === correctAnswers.length &&
       userAnswers.every(
         (ans: AnswerItem) =>
-          typeof ans === "string" && correctAnswers.includes(ans),
+          typeof ans === "string" && correctAnswers.includes(ans)
       )
     );
   }
@@ -58,14 +58,14 @@ export default function NewMockExamPage() {
 
   const { data: content } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
-  const { data: examBanks } = useGetExamBanksQuery(params.courseId);
+  const { data: examBanks } = useListExamBanksQuery(params.courseId);
   const { data: mockExams } = useListMockExamsQuery(params.courseId);
   const createContentQuizMutation = useCreateContentQuizMutation();
 
   const [selectedType, setSelectedType] = useState<"custom" | "retry" | null>(
-    null,
+    null
   );
   const [selectedExamBankIds, setSelectedExamBankIds] = useState<string[]>([]);
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
@@ -75,12 +75,12 @@ export default function NewMockExamPage() {
   const [isCreating, setIsCreating] = useState(false);
 
   const contentExamBanks = examBanks?.filter((exam) =>
-    exam.questions.some((q) => q.contentId === params.contentId),
+    exam.questions.some((q) => q.contentId === params.contentId)
   );
 
   const allQuestions = useMemo(
     () => examBanks?.flatMap((eb) => eb.questions) || [],
-    [examBanks],
+    [examBanks]
   );
 
   const questionLookup = useMemo(() => {
@@ -94,7 +94,7 @@ export default function NewMockExamPage() {
       [...(mockExams || [])]
         .filter((e) => e.selectedContentIds?.includes(params.contentId))
         .sort((a, b) => a.createdAt - b.createdAt),
-    [mockExams, params.contentId],
+    [mockExams, params.contentId]
   );
 
   const questionHistory = useMemo(() => {
@@ -121,7 +121,7 @@ export default function NewMockExamPage() {
       Array.from(questionHistory.entries())
         .filter(([, history]) => history.some((c) => !c))
         .map(([qId]) => qId),
-    [questionHistory],
+    [questionHistory]
   );
 
   const hasFailedQuestions = failedQuestions && failedQuestions.length > 0;
@@ -133,11 +133,11 @@ export default function NewMockExamPage() {
           ?.flatMap((eb) => eb.questions)
           .find((q) => q.id === questionId);
         const examBank = examBanks?.find((eb) =>
-          eb.questions.some((q) => q.id === questionId),
+          eb.questions.some((q) => q.id === questionId)
         );
         return examBank?.id;
-      }) || [],
-    ),
+      }) || []
+    )
   ).filter(Boolean) as string[];
 
   const handleCreateExam = async () => {
@@ -163,7 +163,7 @@ export default function NewMockExamPage() {
         examVariant: selectedType === "retry" ? "failed" : null,
       });
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`,
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${mockExam.id}`
       );
     } catch (error) {
       console.error("Failed to create quiz:", error);
@@ -175,7 +175,7 @@ export default function NewMockExamPage() {
     setSelectedExamBankIds((prev) =>
       prev.includes(examBankId)
         ? prev.filter((id) => id !== examBankId)
-        : [...prev, examBankId],
+        : [...prev, examBankId]
     );
   };
 
@@ -183,7 +183,7 @@ export default function NewMockExamPage() {
     setSelectedQuestionIds((prev) =>
       prev.includes(questionId)
         ? prev.filter((id) => id !== questionId)
-        : [...prev, questionId],
+        : [...prev, questionId]
     );
   };
 
@@ -191,7 +191,7 @@ export default function NewMockExamPage() {
     setSelectedFailedQuestionIds((prev) =>
       prev.includes(questionId)
         ? prev.filter((id) => id !== questionId)
-        : [...prev, questionId],
+        : [...prev, questionId]
     );
   };
 
@@ -314,10 +314,10 @@ export default function NewMockExamPage() {
                 <div className="space-y-3">
                   {contentExamBanks?.map((examBank) => {
                     const contentQuestions = examBank.questions.filter(
-                      (q) => q.contentId === params.contentId,
+                      (q) => q.contentId === params.contentId
                     );
                     const isSelected = selectedExamBankIds.includes(
-                      examBank.id,
+                      examBank.id
                     );
                     return (
                       <button
@@ -377,7 +377,7 @@ export default function NewMockExamPage() {
                     ?.filter((eb) => selectedExamBankIds.includes(eb.id))
                     .map((examBank) => {
                       const contentQuestions = examBank.questions.filter(
-                        (q) => q.contentId === params.contentId,
+                        (q) => q.contentId === params.contentId
                       );
                       return (
                         <div key={examBank.id}>
@@ -387,7 +387,7 @@ export default function NewMockExamPage() {
                           <div className="space-y-3">
                             {contentQuestions.map((question) => {
                               const isSelected = selectedQuestionIds.includes(
-                                question.id,
+                                question.id
                               );
                               const isAllSelected =
                                 selectedQuestionIds.length === 0;

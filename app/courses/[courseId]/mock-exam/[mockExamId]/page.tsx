@@ -5,10 +5,7 @@ import type {
   Question,
   QuestionOption,
 } from "@/modules/exam-bank/exam-bank.types";
-import {
-  useGetExamBankQuery,
-  useGetExamBanksQuery,
-} from "@/modules/exam-bank/use-get-exam-bank-query";
+import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { useUpdateMockExamMutation } from "@/modules/user-mock-exams/use-update-mock-exam-mutation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -58,7 +55,7 @@ function MockExamPageInner({
 
   const { data: examBank } = useGetExamBankQuery(
     mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || "",
+    mockExam?.examBankIds?.[0] || ""
   );
 
   const allQuestions: Question[] = useMemo(() => {
@@ -126,7 +123,7 @@ function MockExamPageInner({
   }, [initialTimeRemaining]);
 
   const answeredQuestions = allQuestions?.filter(
-    (question) => !mockExam?.answers?.[question?.id],
+    (question) => !mockExam?.answers?.[question?.id]
   );
 
   const currentQuestion = allQuestions[currentIndex];
@@ -198,7 +195,7 @@ function MockExamPageInner({
       isTimed && remainingTime !== null ? remainingTime : undefined;
 
     const nextQuestion = allQuestions.find(
-      (q) => !answeredQuestionIds.has(q.id) && q.id !== questionId,
+      (q) => !answeredQuestionIds.has(q.id) && q.id !== questionId
     );
     const nextQuestionId = nextQuestion ? nextQuestion.id : questionId;
 
@@ -229,7 +226,7 @@ function MockExamPageInner({
 
     const questionId = currentQuestion.id || "";
     const nextQuestion = allQuestions.find(
-      (q) => !answeredQuestionIds.has(q.id) && q.id !== questionId,
+      (q) => !answeredQuestionIds.has(q.id) && q.id !== questionId
     );
     const nextQuestionId = nextQuestion ? nextQuestion.id : questionId;
 
@@ -386,7 +383,7 @@ function MockExamPageInner({
                     </span>
                   </button>
                 );
-              },
+              }
             )}
           </div>
         </div>
@@ -442,12 +439,12 @@ export default function MockExamPage() {
   const params = useParams<{ courseId: string; mockExamId: string }>();
   const { data: course } = useGetCourseQuery(params.courseId);
   const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
-    params.mockExamId,
+    params.mockExamId
   );
 
   const { data: examBank, isLoading: isExamBankLoading } = useGetExamBankQuery(
     mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || "",
+    mockExam?.examBankIds?.[0] || ""
   );
 
   const isLoading = mockExamLoading || isExamBankLoading;
