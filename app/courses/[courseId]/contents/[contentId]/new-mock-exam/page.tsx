@@ -15,13 +15,13 @@ import type { Answer } from "@/modules/user-mock-exams/user-mock-exams.types";
 import {
   ChevronLeft,
   ChevronRight,
-  Clock,
   GraduationCap,
   Play,
   RefreshCw,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { ExamBankItem } from "./exam-bank-item";
 
 type AnswerItem = number | string | boolean | null;
 
@@ -62,7 +62,6 @@ export default function NewMockExamPage() {
     params.contentId
   );
   const { data: examBanksData } = useListExamBanksV2Query({
-    courseId: params.courseId,
     contentId: params.contentId,
   });
   const examBanks = examBanksData?.items || [];
@@ -78,7 +77,6 @@ export default function NewMockExamPage() {
     string[]
   >([]);
   const [isCreating, setIsCreating] = useState(false);
-  // const [loadedQuestions, setLoadedQuestions] = useState<QuestionV2[]>([]);
 
   const contentExamBanks = examBanks;
 
@@ -88,7 +86,10 @@ export default function NewMockExamPage() {
     contentId: selectedExamBankIds.length === 0 ? params.contentId : undefined,
   });
 
-  const allQuestions = questionsData?.items || [];
+  const allQuestions = useMemo(
+    () => questionsData?.items || [],
+    [questionsData]
+  );
 
   const questionLookup = useMemo(() => {
     const map = new Map<string, (typeof allQuestions)[number]>();
@@ -277,7 +278,7 @@ export default function NewMockExamPage() {
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Focus on questions you've previously missed
+                  Focus on questions you&apos;ve previously missed
                 </p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span className="font-medium">
@@ -314,48 +315,16 @@ export default function NewMockExamPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {contentExamBanks?.map((examBank) => {
-                    const isSelected = selectedExamBankIds.includes(
-                      examBank.id
-                    );
-                    return (
-                      <button
-                        key={examBank.id}
-                        onClick={() => toggleExamBank(examBank.id)}
-                        className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 text-left transition-all ${
-                          isSelected
-                            ? "border-foreground/60 bg-foreground/5"
-                            : "border-border hover:border-foreground/30"
-                        }`}
-                      >
-                        <div
-                          className={`mt-0.5 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${
-                            isSelected
-                              ? "border-background bg-background"
-                              : "border-foreground"
-                          }`}
-                        >
-                          {isSelected && <ChevronRight className="w-4 h-4" />}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-base font-medium mb-1">
-                            {examBank.title}
-                          </h3>
-                          {examBank.description && (
-                            <p className="text-sm opacity-90 mb-2">
-                              {examBank.description}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-2 text-sm opacity-75">
-                            <span className="flex items-center gap-1.5">
-                              <Clock className="w-4 h-4" />
-                              <span>{examBank.totalQuestions} questions</span>
-                            </span>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
+                  {contentExamBanks?.map((examBank) => (
+                    <ExamBankItem
+                      key={examBank.id}
+                      examBank={examBank}
+                      isSelected={selectedExamBankIds.includes(examBank.id)}
+                      onToggle={toggleExamBank}
+                      selectedQuestionIds={selectedQuestionIds}
+                      onToggleQuestion={toggleQuestion}
+                    />
+                  ))}
                 </div>
               )}
               <p className="text-sm text-muted-foreground mt-4">
@@ -363,74 +332,6 @@ export default function NewMockExamPage() {
                 questions
               </p>
             </div>
-
-            {/* Question Selection */}
-            {selectedExamBankIds.length > 0 && (
-              <div>
-                <h2 className="text-sm font-medium tracking-widest uppercase text-muted-foreground mb-6">
-                  Select Questions
-                  <span className="ml-2 text-xs font-normal">(optional)</span>
-                </h2>
-                <div className="space-y-5">
-                  {contentExamBanks
-                    ?.filter((eb) => selectedExamBankIds.includes(eb.id))
-                    .map((examBank) => {
-                      const examBankQuestions = allQuestions.filter(
-                        (q) => q.examBankId === examBank.id
-                      );
-                      return (
-                        <div key={examBank.id}>
-                          <h3 className="text-base font-medium mb-4">
-                            {examBank.title}
-                          </h3>
-                          <div className="space-y-3">
-                            {examBankQuestions.map((question) => {
-                              const isSelected = selectedQuestionIds.includes(
-                                question.id
-                              );
-                              const isAllSelected =
-                                selectedQuestionIds.length === 0;
-                              return (
-                                <button
-                                  key={question.id}
-                                  onClick={() => toggleQuestion(question.id)}
-                                  className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 text-left transition-all ${
-                                    isSelected || isAllSelected
-                                      ? "border-foreground/60 bg-foreground/5"
-                                      : "border-border hover:border-foreground/30"
-                                  }`}
-                                >
-                                  <div
-                                    className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
-                                      isSelected || isAllSelected
-                                        ? "border-background bg-background"
-                                        : "border-foreground"
-                                    }`}
-                                  >
-                                    {(isSelected || isAllSelected) && (
-                                      <ChevronRight className="w-3 h-3" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1">
-                                    <p className="text-sm leading-relaxed">
-                                      {question.question.slice(0, 120)}
-                                      {question.question.length > 120 && "..."}
-                                    </p>
-                                  </div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-                <p className="text-sm text-muted-foreground mt-4">
-                  Leave all questions unselected to include all questions from
-                  selected exam banks
-                </p>
-              </div>
-            )}
 
             {/* Start Button */}
             <div className="pt-8 border-t border-border">
