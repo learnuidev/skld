@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type {
   QuestionOption,
@@ -71,7 +72,7 @@ export function ExamQuestionEditor({
               <div
                 className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base relative ${
                   isCorrect
-                    ? "border-green-500 bg-green-500/10"
+                    ? "border-rose-500 bg-rose-500/10"
                     : "border-border hover:border-foreground/20"
                 }`}
               >
@@ -84,7 +85,7 @@ export function ExamQuestionEditor({
                       }
                       className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${
                         isCorrect
-                          ? "bg-green-500 hover:bg-green-500/80 text-white"
+                          ? "bg-rose-500 hover:bg-rose-500/80 text-white"
                           : "text-gray-400 hover:text-foreground"
                       }`}
                       variant="ghost"
@@ -93,7 +94,7 @@ export function ExamQuestionEditor({
                     </Button>
                   )}
 
-                  <Textarea
+                  <Input
                     value={option.text}
                     onChange={(e) => onOptionChange(index, e.target.value)}
                     className="flex-1 min-h-[30px] text-base py-2 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
