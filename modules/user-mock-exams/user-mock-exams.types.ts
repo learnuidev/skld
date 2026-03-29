@@ -28,6 +28,8 @@ export interface MockExam {
   status: MockExamStatus;
   createdAt: number;
   updatedAt: number;
+
+  contentId?: string;
 }
 
 export interface CreateMockExamParams {
