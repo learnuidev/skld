@@ -1,21 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSubmitContentQuizMutation } from "@/modules/content-quiz/use-submit-content-quiz-mutation";
 import { Course } from "@/modules/course/course.types";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { ExamBankV2 } from "@/modules/exam-bank-v2/exam-bank-v2.types";
 import { useGetExamBankV2Query } from "@/modules/exam-bank-v2/use-get-exam-bank-v2-query";
 import { useListQuestionsQuery } from "@/modules/exam-bank-v2/use-list-questions-query";
 import { useGetQuestionQuery } from "@/modules/exam-bank-v2/use-get-question-query";
@@ -36,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Edit,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -74,7 +64,7 @@ function ContentQuizPageInner({
   >(new Set());
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<boolean | null>(null);
   const [eliminatedAnswerIds, setEliminatedOptions] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalTimeSpent, setTotalTimeSpent] = useState(0);
@@ -86,11 +76,10 @@ function ContentQuizPageInner({
     >
   >({});
 
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    question: "",
-    feedback: "",
-  });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editQuestionText, setEditQuestionText] = useState("");
+  const [editFeedbackText, setEditFeedbackText] = useState("");
+  const [editOptions, setEditOptions] = useState<QuestionOption[]>([]);
 
   const submitContentQuizMutation = useSubmitContentQuizMutation();
   const updateQuestionMutation = useUpdateQuestionMutation();
@@ -154,7 +143,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", firstQuestion.id);
         router.replace(
-          `${window.location.pathname}?${newSearchParams.toString()}`
+          `${window.location.pathname}?${newSearchParams.toString()}`,
         );
       }
     }
@@ -282,7 +271,7 @@ function ContentQuizPageInner({
 
     queryClient.setQueryData(
       ["mockExam", params.mockExamId],
-      () => result.mockExam
+      () => result.mockExam,
     );
 
     setTotalTimeSpent(newTotalTimeSpent);
@@ -294,13 +283,13 @@ function ContentQuizPageInner({
 
     if (mockExam?.status === "completed") {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`,
       );
     }
 
     if (nextIndex >= totalQuestions) {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`,
       );
     } else {
       const nextQuestion = allQuestions[nextIndex];
@@ -309,7 +298,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", nextQuestionId);
         router.push(
-          `${window.location.pathname}?${newSearchParams.toString()}`
+          `${window.location.pathname}?${newSearchParams.toString()}`,
         );
       }
     }
@@ -320,11 +309,17 @@ function ContentQuizPageInner({
   };
 
   const handleEditQuestion = () => {
-    setEditFormData({
-      question: currentQuestion?.question || "",
-      feedback: currentQuestion?.feedback || "",
-    });
-    setIsEditDialogOpen(true);
+    setEditQuestionText(currentQuestion?.question || "");
+    setEditFeedbackText(currentQuestion?.feedback || "");
+    setEditOptions(currentQuestion?.options || []);
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditQuestionText("");
+    setEditFeedbackText("");
+    setEditOptions([]);
   };
 
   const handleSaveQuestion = async () => {
@@ -334,15 +329,17 @@ function ContentQuizPageInner({
       await updateQuestionMutation.mutateAsync({
         questionId: currentQuestion.id,
         updates: {
-          question: editFormData.question,
-          feedback: editFormData.feedback,
+          question: editQuestionText,
+          feedback: editFeedbackText,
+          options: editOptions,
         },
       });
       await refetchQuestion();
       queryClient.invalidateQueries({
         queryKey: ["questions", mockExam?.id],
       });
-      setIsEditDialogOpen(false);
+      setIsEditing(false);
+      setEditOptions([]);
     } catch (error) {
       console.error("Failed to update question:", error);
     }
@@ -358,7 +355,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", prevQuestionId);
         router.push(
-          `${window.location.pathname}?${newSearchParams.toString()}`
+          `${window.location.pathname}?${newSearchParams.toString()}`,
         );
       }
     }
@@ -377,7 +374,7 @@ function ContentQuizPageInner({
 
   const feedbackData = checkAnswerCorrectness(
     currentQuestion,
-    mockExam.answers[questionId]
+    mockExam.answers[questionId],
   );
 
   return (
@@ -411,57 +408,67 @@ function ContentQuizPageInner({
         </div>
 
         <>
+          {isQuestionAuthor && !isEditing && (
+            <button
+              onClick={handleEditQuestion}
+              className="fixed right-8 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-foreground hover:bg-foreground/80 text-background flex items-center justify-center transition-colors shadow-lg z-50"
+              title="Edit question"
+            >
+              <Edit className="w-6 h-6" />
+            </button>
+          )}
+
           <div className="mb-8">
-            <div className="relative">
+            {isEditing ? (
+              <Textarea
+                value={editQuestionText}
+                onChange={(e) => setEditQuestionText(e.target.value)}
+                className="text-xl text-foreground leading-relaxed min-h-[120px] mb-16"
+                placeholder="Question text"
+              />
+            ) : (
               <p className="text-xl text-foreground leading-relaxed mb-16">
                 {currentQuestion.question}
               </p>
-              {isQuestionAuthor && (
-                <button
-                  onClick={handleEditQuestion}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors"
-                  title="Edit question"
-                >
-                  <Edit className="w-5 h-5" />
-                </button>
-              )}
-            </div>
+            )}
 
-            <div className="space-y-4">
-              {currentQuestion.options.map(
-                (option: QuestionOption, index: number) => {
-                  const optionId = option.id;
-                  const isSelected =
-                    currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
-                      ? selectedAnswer === optionId
-                      : currentQuestion.type ===
-                          "MULTIPLE_SELECT_MULTIPLE_CHOICE"
-                        ? selectedMultipleAnswers.has(optionId)
-                        : currentQuestion.type === "TRUE_FALSE"
-                          ? (index === 0 && trueFalseAnswer === true) ||
-                            (index === 1 && trueFalseAnswer === false)
-                          : false;
+            {!isEditing && (
+              <div className="space-y-4">
+                {currentQuestion.options.map(
+                  (option: QuestionOption, index: number) => {
+                    const optionId = option.id;
+                    const isSelected =
+                      currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
+                        ? selectedAnswer === optionId
+                        : currentQuestion.type ===
+                            "MULTIPLE_SELECT_MULTIPLE_CHOICE"
+                          ? selectedMultipleAnswers.has(optionId)
+                          : currentQuestion.type === "TRUE_FALSE"
+                            ? (index === 0 && trueFalseAnswer === true) ||
+                              (index === 1 && trueFalseAnswer === false)
+                            : false;
 
-                  const isEliminated = eliminatedAnswerIds.has(optionId);
+                    const isEliminated = eliminatedAnswerIds.has(optionId);
 
-                  return (
-                    <button
-                      key={optionId || index}
-                      onClick={() => !isEliminated && handleAnswerChange(index)}
-                      className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base relative ${
-                        isSelected
-                          ? "border-foreground bg-foreground text-background"
-                          : isEliminated
-                            ? "border-border/50 opacity-50 hover:border-border/50"
-                            : "border-border hover:border-foreground/20"
-                      }`}
-                    >
-                      <span className="flex items-center gap-4">
-                        <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
-                          {String.fromCharCode(65 + index)}
-                        </span>
-                        <span>{option.text}</span>
-                        {
+                    return (
+                      <button
+                        key={optionId || index}
+                        onClick={() =>
+                          !isEliminated && handleAnswerChange(index)
+                        }
+                        className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base relative ${
+                          isSelected
+                            ? "border-foreground bg-foreground text-background"
+                            : isEliminated
+                              ? "border-border/50 opacity-50 hover:border-border/50"
+                              : "border-border hover:border-foreground/20"
+                        }`}
+                      >
+                        <span className="flex items-center gap-4">
+                          <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
+                            {String.fromCharCode(65 + index)}
+                          </span>
+                          <span>{option.text}</span>
                           <Button
                             disabled={isSelected}
                             onClick={(e) => toggleEliminateOption(e, optionId)}
@@ -475,87 +482,154 @@ function ContentQuizPageInner({
                           >
                             {isSelected ? null : <Ban className="w-4 h-4" />}
                           </Button>
-                        }
+                        </span>
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+            )}
+
+            {isEditing && (
+              <div className="space-y-4">
+                <label className="block text-sm text-muted-foreground mb-2">
+                  Options
+                </label>
+                {editOptions.map((option, index) => (
+                  <div key={option.id || index} className="space-y-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
+                        {String.fromCharCode(65 + index)}
                       </span>
-                    </button>
-                  );
-                }
-              )}
-            </div>
+                      <label className="text-sm text-muted-foreground">
+                        Option {String.fromCharCode(65 + index)}
+                      </label>
+                    </div>
+                    <Textarea
+                      value={option.text}
+                      onChange={(e) => {
+                        const newOptions = [...editOptions];
+                        newOptions[index] = { ...option, text: e.target.value };
+                        setEditOptions(newOptions);
+                      }}
+                      className="min-h-[60px]"
+                      placeholder={`Option ${String.fromCharCode(65 + index)} text`}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </>
 
-        {feedbackData && (
+        {(isEditing || feedbackData) && (
           <div className="space-y-6">
-            <div
-              className={`p-6 rounded-lg border-2 ${
-                feedbackData.isCorrect
-                  ? "border-green-500 bg-green-500/10"
-                  : "border-red-500 bg-red-500/10"
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                {feedbackData.isCorrect ? (
-                  <Check className="w-5 h-5 text-green-500" />
-                ) : (
-                  <span className="text-red-500 font-medium">✗</span>
-                )}
-                <span
-                  className={`font-medium ${
-                    feedbackData.isCorrect ? "text-green-500" : "text-red-500"
-                  }`}
-                >
-                  {feedbackData.isCorrect ? "Correct!" : "Incorrect"}
-                </span>
-              </div>
+            {feedbackData && (
+              <div
+                className={`p-6 rounded-lg border-2 ${
+                  feedbackData.isCorrect
+                    ? "border-green-500 bg-green-500/10"
+                    : "border-red-500 bg-red-500/10"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  {feedbackData.isCorrect ? (
+                    <Check className="w-5 h-5 text-green-500" />
+                  ) : (
+                    <span className="text-red-500 font-medium">✗</span>
+                  )}
+                  <span
+                    className={`font-medium ${
+                      feedbackData.isCorrect ? "text-green-500" : "text-red-500"
+                    }`}
+                  >
+                    {feedbackData.isCorrect ? "Correct!" : "Incorrect"}
+                  </span>
+                </div>
 
-              {!feedbackData.isCorrect && (
-                <div className="mb-4">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Correct Answer:
-                  </p>
-                  <p className="text-foreground font-medium">
-                    {Array.isArray(feedbackData.correctAnswer)
-                      ? feedbackData.correctAnswer
-                          .map((optionId: string) => {
+                {!feedbackData.isCorrect && (
+                  <div className="mb-4">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Correct Answer:
+                    </p>
+                    <p className="text-foreground font-medium">
+                      {Array.isArray(feedbackData.correctAnswer)
+                        ? feedbackData.correctAnswer
+                            .map((optionId: string) => {
+                              const optionIndex =
+                                currentQuestion.options.findIndex(
+                                  (opt: QuestionOption) => opt.id === optionId,
+                                );
+                              return optionIndex >= 0
+                                ? String.fromCharCode(65 + optionIndex)
+                                : "";
+                            })
+                            .join(", ")
+                        : (() => {
                             const optionIndex =
                               currentQuestion.options.findIndex(
-                                (opt: QuestionOption) => opt.id === optionId
+                                (opt: QuestionOption) =>
+                                  opt.id ===
+                                  (feedbackData.correctAnswer as string),
                               );
                             return optionIndex >= 0
                               ? String.fromCharCode(65 + optionIndex)
                               : "";
-                          })
-                          .join(", ")
-                      : (() => {
-                          const optionIndex = currentQuestion.options.findIndex(
-                            (opt: QuestionOption) =>
-                              opt.id === (feedbackData.correctAnswer as string)
-                          );
-                          return optionIndex >= 0
-                            ? String.fromCharCode(65 + optionIndex)
-                            : "";
-                        })()}
-                  </p>
-                </div>
-              )}
+                          })()}
+                    </p>
+                  </div>
+                )}
 
-              {feedbackData.feedback && (
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Explanation:
-                  </p>
-                  <p className="text-foreground">{feedbackData.feedback}</p>
-                </div>
-              )}
-            </div>
+                {feedbackData.feedback && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Explanation:
+                    </p>
+                    <p className="text-foreground">{feedbackData.feedback}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isEditing && (
+              <div>
+                <label className="block text-sm text-muted-foreground mb-2">
+                  Feedback/Explanation
+                </label>
+                <Textarea
+                  value={editFeedbackText}
+                  onChange={(e) => setEditFeedbackText(e.target.value)}
+                  className="min-h-[100px]"
+                  placeholder="Add explanation or feedback..."
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
 
       <div className="fixed bottom-4 left-0 right-0 z-50">
         <div className="max-w-3xl mx-auto px-4 py-3">
-          {feedbackData ? (
+          {isEditing ? (
+            <div className="flex items-center justify-between gap-3">
+              <button
+                onClick={handleCancelEdit}
+                disabled={updateQuestionMutation.isPending}
+                className="flex items-center gap-2 px-6 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </button>
+
+              <button
+                onClick={handleSaveQuestion}
+                disabled={updateQuestionMutation.isPending}
+                className="flex items-center gap-2 px-8 py-3 bg-foreground text-background rounded-lg font-medium text-sm hover:bg-foreground/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {updateQuestionMutation.isPending ? "Saving..." : "Save"}
+              </button>
+            </div>
+          ) : feedbackData ? (
             <div className="flex items-center justify-between gap-3">
               <button
                 onClick={handleQuit}
@@ -620,57 +694,6 @@ function ContentQuizPageInner({
           )}
         </div>
       </div>
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Edit Question</DialogTitle>
-            <DialogDescription>
-              Make changes to the question below. Click save when you're done.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="question">Question</Label>
-              <Textarea
-                id="question"
-                value={editFormData.question}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, question: e.target.value })
-                }
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="feedback">Feedback/Explanation</Label>
-              <Textarea
-                id="feedback"
-                value={editFormData.feedback}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, feedback: e.target.value })
-                }
-                className="min-h-[100px]"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsEditDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleSaveQuestion}
-              disabled={updateQuestionMutation.isPending}
-            >
-              {updateQuestionMutation.isPending ? "Saving..." : "Save"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
@@ -693,11 +716,11 @@ export default function ContentQuizPage() {
           const newSearchParams = new URLSearchParams(searchParams.toString());
           newSearchParams.set("questionId", currentQuestionId);
           router.replace(
-            `${window.location.pathname}?${newSearchParams.toString()}`
+            `${window.location.pathname}?${newSearchParams.toString()}`,
           );
         }
       },
-    }
+    },
   );
 
   const { data: questionsResponse, isLoading: isQuestionsLoading } =
