@@ -6,8 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
 import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
+import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
+import { useListExamBanksV2Query } from "@/modules/exam-bank-v2/use-list-exam-banks-v2-query";
+import { useListQuestionsQuery } from "@/modules/exam-bank-v2/use-list-questions-query";
 import { useListMockExamsQuery } from "@/modules/user-mock-exams/use-list-mock-exams-query";
 import type { Answer } from "@/modules/user-mock-exams/user-mock-exams.types";
 import {
@@ -20,7 +22,6 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
 
 type AnswerItem = number | string | boolean | null;
 
@@ -60,7 +61,11 @@ export default function NewMockExamPage() {
     params.courseId,
     params.contentId
   );
-  const { data: examBanks } = useListExamBanksQuery(params.courseId);
+  const { data: examBanksData } = useListExamBanksV2Query({
+    courseId: params.courseId,
+    contentId: params.contentId,
+  });
+  const examBanks = examBanksData?.items || [];
   const { data: mockExams } = useListMockExamsQuery(params.courseId);
   const createContentQuizMutation = useCreateContentQuizMutation();
 
@@ -73,15 +78,17 @@ export default function NewMockExamPage() {
     string[]
   >([]);
   const [isCreating, setIsCreating] = useState(false);
+  // const [loadedQuestions, setLoadedQuestions] = useState<QuestionV2[]>([]);
 
-  const contentExamBanks = examBanks?.filter((exam) =>
-    exam.questions.some((q) => q.contentId === params.contentId)
-  );
+  const contentExamBanks = examBanks;
 
-  const allQuestions = useMemo(
-    () => examBanks?.flatMap((eb) => eb.questions) || [],
-    [examBanks]
-  );
+  const { data: questionsData } = useListQuestionsQuery({
+    examBankIds:
+      selectedExamBankIds.length > 0 ? selectedExamBankIds : undefined,
+    contentId: selectedExamBankIds.length === 0 ? params.contentId : undefined,
+  });
+
+  const allQuestions = questionsData?.items || [];
 
   const questionLookup = useMemo(() => {
     const map = new Map<string, (typeof allQuestions)[number]>();
@@ -129,13 +136,8 @@ export default function NewMockExamPage() {
   const failedQuestionExamBankIds = Array.from(
     new Set(
       failedQuestions?.map((questionId) => {
-        const question = examBanks
-          ?.flatMap((eb) => eb.questions)
-          .find((q) => q.id === questionId);
-        const examBank = examBanks?.find((eb) =>
-          eb.questions.some((q) => q.id === questionId)
-        );
-        return examBank?.id;
+        const question = allQuestions.find((q) => q.id === questionId);
+        return question?.examBankId;
       }) || []
     )
   ).filter(Boolean) as string[];
@@ -313,9 +315,6 @@ export default function NewMockExamPage() {
               ) : (
                 <div className="space-y-3">
                   {contentExamBanks?.map((examBank) => {
-                    const contentQuestions = examBank.questions.filter(
-                      (q) => q.contentId === params.contentId
-                    );
                     const isSelected = selectedExamBankIds.includes(
                       examBank.id
                     );
@@ -350,7 +349,7 @@ export default function NewMockExamPage() {
                           <div className="flex items-center gap-2 text-sm opacity-75">
                             <span className="flex items-center gap-1.5">
                               <Clock className="w-4 h-4" />
-                              <span>{contentQuestions.length} questions</span>
+                              <span>{examBank.totalQuestions} questions</span>
                             </span>
                           </div>
                         </div>
@@ -376,8 +375,8 @@ export default function NewMockExamPage() {
                   {contentExamBanks
                     ?.filter((eb) => selectedExamBankIds.includes(eb.id))
                     .map((examBank) => {
-                      const contentQuestions = examBank.questions.filter(
-                        (q) => q.contentId === params.contentId
+                      const examBankQuestions = allQuestions.filter(
+                        (q) => q.examBankId === examBank.id
                       );
                       return (
                         <div key={examBank.id}>
@@ -385,7 +384,7 @@ export default function NewMockExamPage() {
                             {examBank.title}
                           </h3>
                           <div className="space-y-3">
-                            {contentQuestions.map((question) => {
+                            {examBankQuestions.map((question) => {
                               const isSelected = selectedQuestionIds.includes(
                                 question.id
                               );
@@ -468,9 +467,9 @@ export default function NewMockExamPage() {
               {failedQuestions && failedQuestions.length > 0 ? (
                 <div className="space-y-3">
                   {failedQuestions.map((questionId) => {
-                    const question = examBanks
-                      ?.flatMap((eb) => eb.questions)
-                      .find((q) => q.id === questionId);
+                    const question = allQuestions.find(
+                      (q) => q.id === questionId
+                    );
                     if (!question) return null;
                     const isSelected =
                       selectedFailedQuestionIds.includes(questionId);
