@@ -13,6 +13,9 @@ export interface CourseContent {
   order: number;
   createdAt: number;
   updatedAt: number;
+
+  // Stats
+  totalQuestions?: number;
 }
 
 export interface CreateCourseContentParams {

@@ -57,6 +57,7 @@ export interface Question {
 export type QuestionV2 = Question & {
   examBankId: string;
   contentId: string;
+  slideIndex?: number;
 
   // Basic Stats
   totalCorrect: number;
@@ -67,61 +68,37 @@ export type QuestionV2 = Question & {
   updatedAt: number;
 };
 
-export interface ExamBank {
+export interface ExamBankBase {
   id: string;
   courseId: string;
   userId: string;
   title: string;
   description?: string;
+  createdAt: number;
+  updatedAt: number;
+
+  // This is index of the content slide
+  slideIndex?: number;
+
+  contentId?: string;
+  specification?: {
+    type?: string;
+    difficulty?: string;
+    questionType?: string;
+    totalQuestions: number;
+    domain?: string;
+    title?: string;
+    description?: string;
+  };
+  filterQuestions?: Array<{ question: string }>;
+
+  status?: ResourceStatus;
+  error?: string;
+}
+
+export type ExamBank = ExamBankBase & {
   questions: Question[];
-  createdAt: number;
-  updatedAt: number;
-
-  // This is index of the content slide
-  slideIndex?: number;
-
-  contentId?: string;
-  specification?: {
-    type?: string;
-    difficulty?: string;
-    questionType?: string;
-    totalQuestions: number;
-    domain?: string;
-    title?: string;
-    description?: string;
-  };
-  filterQuestions?: Array<{ question: string }>;
-
-  status?: ResourceStatus;
-  error?: string;
-}
-export interface ExamBankV2 {
-  id: string;
-  courseId: string;
-  userId: string;
-  title: string;
-  description?: string;
-  createdAt: number;
-  updatedAt: number;
-
-  // This is index of the content slide
-  slideIndex?: number;
-
-  contentId?: string;
-  specification?: {
-    type?: string;
-    difficulty?: string;
-    questionType?: string;
-    totalQuestions: number;
-    domain?: string;
-    title?: string;
-    description?: string;
-  };
-  filterQuestions?: Array<{ question: string }>;
-
-  status?: ResourceStatus;
-  error?: string;
-}
+};
 
 export interface CreateExamBankParams {
   courseId: string;
