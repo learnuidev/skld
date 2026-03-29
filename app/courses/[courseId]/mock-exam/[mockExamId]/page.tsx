@@ -1,13 +1,15 @@
 "use client";
 
+import { Course } from "@/modules/course/course.types";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { useGetExamBankV2Query } from "@/modules/exam-bank-v2/use-get-exam-bank-v2-query";
 import type {
   Question,
   QuestionOption,
 } from "@/modules/exam-bank/exam-bank.types";
-import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { useUpdateMockExamMutation } from "@/modules/user-mock-exams/use-update-mock-exam-mutation";
+import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -18,10 +20,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MockExamCompleted } from "../components/mock-exam-completed";
-import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
-import { Course } from "@/modules/course/course.types";
 
 function MockExamPageInner({
   mockExam,
@@ -51,12 +51,10 @@ function MockExamPageInner({
   const allowSkip = course?.exam?.allowSkipQuestions ?? false;
   const isTimed = mockExam?.examType === "timed";
 
-  const allQuestionsRef = useRef<Question[] | null>(null);
-
-  const { data: examBank } = useGetExamBankQuery(
-    mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || ""
-  );
+  const { data: examBank, isLoading: examBankLoading } = useGetExamBankV2Query({
+    courseId: mockExam?.courseId || "",
+    examBankId: mockExam?.examBankIds?.[0] || "",
+  });
 
   const allQuestions: Question[] = useMemo(() => {
     if (!examBank?.questions) {
@@ -442,12 +440,12 @@ export default function MockExamPage() {
     params.mockExamId
   );
 
-  const { data: examBank, isLoading: isExamBankLoading } = useGetExamBankQuery(
-    mockExam?.courseId || "",
-    mockExam?.examBankIds?.[0] || ""
-  );
+  const { data: examBank, isLoading: examBankLoading } = useGetExamBankV2Query({
+    courseId: mockExam?.courseId || "",
+    examBankId: mockExam?.examBankIds?.[0] || "",
+  });
 
-  const isLoading = mockExamLoading || isExamBankLoading;
+  const isLoading = mockExamLoading || examBankLoading;
 
   if (isLoading) {
     return (

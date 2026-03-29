@@ -11,23 +11,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
-import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { useGenerateExamQuestionsMutation } from "@/modules/exam-bank/use-generate-exam-questions-mutation";
-import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
-import { QUESTION_TYPES } from "@/modules/exam-bank/exam-bank.types";
-import { useRouter } from "next/navigation";
-import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import { CoffeeIcon, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { Textarea } from "@/components/ui/textarea";
 import {
+  ContentNode,
   parseContentToSlides,
   ParsedSlide,
-  ContentNode,
 } from "@/lib/content-parser";
+import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
+import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { useGetExamBankV2Query } from "@/modules/exam-bank-v2/use-get-exam-bank-v2-query";
+import { QUESTION_TYPES } from "@/modules/exam-bank/exam-bank.types";
+import { useGenerateExamQuestionsMutation } from "@/modules/exam-bank/use-generate-exam-questions-mutation";
+import { CoffeeIcon, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function NewExamBankPage() {
   const params = useParams<{
@@ -37,18 +36,18 @@ export default function NewExamBankPage() {
   const router = useRouter();
 
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId,
+    params.courseId
   );
 
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
 
   const generateExamQuestionsMutation = useGenerateExamQuestionsMutation();
 
   const [questionType, setQuestionType] = useState<string>(
-    "SINGLE_SELECT_MULTIPLE_CHOICE",
+    "SINGLE_SELECT_MULTIPLE_CHOICE"
   );
   const [difficulty, setDifficulty] = useState<string>("hard");
   const [questionCategory, setQuestionCategory] = useState<string>("scenario");
@@ -58,33 +57,34 @@ export default function NewExamBankPage() {
   const [description, setDescription] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedExamBankId, setGeneratedExamBankId] = useState<string | null>(
-    null,
+    null
   );
   const [selectedSlideIndex, setSelectedSlideIndex] = useState<number | null>(
-    null,
+    null
   );
   const [activeTab, setActiveTab] = useState("general");
   const [previewSlideIndex, setPreviewSlideIndex] = useState<number | null>(
-    null,
+    null
   );
 
-  const { data: generatedExamBank } = useGetExamBankQuery(
-    params.courseId,
-    generatedExamBankId || "",
-  );
+  const { data: generatedExamBank, isLoading: examBankLoading } =
+    useGetExamBankV2Query({
+      courseId: params.courseId,
+      examBankId: generatedExamBankId || "",
+    });
 
   useEffect(() => {
     if (generatedExamBank) {
       if (generatedExamBank.status === "completed") {
         router.push(
-          `/courses/${params.courseId}/contents/${params.contentId}/exam-bank/${generatedExamBank.id}/options`,
+          `/courses/${params.courseId}/contents/${params.contentId}/exam-bank/${generatedExamBank.id}/options`
         );
       } else if (generatedExamBank.status === "failed") {
         setTimeout(() => {
           setIsGenerating(false);
           setGeneratedExamBankId(null);
           alert(
-            `Failed to generate exam questions: ${generatedExamBank.error || "Unknown error"}`,
+            `Failed to generate exam questions: ${generatedExamBank.error || "Unknown error"}`
           );
         }, 0);
       }
@@ -614,7 +614,7 @@ export default function NewExamBankPage() {
               variant="outline"
               onClick={() =>
                 router.push(
-                  `/courses/${params.courseId}/contents/${params.contentId}`,
+                  `/courses/${params.courseId}/contents/${params.contentId}`
                 )
               }
               className="flex-1 h-14 text-base border-border/40 hover:bg-muted/40"

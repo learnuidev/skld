@@ -28,7 +28,7 @@ export function useRetryExamBankMutation() {
             Authorization: token,
             "Content-Type": "application/json",
           },
-        },
+        }
       );
 
       if (!response.ok) {
@@ -40,7 +40,7 @@ export function useRetryExamBankMutation() {
     },
     onSuccess: (data, variables) => {
       queryClient.refetchQueries({
-        queryKey: ["examBank", variables.examBankId],
+        queryKey: ["examBankV2", variables.courseId, variables.examBankId],
       });
     },
   });

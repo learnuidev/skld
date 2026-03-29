@@ -34,7 +34,7 @@ export function useCreateExamBankMutation() {
             description: params.description,
             questions: params.questions,
           }),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -54,7 +54,7 @@ export function useCreateExamBankMutation() {
 
 export function useUpdateExamBankMutation(
   courseId: string,
-  examBankId: string,
+  examBankId: string
 ) {
   const queryClient = useQueryClient();
 
@@ -76,7 +76,7 @@ export function useUpdateExamBankMutation(
             "Content-Type": "application/json",
           },
           body: JSON.stringify(params),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -91,7 +91,7 @@ export function useUpdateExamBankMutation(
         queryKey: ["examBanks", courseId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["examBank", courseId, examBankId],
+        queryKey: ["examBankV2", courseId, examBankId],
       });
     },
   });
@@ -116,7 +116,7 @@ export function useDeleteExamBankMutation(courseId: string) {
           headers: {
             Authorization: token,
           },
-        },
+        }
       );
 
       if (!response.ok) {

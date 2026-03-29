@@ -1,12 +1,12 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
-import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
-import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
-import Link from "next/link";
-import { useState } from "react";
 import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
+import { useGetCourseContentQuery } from "@/modules/course-content/use-get-course-content-query";
+import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { useGetExamBankV2Query } from "@/modules/exam-bank-v2/use-get-exam-bank-v2-query";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function ExamBankOptionsPage() {
   const params = useParams<{
@@ -16,16 +16,17 @@ export default function ExamBankOptionsPage() {
   }>();
   const router = useRouter();
 
-  const { data: examBank, isLoading: examBankLoading } = useGetExamBankQuery(
-    params.courseId,
-    params.examBankId,
-  );
+  const { data: examBank, isLoading: examBankLoading } = useGetExamBankV2Query({
+    courseId: params.courseId,
+    examBankId: params.examBankId,
+  });
+
   const { data: course, isLoading: courseLoading } = useGetCourseQuery(
-    params.courseId,
+    params.courseId
   );
   const { data: content, isLoading: contentLoading } = useGetCourseContentQuery(
     params.courseId,
-    params.contentId,
+    params.contentId
   );
 
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
@@ -59,7 +60,7 @@ export default function ExamBankOptionsPage() {
       });
 
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${quiz.id}`,
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${quiz.id}`
       );
     } catch (error) {
       console.error("Failed to create quiz:", error);
