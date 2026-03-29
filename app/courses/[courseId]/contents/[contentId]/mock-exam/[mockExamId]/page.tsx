@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { useSubmitContentQuizMutation } from "@/modules/content-quiz/use-submit-content-quiz-mutation";
 import { Course } from "@/modules/course/course.types";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { useListQuestionsQuery } from "@/modules/exam-bank-v2/use-list-questions-query";
 import type {
   Question,
   QuestionOption,
 } from "@/modules/exam-bank/exam-bank.types";
-import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -64,41 +64,14 @@ function ContentQuizPageInner({
 
   const submitContentQuizMutation = useSubmitContentQuizMutation();
 
-  const { data: examBanks } = useListExamBanksQuery(mockExam.courseId);
-
-  const selectedContentId = mockExam?.selectedContentIds?.[0];
+  const { data: questionsResponse, isLoading: isQuestionsLoading } =
+    useListQuestionsQuery({
+      mockExamId: mockExam?.id,
+    });
 
   const allQuestions: Question[] = useMemo(() => {
-    return (
-      examBanks
-        ?.filter((examBank) => {
-          if (mockExam?.examBankIds?.length > 0) {
-            return mockExam?.examBankIds?.includes(examBank.id);
-          }
-
-          return true;
-        })
-        ?.map((exam) =>
-          exam?.questions?.map((question) => {
-            return {
-              ...question,
-              examBankId: exam.id,
-              options: question.options ? shuffleArray(question.options) : [],
-            };
-          })
-        )
-        ?.flat()
-        ?.filter((question) => {
-          if (mockExam?.questionIds) {
-            return mockExam?.questionIds?.includes(question?.id);
-          }
-          return (
-            question?.contentId === selectedContentId &&
-            mockExam?.examBankIds?.length
-          );
-        }) || []
-    );
-  }, [examBanks, selectedContentId]);
+    return questionsResponse?.items || [];
+  }, [questionsResponse?.items]);
 
   const totalQuestions = allQuestions?.length || 0;
 
@@ -584,10 +557,13 @@ export default function ContentQuizPage() {
       },
     }
   );
-  const { data: examBanks, isLoading: isExamBanksLoading } =
-    useListExamBanksQuery(mockExam?.courseId || "");
 
-  const isLoading = mockExamLoading || isExamBanksLoading;
+  const { data: questionsResponse, isLoading: isQuestionsLoading } =
+    useListQuestionsQuery({
+      mockExamId: mockExam?.id,
+    });
+
+  const isLoading = mockExamLoading || isQuestionsLoading;
 
   if (isLoading) {
     return (
@@ -597,7 +573,7 @@ export default function ContentQuizPage() {
     );
   }
 
-  if (!mockExam || !course || !examBanks) {
+  if (!mockExam || !course || !questionsResponse) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-destructive">Quiz not found</div>

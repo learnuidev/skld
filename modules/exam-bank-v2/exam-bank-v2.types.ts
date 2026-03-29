@@ -2,6 +2,8 @@ import { ExamBankBase, QuestionV2 } from "../exam-bank/exam-bank.types";
 
 export type ExamBankV2 = ExamBankBase & {
   totalQuestions: number;
+  contentId: string;
+  courseId: string;
 };
 
 export interface ExamBankV2WithQuestions extends ExamBankV2 {

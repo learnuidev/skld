@@ -1,10 +1,10 @@
 "use client";
 
+import { useListContentQuestions } from "@/modules/exam-bank-v2/use-list-content-questions";
 import type {
   Question,
   QuestionOption,
 } from "@/modules/exam-bank/exam-bank.types";
-import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { ArrowLeft, Check, Clock, XCircle } from "lucide-react";
@@ -349,25 +349,14 @@ export default function ContentQuizResultsPage() {
     mockExamId: string;
   }>();
 
-  const { data: mockExam, isLoading: mockExamLoading } = useGetMockExamQuery(
+  const { data: mockExam, isLoading: isMockExamLoading } = useGetMockExamQuery(
     params.mockExamId
   );
 
-  const { data: examBanks, isLoading: isExamBanksLoading } =
-    useListExamBanksQuery(params.courseId);
+  const { data: contentQuestions, isLoading: isQuestionsLoading } =
+    useListContentQuestions(params.contentId);
 
-  const selectedContentId = params.contentId;
-
-  const contentQuestions: Question[] = useMemo(() => {
-    return (
-      examBanks
-        ?.map((exam) => exam?.questions)
-        ?.flat()
-        ?.filter((question) => question?.contentId === selectedContentId) || []
-    );
-  }, [examBanks, selectedContentId]);
-
-  const isLoading = isExamBanksLoading;
+  const isLoading = isMockExamLoading || isQuestionsLoading;
 
   if (isLoading) {
     return (
@@ -377,7 +366,7 @@ export default function ContentQuizResultsPage() {
     );
   }
 
-  if (!mockExam || !examBanks) {
+  if (!mockExam || contentQuestions?.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-destructive">Results not found</div>

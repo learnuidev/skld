@@ -9,6 +9,7 @@ export interface ListQuestionsParams {
   contentId?: string;
   questionIds?: string[];
   examBankId?: string;
+  examBankIds?: string[];
   mockExamId?: string;
   lastEvaluatedKey?: string;
   limit?: number;
@@ -16,23 +17,30 @@ export interface ListQuestionsParams {
 
 export interface ListQuestionsResponse {
   items: QuestionV2[];
-  pagination: Record<string, unknown>;
+  pagination: {
+    lastEvaluatedKey?: string;
+  };
 }
 
-export function useListQuestionsQuery({
-  contentId,
-  questionIds,
-  examBankId,
-  mockExamId,
-  lastEvaluatedKey,
-  limit,
-}: ListQuestionsParams) {
+export function useListQuestionsQuery(props: ListQuestionsParams) {
+  const {
+    contentId,
+    questionIds,
+    examBankId,
+    examBankIds,
+    mockExamId,
+    lastEvaluatedKey,
+    limit,
+  } = props;
   const queryParams = new URLSearchParams();
   if (contentId) {
     queryParams.append("contentId", contentId);
   }
   if (examBankId) {
     queryParams.append("examBankId", examBankId);
+  }
+  if (examBankIds && examBankIds.length > 0) {
+    queryParams.append("examBankIds", examBankIds.join(","));
   }
   if (mockExamId) {
     queryParams.append("mockExamId", mockExamId);
@@ -53,6 +61,7 @@ export function useListQuestionsQuery({
       contentId,
       questionIds,
       examBankId,
+      examBankIds,
       mockExamId,
       lastEvaluatedKey,
       limit,
@@ -80,10 +89,12 @@ export function useListQuestionsQuery({
 
       return response.json();
     },
-    enabled:
+    enabled: !!(
       !!contentId ||
       !!examBankId ||
+      !!(examBankIds && examBankIds.length > 0) ||
       !!mockExamId ||
-      (questionIds && questionIds.length > 0),
+      (questionIds && questionIds.length > 0)
+    ),
   });
 }

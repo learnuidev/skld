@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { isStructuredContent } from "@/lib/content-parser";
 import { CourseContent } from "@/modules/course-content/course-content.types";
-import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
+import { useListContentQuestions } from "@/modules/exam-bank-v2/use-list-content-questions";
 import { KnowledgeGraph } from "@/modules/knowledge-graph/knowledge-graph.types";
 
 import {
@@ -38,13 +38,8 @@ export function FloatingMenu({
   onOpenNavigator,
   ongoingContentQuiz,
 }: FloatingMenuProps) {
-  const { data: examBanks } = useListExamBanksQuery(courseId);
-
-  const containQuestions =
-    examBanks
-      ?.map((exam) => exam?.questions)
-      ?.flat()
-      ?.filter((question) => question?.contentId === contentId) || [];
+  const { data: containQuestions, isLoading: isQuestionsLoading } =
+    useListContentQuestions(contentId);
 
   return (
     <div className="flex items-center gap-2">

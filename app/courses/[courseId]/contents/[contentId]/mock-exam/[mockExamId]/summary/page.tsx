@@ -1,13 +1,12 @@
 "use client";
 
-import type { Question } from "@/modules/exam-bank/exam-bank.types";
-import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { useCreateContentQuizMutation } from "@/modules/content-quiz/use-create-content-quiz-mutation";
-import { Check, Clock, XCircle, ArrowRight } from "lucide-react";
+import { useListContentQuestions } from "@/modules/exam-bank-v2/use-list-content-questions";
+import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
+import { ArrowRight, Check, Clock, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
-import { useListExamBanksQuery } from "@/modules/exam-bank/use-list-exam-banks-query";
 
 type AnswerItem = number | string | boolean | null;
 
@@ -31,28 +30,12 @@ export default function ContentQuizSummaryPage() {
     params.mockExamId
   );
 
-  const { data: examBanks, isLoading: isExamBanksLoading } =
-    useListExamBanksQuery(params.courseId);
-
   const createContentQuizMutation = useCreateContentQuizMutation();
 
   const selectedContentId = params.contentId;
 
-  const contentQuestions = useMemo(() => {
-    return (
-      examBanks
-        ?.map((exam) =>
-          exam?.questions.map((question) => {
-            return {
-              ...question,
-              examBankId: exam.id,
-            };
-          })
-        )
-        ?.flat()
-        ?.filter((question) => question?.contentId === selectedContentId) || []
-    );
-  }, [examBanks, selectedContentId]);
+  const { data: contentQuestions, isLoading: isQuestionsLoading } =
+    useListContentQuestions(selectedContentId);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -165,7 +148,7 @@ export default function ContentQuizSummaryPage() {
     );
   };
 
-  const isLoading = mockExamLoading || isExamBanksLoading;
+  const isLoading = mockExamLoading || isQuestionsLoading;
 
   if (isLoading) {
     return (
@@ -175,7 +158,7 @@ export default function ContentQuizSummaryPage() {
     );
   }
 
-  if (!mockExam || !examBanks) {
+  if (!mockExam || !contentQuestions?.length) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-destructive">Quiz not found</div>
