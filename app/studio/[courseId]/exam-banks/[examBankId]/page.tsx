@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useGetExamBankQuery } from "@/modules/exam-bank/use-get-exam-bank-query";
+import { useGetExamBankV2Query } from "@/modules/exam-bank-v2/use-get-exam-bank-v2-query";
 import { useUpdateExamBankMutation } from "@/modules/exam-bank/use-exam-bank-mutations";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
 import { useListCourseContentsQuery } from "@/modules/course-content/use-list-course-contents-query";
-import { Question, type QuestionOption } from "@/modules/exam-bank/exam-bank.types";
+import {
+  Question,
+  type QuestionOption,
+} from "@/modules/exam-bank/exam-bank.types";
 import { Chapter, Domain } from "@/modules/course/course.types";
 import { CourseContent } from "@/modules/course-content/course-content.types";
 import { Button } from "@/components/ui/button";
@@ -34,15 +37,15 @@ export default function ExamBankDetailPage() {
   const [filterDomain, setFilterDomain] = useState<string>("");
   const [filterQuestionType, setFilterQuestionType] = useState<string>("");
 
-  const { data: examBank, isLoading } = useGetExamBankQuery(
+  const { data: examBank, isLoading } = useGetExamBankV2Query({
     courseId,
-    examBankId
-  );
+    examBankId,
+  });
   const { data: course } = useGetCourseQuery(courseId);
   const { data: courseContents } = useListCourseContentsQuery(courseId);
   const updateExamBankMutation = useUpdateExamBankMutation(
     courseId,
-    examBankId
+    examBankId,
   );
 
   const domains = course?.domains || [];
@@ -54,7 +57,7 @@ export default function ExamBankDetailPage() {
       !searchQuery ||
       question.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       question.options.some((opt) =>
-        opt.text.toLowerCase().includes(searchQuery.toLowerCase())
+        opt.text.toLowerCase().includes(searchQuery.toLowerCase()),
       ) ||
       (question.feedback || "")
         .toLowerCase()
@@ -117,10 +120,10 @@ export default function ExamBankDetailPage() {
   const handleQuestionUpdate = (
     index: number,
     field: keyof Question,
-    value: string | number | number[] | string[] | undefined
+    value: string | number | number[] | string[] | undefined,
   ) => {
     setQuestions((prev) =>
-      prev.map((q, i) => (i === index ? { ...q, [field]: value } : q))
+      prev.map((q, i) => (i === index ? { ...q, [field]: value } : q)),
     );
     setHasUnsavedChanges(true);
   };
@@ -128,7 +131,7 @@ export default function ExamBankDetailPage() {
   const handleOptionUpdate = (
     questionIndex: number,
     optionIndex: number,
-    value: string
+    value: string,
   ) => {
     setQuestions((prev) =>
       prev.map((q: Question, i: number) =>
@@ -136,11 +139,11 @@ export default function ExamBankDetailPage() {
           ? {
               ...q,
               options: q.options.map((opt: QuestionOption, oi: number) =>
-                oi === optionIndex ? { ...opt, text: value } : opt
+                oi === optionIndex ? { ...opt, text: value } : opt,
               ),
             }
-          : q
-      )
+          : q,
+      ),
     );
     setHasUnsavedChanges(true);
   };
@@ -149,9 +152,12 @@ export default function ExamBankDetailPage() {
     setQuestions((prev) =>
       prev.map((q, i) =>
         i === questionIndex
-          ? { ...q, options: [...q.options, { id: crypto.randomUUID(), text: "" }] }
-          : q
-      )
+          ? {
+              ...q,
+              options: [...q.options, { id: crypto.randomUUID(), text: "" }],
+            }
+          : q,
+      ),
     );
     setHasUnsavedChanges(true);
   };
@@ -163,11 +169,11 @@ export default function ExamBankDetailPage() {
           ? {
               ...q,
               options: q.options.filter(
-                (_: QuestionOption, oi: number) => oi !== optionIndex
+                (_: QuestionOption, oi: number) => oi !== optionIndex,
               ),
             }
-          : q
-      )
+          : q,
+      ),
     );
     setHasUnsavedChanges(true);
   };
@@ -368,7 +374,7 @@ export default function ExamBankDetailPage() {
               question={question}
               onUpdate={(
                 field: keyof Question,
-                value: string | number | number[] | string[] | undefined
+                value: string | number | number[] | string[] | undefined,
               ) => handleQuestionUpdate(index, field, value)}
               onOptionUpdate={(oi: number, v: string) =>
                 handleOptionUpdate(index, oi, v)
@@ -379,7 +385,7 @@ export default function ExamBankDetailPage() {
               isExpanded={expandedQuestionIndex === index}
               onToggle={() =>
                 setExpandedQuestionIndex(
-                  expandedQuestionIndex === index ? null : index
+                  expandedQuestionIndex === index ? null : index,
                 )
               }
               domains={domains}
@@ -457,7 +463,7 @@ function QuestionEditorCard({
   question: Question;
   onUpdate: (
     field: keyof Question,
-    value: string | number | number[] | string[] | undefined
+    value: string | number | number[] | string[] | undefined,
   ) => void;
   onOptionUpdate: (optionIndex: number, value: string) => void;
   onAddOption: () => void;
@@ -482,10 +488,7 @@ function QuestionEditorCard({
       const newIds = exists
         ? current.filter((id) => id !== optionId)
         : [...current, optionId];
-      onUpdate(
-        "correctOptionIds",
-        newIds.length > 0 ? newIds : undefined
-      );
+      onUpdate("correctOptionIds", newIds.length > 0 ? newIds : undefined);
       onUpdate("correctOptionId", undefined);
     } else if (question.type === "TRUE_FALSE") {
       onUpdate("correctOptionId", optionId);
@@ -665,57 +668,63 @@ function QuestionEditorCard({
                   Answer Options
                 </label>
                 <div className="space-y-3">
-                  {question.options.map((option: QuestionOption, oi: number) => (
-                    <div key={option.id || oi} className="flex gap-4 items-center">
-                      <div className="pt-2">
-                        {question.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE" ? (
-                          <input
-                            type="checkbox"
-                            checked={isOptionCorrect(oi)}
-                            onChange={() => handleCorrectOptionChange(oi)}
-                            className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:ring-offset-0"
-                          />
-                        ) : (
-                          <input
-                            type="radio"
-                            name={`correct-option-${index}`}
-                            checked={isOptionCorrect(oi)}
-                            onChange={() => handleCorrectOptionChange(oi)}
-                            className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:ring-offset-0"
-                          />
-                        )}
-                      </div>
-                      <span className="text-xs text-slate-400 dark:text-slate-600 w-4">
-                        {String.fromCharCode(65 + oi)}
-                      </span>
-                      <input
-                        type="text"
-                        value={option.text}
-                        onChange={(e) => onOptionUpdate(oi, e.target.value)}
-                        className="flex-1 px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words"
-                        placeholder={`Option ${String.fromCharCode(65 + oi)}`}
-                      />
-                      <button
-                        onClick={() => onRemoveOption(oi)}
-                        disabled={question.options.length <= 1}
-                        className="p-2 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-colors text-slate-400 dark:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  {question.options.map(
+                    (option: QuestionOption, oi: number) => (
+                      <div
+                        key={option.id || oi}
+                        className="flex gap-4 items-center"
                       >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                        <div className="pt-2">
+                          {question.type ===
+                          "MULTIPLE_SELECT_MULTIPLE_CHOICE" ? (
+                            <input
+                              type="checkbox"
+                              checked={isOptionCorrect(oi)}
+                              onChange={() => handleCorrectOptionChange(oi)}
+                              className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:ring-offset-0"
+                            />
+                          ) : (
+                            <input
+                              type="radio"
+                              name={`correct-option-${index}`}
+                              checked={isOptionCorrect(oi)}
+                              onChange={() => handleCorrectOptionChange(oi)}
+                              className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:ring-0 focus:ring-offset-0"
+                            />
+                          )}
+                        </div>
+                        <span className="text-xs text-slate-400 dark:text-slate-600 w-4">
+                          {String.fromCharCode(65 + oi)}
+                        </span>
+                        <input
+                          type="text"
+                          value={option.text}
+                          onChange={(e) => onOptionUpdate(oi, e.target.value)}
+                          className="flex-1 px-3 py-2 bg-transparent border-b border-slate-200 dark:border-slate-800 text-base focus:outline-none focus:ring-0 focus:border-slate-400 dark:focus:border-slate-600 whitespace-normal break-words"
+                          placeholder={`Option ${String.fromCharCode(65 + oi)}`}
+                        />
+                        <button
+                          onClick={() => onRemoveOption(oi)}
+                          disabled={question.options.length <= 1}
+                          className="p-2 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-colors text-slate-400 dark:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ),
+                  )}
                   <button
                     type="button"
                     onClick={onAddOption}
