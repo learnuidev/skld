@@ -1,7 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { useSubmitContentQuizMutation } from "@/modules/content-quiz/use-submit-content-quiz-mutation";
 import { Course } from "@/modules/course/course.types";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
@@ -20,7 +18,6 @@ import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
-  Ban,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -31,6 +28,8 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { checkAnswerCorrectness } from "../utils/check-answer-correctness";
+import { ExamQuestionEditor } from "./components/exam-question-editor";
+import { ExamQuestionViewer } from "./components/exam-question-viewer";
 
 const shuffleArray = <T,>(array: T[]): T[] => {
   const shuffled = [...array];
@@ -64,7 +63,7 @@ function ContentQuizPageInner({
   >(new Set());
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<boolean | null>(null);
   const [eliminatedAnswerIds, setEliminatedOptions] = useState<Set<string>>(
-    new Set(),
+    new Set()
   );
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalTimeSpent, setTotalTimeSpent] = useState(0);
@@ -143,7 +142,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", firstQuestion.id);
         router.replace(
-          `${window.location.pathname}?${newSearchParams.toString()}`,
+          `${window.location.pathname}?${newSearchParams.toString()}`
         );
       }
     }
@@ -271,7 +270,7 @@ function ContentQuizPageInner({
 
     queryClient.setQueryData(
       ["mockExam", params.mockExamId],
-      () => result.mockExam,
+      () => result.mockExam
     );
 
     setTotalTimeSpent(newTotalTimeSpent);
@@ -283,13 +282,13 @@ function ContentQuizPageInner({
 
     if (mockExam?.status === "completed") {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`,
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`
       );
     }
 
     if (nextIndex >= totalQuestions) {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`,
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`
       );
     } else {
       const nextQuestion = allQuestions[nextIndex];
@@ -298,7 +297,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", nextQuestionId);
         router.push(
-          `${window.location.pathname}?${newSearchParams.toString()}`,
+          `${window.location.pathname}?${newSearchParams.toString()}`
         );
       }
     }
@@ -355,7 +354,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", prevQuestionId);
         router.push(
-          `${window.location.pathname}?${newSearchParams.toString()}`,
+          `${window.location.pathname}?${newSearchParams.toString()}`
         );
       }
     }
@@ -374,7 +373,7 @@ function ContentQuizPageInner({
 
   const feedbackData = checkAnswerCorrectness(
     currentQuestion,
-    mockExam.answers[questionId],
+    mockExam.answers[questionId]
   );
 
   return (
@@ -418,197 +417,101 @@ function ContentQuizPageInner({
             </button>
           )}
 
-          <div className="mb-8">
-            {isEditing ? (
-              <Textarea
-                value={editQuestionText}
-                onChange={(e) => setEditQuestionText(e.target.value)}
-                className="text-xl text-foreground leading-relaxed min-h-[120px] mb-16"
-                placeholder="Question text"
-              />
-            ) : (
-              <p className="text-xl text-foreground leading-relaxed mb-16">
-                {currentQuestion.question}
-              </p>
-            )}
-
-            {!isEditing && (
-              <div className="space-y-4">
-                {currentQuestion.options.map(
-                  (option: QuestionOption, index: number) => {
-                    const optionId = option.id;
-                    const isSelected =
-                      currentQuestion.type === "SINGLE_SELECT_MULTIPLE_CHOICE"
-                        ? selectedAnswer === optionId
-                        : currentQuestion.type ===
-                            "MULTIPLE_SELECT_MULTIPLE_CHOICE"
-                          ? selectedMultipleAnswers.has(optionId)
-                          : currentQuestion.type === "TRUE_FALSE"
-                            ? (index === 0 && trueFalseAnswer === true) ||
-                              (index === 1 && trueFalseAnswer === false)
-                            : false;
-
-                    const isEliminated = eliminatedAnswerIds.has(optionId);
-
-                    return (
-                      <button
-                        key={optionId || index}
-                        onClick={() =>
-                          !isEliminated && handleAnswerChange(index)
-                        }
-                        className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base relative ${
-                          isSelected
-                            ? "border-foreground bg-foreground text-background"
-                            : isEliminated
-                              ? "border-border/50 opacity-50 hover:border-border/50"
-                              : "border-border hover:border-foreground/20"
-                        }`}
-                      >
-                        <span className="flex items-center gap-4">
-                          <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
-                            {String.fromCharCode(65 + index)}
-                          </span>
-                          <span>{option.text}</span>
-                          <Button
-                            disabled={isSelected}
-                            onClick={(e) => toggleEliminateOption(e, optionId)}
-                            title={
-                              isEliminated
-                                ? "Un-eliminate option"
-                                : "Eliminate option"
-                            }
-                            className={`ml-auto w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 text-gray-400 `}
-                            variant="ghost"
-                          >
-                            {isSelected ? null : <Ban className="w-4 h-4" />}
-                          </Button>
-                        </span>
-                      </button>
-                    );
-                  },
-                )}
-              </div>
-            )}
-
-            {isEditing && (
-              <div className="space-y-4">
-                <label className="block text-sm text-muted-foreground mb-2">
-                  Options
-                </label>
-                {editOptions.map((option, index) => (
-                  <div key={option.id || index} className="space-y-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
-                        {String.fromCharCode(65 + index)}
-                      </span>
-                      <label className="text-sm text-muted-foreground">
-                        Option {String.fromCharCode(65 + index)}
-                      </label>
-                    </div>
-                    <Textarea
-                      value={option.text}
-                      onChange={(e) => {
-                        const newOptions = [...editOptions];
-                        newOptions[index] = { ...option, text: e.target.value };
-                        setEditOptions(newOptions);
-                      }}
-                      className="min-h-[60px]"
-                      placeholder={`Option ${String.fromCharCode(65 + index)} text`}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {isEditing ? (
+            <ExamQuestionEditor
+              editQuestionText={editQuestionText}
+              editFeedbackText={editFeedbackText}
+              editOptions={editOptions}
+              onQuestionTextChange={setEditQuestionText}
+              onFeedbackTextChange={setEditFeedbackText}
+              onOptionChange={(index, value) => {
+                const newOptions = [...editOptions];
+                newOptions[index] = { ...newOptions[index], text: value };
+                setEditOptions(newOptions);
+              }}
+            />
+          ) : (
+            <ExamQuestionViewer
+              question={currentQuestion}
+              selectedAnswer={selectedAnswer}
+              selectedMultipleAnswers={selectedMultipleAnswers}
+              trueFalseAnswer={trueFalseAnswer}
+              eliminatedAnswerIds={eliminatedAnswerIds}
+              onAnswerChange={handleAnswerChange}
+              onToggleEliminateOption={toggleEliminateOption}
+            />
+          )}
         </>
 
-        {(isEditing || feedbackData) && (
+        {feedbackData && !isEditing && (
           <div className="space-y-6">
-            {feedbackData && (
-              <div
-                className={`p-6 rounded-lg border-2 ${
-                  feedbackData.isCorrect
-                    ? "border-green-500 bg-green-500/10"
-                    : "border-red-500 bg-red-500/10"
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  {feedbackData.isCorrect ? (
-                    <Check className="w-5 h-5 text-green-500" />
-                  ) : (
-                    <span className="text-red-500 font-medium">✗</span>
-                  )}
-                  <span
-                    className={`font-medium ${
-                      feedbackData.isCorrect ? "text-green-500" : "text-red-500"
-                    }`}
-                  >
-                    {feedbackData.isCorrect ? "Correct!" : "Incorrect"}
-                  </span>
-                </div>
+            <div
+              className={`p-6 rounded-lg border-2 ${
+                feedbackData.isCorrect
+                  ? "border-green-500 bg-green-500/10"
+                  : "border-red-500 bg-red-500/10"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                {feedbackData.isCorrect ? (
+                  <Check className="w-5 h-5 text-green-500" />
+                ) : (
+                  <span className="text-red-500 font-medium">✗</span>
+                )}
+                <span
+                  className={`font-medium ${
+                    feedbackData.isCorrect ? "text-green-500" : "text-red-500"
+                  }`}
+                >
+                  {feedbackData.isCorrect ? "Correct!" : "Incorrect"}
+                </span>
+              </div>
 
-                {!feedbackData.isCorrect && (
-                  <div className="mb-4">
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Correct Answer:
-                    </p>
-                    <p className="text-foreground font-medium">
-                      {Array.isArray(feedbackData.correctAnswer)
-                        ? feedbackData.correctAnswer
-                            .map((optionId: string) => {
-                              const optionIndex =
-                                currentQuestion.options.findIndex(
-                                  (opt: QuestionOption) => opt.id === optionId,
-                                );
-                              return optionIndex >= 0
-                                ? String.fromCharCode(65 + optionIndex)
-                                : "";
-                            })
-                            .join(", ")
-                        : (() => {
+              {!feedbackData.isCorrect && (
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Correct Answer:
+                  </p>
+                  <p className="text-foreground font-medium">
+                    {Array.isArray(feedbackData.correctAnswer)
+                      ? feedbackData.correctAnswer
+                          .map((optionId: string) => {
                             const optionIndex =
                               currentQuestion.options.findIndex(
-                                (opt: QuestionOption) =>
-                                  opt.id ===
-                                  (feedbackData.correctAnswer as string),
+                                (opt: QuestionOption) => opt.id === optionId
                               );
                             return optionIndex >= 0
                               ? String.fromCharCode(65 + optionIndex)
                               : "";
-                          })()}
-                    </p>
-                  </div>
-                )}
+                          })
+                          .join(", ")
+                      : (() => {
+                          const optionIndex = currentQuestion.options.findIndex(
+                            (opt: QuestionOption) =>
+                              opt.id === (feedbackData.correctAnswer as string)
+                          );
+                          return optionIndex >= 0
+                            ? String.fromCharCode(65 + optionIndex)
+                            : "";
+                        })()}
+                  </p>
+                </div>
+              )}
 
-                {feedbackData.feedback && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Explanation:
-                    </p>
-                    <p className="text-foreground">{feedbackData.feedback}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {isEditing && (
-              <div>
-                <label className="block text-sm text-muted-foreground mb-2">
-                  Feedback/Explanation
-                </label>
-                <Textarea
-                  value={editFeedbackText}
-                  onChange={(e) => setEditFeedbackText(e.target.value)}
-                  className="min-h-[100px]"
-                  placeholder="Add explanation or feedback..."
-                />
-              </div>
-            )}
+              {feedbackData.feedback && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Explanation:
+                  </p>
+                  <p className="text-foreground">{feedbackData.feedback}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
 
-      <div className="fixed bottom-4 left-0 right-0 z-50">
+      <div className="fixed bottom-4 left-0 right-0 z-50 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-4 py-3">
           {isEditing ? (
             <div className="flex items-center justify-between gap-3">
@@ -716,11 +619,11 @@ export default function ContentQuizPage() {
           const newSearchParams = new URLSearchParams(searchParams.toString());
           newSearchParams.set("questionId", currentQuestionId);
           router.replace(
-            `${window.location.pathname}?${newSearchParams.toString()}`,
+            `${window.location.pathname}?${newSearchParams.toString()}`
           );
         }
       },
-    },
+    }
   );
 
   const { data: questionsResponse, isLoading: isQuestionsLoading } =
