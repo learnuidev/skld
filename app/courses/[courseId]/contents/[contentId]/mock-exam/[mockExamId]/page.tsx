@@ -63,7 +63,7 @@ function ContentQuizPageInner({
   >(new Set());
   const [trueFalseAnswer, setTrueFalseAnswer] = useState<boolean | null>(null);
   const [eliminatedAnswerIds, setEliminatedOptions] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalTimeSpent, setTotalTimeSpent] = useState(0);
@@ -79,6 +79,10 @@ function ContentQuizPageInner({
   const [editQuestionText, setEditQuestionText] = useState("");
   const [editFeedbackText, setEditFeedbackText] = useState("");
   const [editOptions, setEditOptions] = useState<QuestionOption[]>([]);
+  const [editCorrectOptionId, setEditCorrectOptionId] = useState<string>();
+  const [editCorrectOptionIds, setEditCorrectOptionIds] = useState<string[]>(
+    [],
+  );
 
   const submitContentQuizMutation = useSubmitContentQuizMutation();
   const updateQuestionMutation = useUpdateQuestionMutation();
@@ -142,7 +146,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", firstQuestion.id);
         router.replace(
-          `${window.location.pathname}?${newSearchParams.toString()}`
+          `${window.location.pathname}?${newSearchParams.toString()}`,
         );
       }
     }
@@ -270,7 +274,7 @@ function ContentQuizPageInner({
 
     queryClient.setQueryData(
       ["mockExam", params.mockExamId],
-      () => result.mockExam
+      () => result.mockExam,
     );
 
     setTotalTimeSpent(newTotalTimeSpent);
@@ -282,13 +286,13 @@ function ContentQuizPageInner({
 
     if (mockExam?.status === "completed") {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`,
       );
     }
 
     if (nextIndex >= totalQuestions) {
       router.push(
-        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`
+        `/courses/${params.courseId}/contents/${params.contentId}/mock-exam/${params.mockExamId}/summary`,
       );
     } else {
       const nextQuestion = allQuestions[nextIndex];
@@ -297,7 +301,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", nextQuestionId);
         router.push(
-          `${window.location.pathname}?${newSearchParams.toString()}`
+          `${window.location.pathname}?${newSearchParams.toString()}`,
         );
       }
     }
@@ -310,7 +314,9 @@ function ContentQuizPageInner({
   const handleEditQuestion = () => {
     setEditQuestionText(currentQuestion?.question || "");
     setEditFeedbackText(currentQuestion?.feedback || "");
-    setEditOptions(currentQuestion?.options || []);
+    setEditOptions([...(currentQuestion?.options || [])]);
+    setEditCorrectOptionId(currentQuestion?.correctOptionId);
+    setEditCorrectOptionIds(currentQuestion?.correctOptionIds || []);
     setIsEditing(true);
   };
 
@@ -319,19 +325,71 @@ function ContentQuizPageInner({
     setEditQuestionText("");
     setEditFeedbackText("");
     setEditOptions([]);
+    setEditCorrectOptionId(undefined);
+    setEditCorrectOptionIds([]);
+  };
+
+  const handleToggleCorrectAnswer = (index: number) => {
+    const option = editOptions[index];
+    if (!option?.id) return;
+
+    if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
+      if (editCorrectOptionId === option.id) {
+        setEditCorrectOptionId(undefined);
+      } else {
+        setEditCorrectOptionId(option.id);
+      }
+    } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
+      if (editCorrectOptionIds.includes(option.id)) {
+        setEditCorrectOptionIds((prev) =>
+          prev.filter((id) => id !== option.id),
+        );
+      } else {
+        setEditCorrectOptionIds((prev) => [...prev, option.id]);
+      }
+    }
+  };
+
+  const handleAddOption = () => {
+    const newOptionId = `option-${Date.now()}`;
+    const newOption: QuestionOption = {
+      id: newOptionId,
+      text: "",
+    };
+    setEditOptions((prev) => [...prev, newOption]);
+  };
+
+  const handleRemoveOption = (index: number) => {
+    const optionId = editOptions[index]?.id;
+    setEditOptions((prev) => prev.filter((_, i) => i !== index));
+
+    if (optionId) {
+      if (editCorrectOptionId === optionId) {
+        setEditCorrectOptionId(undefined);
+      }
+      setEditCorrectOptionIds((prev) => prev.filter((id) => id !== optionId));
+    }
   };
 
   const handleSaveQuestion = async () => {
     if (!currentQuestion?.id) return;
 
     try {
+      const updates: Partial<QuestionV2> = {
+        question: editQuestionText,
+        feedback: editFeedbackText,
+        options: editOptions,
+      };
+
+      if (currentQuestion?.type === "SINGLE_SELECT_MULTIPLE_CHOICE") {
+        updates.correctOptionId = editCorrectOptionId;
+      } else if (currentQuestion?.type === "MULTIPLE_SELECT_MULTIPLE_CHOICE") {
+        updates.correctOptionIds = editCorrectOptionIds;
+      }
+
       await updateQuestionMutation.mutateAsync({
         questionId: currentQuestion.id,
-        updates: {
-          question: editQuestionText,
-          feedback: editFeedbackText,
-          options: editOptions,
-        },
+        updates,
       });
       await refetchQuestion();
       queryClient.invalidateQueries({
@@ -339,6 +397,8 @@ function ContentQuizPageInner({
       });
       setIsEditing(false);
       setEditOptions([]);
+      setEditCorrectOptionId(undefined);
+      setEditCorrectOptionIds([]);
     } catch (error) {
       console.error("Failed to update question:", error);
     }
@@ -354,7 +414,7 @@ function ContentQuizPageInner({
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("questionId", prevQuestionId);
         router.push(
-          `${window.location.pathname}?${newSearchParams.toString()}`
+          `${window.location.pathname}?${newSearchParams.toString()}`,
         );
       }
     }
@@ -373,7 +433,7 @@ function ContentQuizPageInner({
 
   const feedbackData = checkAnswerCorrectness(
     currentQuestion,
-    mockExam.answers[questionId]
+    mockExam.answers[questionId],
   );
 
   return (
@@ -422,6 +482,9 @@ function ContentQuizPageInner({
               editQuestionText={editQuestionText}
               editFeedbackText={editFeedbackText}
               editOptions={editOptions}
+              questionType={currentQuestion?.type}
+              correctOptionId={editCorrectOptionId}
+              correctOptionIds={editCorrectOptionIds}
               onQuestionTextChange={setEditQuestionText}
               onFeedbackTextChange={setEditFeedbackText}
               onOptionChange={(index, value) => {
@@ -429,6 +492,9 @@ function ContentQuizPageInner({
                 newOptions[index] = { ...newOptions[index], text: value };
                 setEditOptions(newOptions);
               }}
+              onToggleCorrectAnswer={handleToggleCorrectAnswer}
+              onAddOption={handleAddOption}
+              onRemoveOption={handleRemoveOption}
             />
           ) : (
             <ExamQuestionViewer
@@ -478,7 +544,7 @@ function ContentQuizPageInner({
                           .map((optionId: string) => {
                             const optionIndex =
                               currentQuestion.options.findIndex(
-                                (opt: QuestionOption) => opt.id === optionId
+                                (opt: QuestionOption) => opt.id === optionId,
                               );
                             return optionIndex >= 0
                               ? String.fromCharCode(65 + optionIndex)
@@ -488,7 +554,7 @@ function ContentQuizPageInner({
                       : (() => {
                           const optionIndex = currentQuestion.options.findIndex(
                             (opt: QuestionOption) =>
-                              opt.id === (feedbackData.correctAnswer as string)
+                              opt.id === (feedbackData.correctAnswer as string),
                           );
                           return optionIndex >= 0
                             ? String.fromCharCode(65 + optionIndex)
@@ -619,11 +685,11 @@ export default function ContentQuizPage() {
           const newSearchParams = new URLSearchParams(searchParams.toString());
           newSearchParams.set("questionId", currentQuestionId);
           router.replace(
-            `${window.location.pathname}?${newSearchParams.toString()}`
+            `${window.location.pathname}?${newSearchParams.toString()}`,
           );
         }
       },
-    }
+    },
   );
 
   const { data: questionsResponse, isLoading: isQuestionsLoading } =

@@ -1,25 +1,54 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import type { QuestionOption } from "@/modules/exam-bank/exam-bank.types";
+import type {
+  QuestionOption,
+  QuestionType,
+} from "@/modules/exam-bank/exam-bank.types";
+import { Check, Trash2 } from "lucide-react";
 
 interface ExamQuestionEditorProps {
   editQuestionText: string;
   editFeedbackText: string;
   editOptions: QuestionOption[];
+  questionType: QuestionType;
+  correctOptionId?: string;
+  correctOptionIds?: string[];
   onQuestionTextChange: (value: string) => void;
   onFeedbackTextChange: (value: string) => void;
   onOptionChange: (index: number, value: string) => void;
+  onToggleCorrectAnswer: (index: number) => void;
+  onAddOption: () => void;
+  onRemoveOption: (index: number) => void;
 }
 
 export function ExamQuestionEditor({
   editQuestionText,
   editFeedbackText,
   editOptions,
+  questionType,
+  correctOptionId,
+  correctOptionIds,
   onQuestionTextChange,
   onFeedbackTextChange,
   onOptionChange,
+  onToggleCorrectAnswer,
+  onAddOption,
+  onRemoveOption,
 }: ExamQuestionEditorProps) {
+  const isSingleSelect = questionType === "SINGLE_SELECT_MULTIPLE_CHOICE";
+  const isMultiSelect = questionType === "MULTIPLE_SELECT_MULTIPLE_CHOICE";
+
+  const isOptionCorrect = (optionId: string): boolean => {
+    if (isSingleSelect) {
+      return correctOptionId === optionId;
+    } else if (isMultiSelect) {
+      return correctOptionIds?.includes(optionId) || false;
+    }
+    return false;
+  };
+
   return (
     <div className="mb-8">
       <Textarea
@@ -29,31 +58,72 @@ export function ExamQuestionEditor({
         placeholder="Question text"
       />
 
-      <div className="space-y-4">
+      <div className="space-y-4 mb-8">
         <label className="block text-sm text-muted-foreground mb-2">
           Options
         </label>
-        {editOptions.map((option, index) => (
-          <div key={option.id || index} className="space-y-2">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="flex items-center justify-center w-6 h-6 rounded bg-secondary/50 text-xs font-medium">
-                {String.fromCharCode(65 + index)}
-              </span>
-              <label className="text-sm text-muted-foreground">
-                Option {String.fromCharCode(65 + index)}
-              </label>
+        {editOptions.map((option, index) => {
+          const optionId = option.id;
+          const isCorrect = isOptionCorrect(optionId);
+
+          return (
+            <div key={optionId || index} className="space-y-2">
+              <div
+                className={`w-full text-left p-6 rounded-lg border-2 transition-all text-base relative ${
+                  isCorrect
+                    ? "border-green-500 bg-green-500/10"
+                    : "border-border hover:border-foreground/20"
+                }`}
+              >
+                <span className="flex items-center gap-4">
+                  {(isSingleSelect || isMultiSelect) && (
+                    <Button
+                      onClick={() => onToggleCorrectAnswer(index)}
+                      title={
+                        isCorrect ? "Mark as incorrect" : "Mark as correct"
+                      }
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                        isCorrect
+                          ? "bg-green-500 hover:bg-green-500/80 text-white"
+                          : "text-gray-400 hover:text-foreground"
+                      }`}
+                      variant="ghost"
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                  )}
+
+                  <Textarea
+                    value={option.text}
+                    onChange={(e) => onOptionChange(index, e.target.value)}
+                    className="flex-1 min-h-[30px] text-base py-2 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
+                    placeholder={`Option ${String.fromCharCode(65 + index)} text`}
+                  />
+
+                  <Button
+                    onClick={() => onRemoveOption(index)}
+                    title="Remove option"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 text-red-400 hover:text-red-500"
+                    variant="ghost"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </span>
+              </div>
             </div>
-            <Textarea
-              value={option.text}
-              onChange={(e) => onOptionChange(index, e.target.value)}
-              className="min-h-[60px]"
-              placeholder={`Option ${String.fromCharCode(65 + index)} text`}
-            />
-          </div>
-        ))}
+          );
+        })}
+
+        <Button
+          onClick={onAddOption}
+          className="w-full py-6 border-2 border-dashed border-border hover:border-foreground/20 text-muted-foreground hover:text-foreground transition-all"
+          variant="ghost"
+        >
+          Add Option
+        </Button>
       </div>
 
-      <div className="mt-8">
+      <div>
         <label className="block text-sm text-muted-foreground mb-2">
           Feedback/Explanation
         </label>
