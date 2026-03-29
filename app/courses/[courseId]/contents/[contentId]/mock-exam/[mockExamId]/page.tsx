@@ -1,18 +1,42 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useSubmitContentQuizMutation } from "@/modules/content-quiz/use-submit-content-quiz-mutation";
 import { Course } from "@/modules/course/course.types";
 import { useGetCourseQuery } from "@/modules/course/use-get-course-query";
+import { ExamBankV2 } from "@/modules/exam-bank-v2/exam-bank-v2.types";
+import { useGetExamBankV2Query } from "@/modules/exam-bank-v2/use-get-exam-bank-v2-query";
 import { useListQuestionsQuery } from "@/modules/exam-bank-v2/use-list-questions-query";
+import { useGetQuestionQuery } from "@/modules/exam-bank-v2/use-get-question-query";
+import { useUpdateQuestionMutation } from "@/modules/exam-bank-v2/use-update-question-mutation";
 import type {
   Question,
   QuestionOption,
+  QuestionV2,
 } from "@/modules/exam-bank/exam-bank.types";
+import { useGetProfileQuery } from "@/modules/user/use-get-profile-query";
 import { useGetMockExamQuery } from "@/modules/user-mock-exams/use-get-mock-exam-query";
 import { MockExam } from "@/modules/user-mock-exams/user-mock-exams.types";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Ban, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  Ban,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Edit,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -62,7 +86,16 @@ function ContentQuizPageInner({
     >
   >({});
 
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    question: "",
+    feedback: "",
+  });
+
   const submitContentQuizMutation = useSubmitContentQuizMutation();
+  const updateQuestionMutation = useUpdateQuestionMutation();
+
+  const { data: user } = useGetProfileQuery();
 
   const { data: questionsResponse, isLoading: isQuestionsLoading } =
     useListQuestionsQuery({
@@ -75,12 +108,29 @@ function ContentQuizPageInner({
 
   const totalQuestions = allQuestions?.length || 0;
 
-  const currentQuestion = useMemo(() => {
+  const currentQuestionWithExamBankId = useMemo(() => {
     if (!questionId || allQuestions.length === 0) {
-      return allQuestions[0];
+      return allQuestions[0] as QuestionV2;
     }
-    return allQuestions.find((q) => q.id === questionId);
+    return allQuestions.find((q) => q.id === questionId) as QuestionV2;
   }, [questionId, allQuestions, mockExam?.currentQuestionId]);
+
+  const { data: examBank } = useGetExamBankV2Query({
+    courseId: params.courseId,
+    examBankId: currentQuestionWithExamBankId?.examBankId || "",
+  });
+
+  const isQuestionAuthor = examBank?.userId === user?.id;
+
+  const { data: currentQuestionData, refetch: refetchQuestion } =
+    useGetQuestionQuery(currentQuestionWithExamBankId?.id || "");
+
+  const currentQuestion = useMemo(() => {
+    if (currentQuestionData) {
+      return currentQuestionData;
+    }
+    return currentQuestionWithExamBankId;
+  }, [currentQuestionData, currentQuestionWithExamBankId]);
 
   const currentIndex = useMemo(() => {
     if (!currentQuestion) return 0;
@@ -269,6 +319,35 @@ function ContentQuizPageInner({
     router.push(`/courses/${params.courseId}/contents/${params.contentId}`);
   };
 
+  const handleEditQuestion = () => {
+    setEditFormData({
+      question: currentQuestion?.question || "",
+      feedback: currentQuestion?.feedback || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveQuestion = async () => {
+    if (!currentQuestion?.id) return;
+
+    try {
+      await updateQuestionMutation.mutateAsync({
+        questionId: currentQuestion.id,
+        updates: {
+          question: editFormData.question,
+          feedback: editFormData.feedback,
+        },
+      });
+      await refetchQuestion();
+      queryClient.invalidateQueries({
+        queryKey: ["questions", mockExam?.id],
+      });
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to update question:", error);
+    }
+  };
+
   const handlePrevious = () => {
     const prevIndex = currentIndex - 1;
 
@@ -333,9 +412,20 @@ function ContentQuizPageInner({
 
         <>
           <div className="mb-8">
-            <p className="text-xl text-foreground leading-relaxed mb-16">
-              {currentQuestion.question}
-            </p>
+            <div className="relative">
+              <p className="text-xl text-foreground leading-relaxed mb-16">
+                {currentQuestion.question}
+              </p>
+              {isQuestionAuthor && (
+                <button
+                  onClick={handleEditQuestion}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-secondary hover:bg-secondary/80 flex items-center justify-center transition-colors"
+                  title="Edit question"
+                >
+                  <Edit className="w-5 h-5" />
+                </button>
+              )}
+            </div>
 
             <div className="space-y-4">
               {currentQuestion.options.map(
@@ -530,6 +620,57 @@ function ContentQuizPageInner({
           )}
         </div>
       </div>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Question</DialogTitle>
+            <DialogDescription>
+              Make changes to the question below. Click save when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="question">Question</Label>
+              <Textarea
+                id="question"
+                value={editFormData.question}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, question: e.target.value })
+                }
+                className="min-h-[100px]"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="feedback">Feedback/Explanation</Label>
+              <Textarea
+                id="feedback"
+                value={editFormData.feedback}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, feedback: e.target.value })
+                }
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveQuestion}
+              disabled={updateQuestionMutation.isPending}
+            >
+              {updateQuestionMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
