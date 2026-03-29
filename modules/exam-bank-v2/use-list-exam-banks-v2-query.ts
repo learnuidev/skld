@@ -10,10 +10,17 @@ import {
 
 export function useListExamBanksV2Query({
   courseId,
+  contentId,
   lastEvaluatedKey,
   limit,
 }: ListExamBanksV2Params) {
   const queryParams = new URLSearchParams();
+  if (courseId) {
+    queryParams.append("courseId", courseId);
+  }
+  if (contentId) {
+    queryParams.append("contentId", contentId);
+  }
   if (lastEvaluatedKey) {
     queryParams.append("lastEvaluatedKey", lastEvaluatedKey);
   }
@@ -22,7 +29,7 @@ export function useListExamBanksV2Query({
   }
 
   return useQuery({
-    queryKey: ["examBanksV2", courseId, lastEvaluatedKey, limit],
+    queryKey: ["examBanksV2", courseId, contentId, lastEvaluatedKey, limit],
     queryFn: async (): Promise<ListExamBanksV2Response> => {
       const session = await fetchAuthSession();
       const token = session.tokens?.idToken?.toString();
@@ -31,7 +38,7 @@ export function useListExamBanksV2Query({
         throw new Error("No authentication token");
       }
 
-      const url = `${appConfig.NEXT_PUBLIC_API_BASE_URL}/courses/${courseId}/v2/exam-banks${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+      const url = `${appConfig.NEXT_PUBLIC_API_BASE_URL}/v2/exam-banks${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
 
       const response = await fetch(url, {
         headers: {
@@ -46,6 +53,6 @@ export function useListExamBanksV2Query({
 
       return response.json();
     },
-    enabled: !!courseId,
+    enabled: !!(!!courseId || !!contentId),
   });
 }

@@ -18,7 +18,8 @@ export interface ListExamBanksV2Response {
 }
 
 export interface ListExamBanksV2Params {
-  courseId: string;
+  courseId?: string;
+  contentId?: string;
   lastEvaluatedKey?: string;
   limit?: number;
 }
