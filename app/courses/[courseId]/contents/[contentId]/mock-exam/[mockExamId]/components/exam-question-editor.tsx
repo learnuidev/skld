@@ -8,6 +8,7 @@ import type {
   QuestionType,
 } from "@/modules/exam-bank/exam-bank.types";
 import { Check, Trash2 } from "lucide-react";
+import { useRef, useEffect } from "react";
 
 interface ExamQuestionEditorProps {
   editQuestionText: string;
@@ -53,10 +54,11 @@ export function ExamQuestionEditor({
   return (
     <div className="mb-8">
       <Textarea
+        contentEditable
+        suppressHydrationWarning
         value={editQuestionText}
         onChange={(e) => onQuestionTextChange(e.target.value)}
-        className="text-xl text-foreground leading-relaxed min-h-[120px] mb-16"
-        placeholder="Question text"
+        className="text-xl text-foreground leading-relaxed min-h-[120px] mb-16 whitespace-pre-wrap border-none bg-transparent outline-none focus:border-transparent focus:ring-0 resize-none focus:border-none focus:outline-none focus-visible:ring-0"
       />
 
       <div className="space-y-4 mb-8">
@@ -131,7 +133,7 @@ export function ExamQuestionEditor({
         <Textarea
           value={editFeedbackText}
           onChange={(e) => onFeedbackTextChange(e.target.value)}
-          className="min-h-[100px]"
+          className="text-xl h-40 text-foreground leading-relaxed mb-16 whitespace-pre-wrap border-none bg-transparent outline-none focus:border-transparent focus:ring-0 resize-none focus:border-none focus:outline-none focus-visible:ring-0"
           placeholder="Add explanation or feedback..."
         />
       </div>
