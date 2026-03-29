@@ -12,3 +12,18 @@ export function getDashboardUrl(id?: string) {
 
   return `/dashboard`;
 }
+
+export function getStudioUrl(id?: string) {
+  if (id) {
+    return `/studio/${id}`;
+  }
+
+  return `/studio`;
+}
+export function getCourseUrl(id?: string) {
+  if (id) {
+    return `/courses/${id}`;
+  }
+
+  return `/courses`;
+}

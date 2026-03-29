@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getDashboardUrl } from "@/lib/utils";
+import { getCourseUrl, getDashboardUrl, getStudioUrl } from "@/lib/utils";
 import { signOut } from "@aws-amplify/auth";
 import { Menu, User, X } from "lucide-react";
 import Link from "next/link";
@@ -39,6 +39,8 @@ export function NavBar() {
   };
 
   const dashboardUrl = getDashboardUrl(params.courseId);
+  const studioUrl = getStudioUrl(params.courseId);
+  const courseUrl = getCourseUrl(params.courseId);
 
   return (
     <nav className="my-0 sm:my-4 flex justify-between items-center sm:mb-12 mb-0">
@@ -51,11 +53,11 @@ export function NavBar() {
           dashboard
         </Link>
 
-        <Link className="font-light" href="/courses">
+        <Link className="font-light" href={courseUrl}>
           courses
         </Link>
 
-        <Link className="font-light" href="/studio">
+        <Link className="font-light" href={studioUrl}>
           studio
         </Link>
       </div>
@@ -99,7 +101,7 @@ export function NavBar() {
 
           <Link
             className="font-light"
-            href="/courses"
+            href={courseUrl}
             onClick={() => setIsOpen(false)}
           >
             courses
@@ -107,7 +109,7 @@ export function NavBar() {
 
           <Link
             className="font-light"
-            href="/studio"
+            href={studioUrl}
             onClick={() => setIsOpen(false)}
           >
             studio
