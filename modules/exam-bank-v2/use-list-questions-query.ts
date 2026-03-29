@@ -6,10 +6,10 @@ import { appConfig } from "@/lib/app-config";
 import { QuestionV2 } from "../exam-bank/exam-bank.types";
 
 export interface ListQuestionsParams {
-  courseId: string;
   contentId?: string;
   questionIds?: string[];
   examBankId?: string;
+  mockExamId?: string;
   lastEvaluatedKey?: string;
   limit?: number;
 }
@@ -20,10 +20,10 @@ export interface ListQuestionsResponse {
 }
 
 export function useListQuestionsQuery({
-  courseId,
   contentId,
   questionIds,
   examBankId,
+  mockExamId,
   lastEvaluatedKey,
   limit,
 }: ListQuestionsParams) {
@@ -33,6 +33,9 @@ export function useListQuestionsQuery({
   }
   if (examBankId) {
     queryParams.append("examBankId", examBankId);
+  }
+  if (mockExamId) {
+    queryParams.append("mockExamId", mockExamId);
   }
   if (questionIds && questionIds.length > 0) {
     queryParams.append("questionIds", questionIds.join(","));
@@ -47,10 +50,10 @@ export function useListQuestionsQuery({
   return useQuery({
     queryKey: [
       "questions",
-      courseId,
       contentId,
       questionIds,
       examBankId,
+      mockExamId,
       lastEvaluatedKey,
       limit,
     ],
@@ -62,7 +65,7 @@ export function useListQuestionsQuery({
         throw new Error("No authentication token");
       }
 
-      const url = `${appConfig.NEXT_PUBLIC_API_BASE_URL}/courses/${courseId}/v2/questions${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+      const url = `${appConfig.NEXT_PUBLIC_API_BASE_URL}/v1/questions${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
 
       const response = await fetch(url, {
         headers: {
@@ -78,7 +81,9 @@ export function useListQuestionsQuery({
       return response.json();
     },
     enabled:
-      !!courseId &&
-      (!!contentId || !!examBankId || (questionIds && questionIds.length > 0)),
+      !!contentId ||
+      !!examBankId ||
+      !!mockExamId ||
+      (questionIds && questionIds.length > 0),
   });
 }
