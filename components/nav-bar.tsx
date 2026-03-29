@@ -11,7 +11,7 @@ import { getCourseUrl, getDashboardUrl, getStudioUrl } from "@/lib/utils";
 import { signOut } from "@aws-amplify/auth";
 import { Menu, User, X } from "lucide-react";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { SkldLogo } from "./skld-logo";
 
@@ -21,7 +21,9 @@ export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const pathName = usePathname();
-  const params = useParams<{ courseId: string }>();
+  const searchParams = useSearchParams();
+  const searchParamsCourseId = searchParams.get("courseId") || "";
+  const params = useParams<{ courseId?: string }>();
   const containsKnowledgeGraph = pathName.includes("knowledge-graph");
   const isContentPage = contentPathRegex.test(pathName);
 
@@ -38,9 +40,11 @@ export function NavBar() {
     }
   };
 
-  const dashboardUrl = getDashboardUrl(params.courseId);
-  const studioUrl = getStudioUrl(params.courseId);
-  const courseUrl = getCourseUrl(params.courseId);
+  const courseId = params.courseId || searchParamsCourseId;
+
+  const dashboardUrl = getDashboardUrl(courseId);
+  const studioUrl = getStudioUrl(courseId);
+  const courseUrl = getCourseUrl(courseId);
 
   return (
     <nav className="my-0 sm:my-4 flex justify-between items-center sm:mb-12 mb-0">

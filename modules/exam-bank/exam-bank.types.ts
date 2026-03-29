@@ -54,6 +54,11 @@ export interface Question {
   correctOptionIds?: string[];
 }
 
+export type QuestionV2 = Question & {
+  examBankId: string;
+  contentId: string;
+};
+
 export interface ExamBank {
   id: string;
   courseId: string;
