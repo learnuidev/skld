@@ -31,6 +31,13 @@ export default function ExamBankDetailPage() {
     title: string;
     description: string;
   }>({ title: "", description: "" });
+  const [changedFields, setChangedFields] = useState<Set<string>>(new Set());
+  const [originalQuestions, setOriginalQuestions] = useState<Question[]>([]);
+  const [questionChanges, setQuestionChanges] = useState<{
+    added: Question[];
+    updated: Question[];
+    removed: string[];
+  }>({ added: [], updated: [], removed: [] });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDifficulty, setFilterDifficulty] = useState<string>("");
@@ -98,20 +105,83 @@ export default function ExamBankDetailPage() {
 
   if (questions.length === 0 && examBank.questions.length > 0) {
     setQuestions(examBank.questions);
+    setOriginalQuestions(examBank.questions);
     setExamBankData({
       title: examBank.title,
       description: examBank.description || "",
     });
+    setChangedFields(new Set());
+    setQuestionChanges({ added: [], updated: [], removed: [] });
+    setHasUnsavedChanges(false);
   }
 
   const handleSave = async () => {
     try {
-      await updateExamBankMutation.mutateAsync({
-        title: examBankData.title,
-        description: examBankData.description,
-        questions,
-      });
+      const updateData: {
+        title?: string;
+        description?: string;
+        questionsAdded?: Question[];
+        questionsUpdated?: Question[];
+        questionIdsRemoved?: string[];
+      } = {};
+
+      if (changedFields.has("title")) {
+        updateData.title = examBankData.title;
+      }
+      if (changedFields.has("description")) {
+        updateData.description = examBankData.description;
+      }
+      if (changedFields.has("questions")) {
+        const added: Question[] = [];
+        const updated: Question[] = [];
+        const removedIds: string[] = [];
+
+        const currentIds = new Set(
+          questions.map((q) => q.id).filter((id) => id),
+        );
+        const originalIds = new Set(
+          originalQuestions.map((q) => q.id).filter((id) => id),
+        );
+
+        questions.forEach((question) => {
+          if (!question.id) {
+            added.push(question);
+          } else if (!originalIds.has(question.id)) {
+            added.push(question);
+          } else {
+            const original = originalQuestions.find(
+              (o) => o.id === question.id,
+            );
+            if (
+              original &&
+              JSON.stringify(original) !== JSON.stringify(question)
+            ) {
+              updated.push(question);
+            }
+          }
+        });
+
+        originalQuestions.forEach((question) => {
+          if (question.id && !currentIds.has(question.id)) {
+            removedIds.push(question.id);
+          }
+        });
+
+        if (added.length > 0) {
+          updateData.questionsAdded = added;
+        }
+        if (updated.length > 0) {
+          updateData.questionsUpdated = updated;
+        }
+        if (removedIds.length > 0) {
+          updateData.questionIdsRemoved = removedIds;
+        }
+      }
+
+      await updateExamBankMutation.mutateAsync(updateData);
       setHasUnsavedChanges(false);
+      setChangedFields(new Set());
+      setOriginalQuestions(questions);
     } catch (error) {
       console.error("Failed to save exam bank:", error);
     }
@@ -126,6 +196,7 @@ export default function ExamBankDetailPage() {
       prev.map((q, i) => (i === index ? { ...q, [field]: value } : q)),
     );
     setHasUnsavedChanges(true);
+    setChangedFields((prev) => new Set([...prev, "questions"]));
   };
 
   const handleOptionUpdate = (
@@ -146,6 +217,7 @@ export default function ExamBankDetailPage() {
       ),
     );
     setHasUnsavedChanges(true);
+    setChangedFields((prev) => new Set([...prev, "questions"]));
   };
 
   const addOption = (questionIndex: number) => {
@@ -160,6 +232,7 @@ export default function ExamBankDetailPage() {
       ),
     );
     setHasUnsavedChanges(true);
+    setChangedFields((prev) => new Set([...prev, "questions"]));
   };
 
   const removeOption = (questionIndex: number, optionIndex: number) => {
@@ -176,6 +249,7 @@ export default function ExamBankDetailPage() {
       ),
     );
     setHasUnsavedChanges(true);
+    setChangedFields((prev) => new Set([...prev, "questions"]));
   };
 
   const removeQuestion = (index: number) => {
@@ -190,6 +264,7 @@ export default function ExamBankDetailPage() {
         setExpandedQuestionIndex(expandedQuestionIndex - 1);
       }
       setHasUnsavedChanges(true);
+      setChangedFields((prev) => new Set([...prev, "questions"]));
     }
   };
 
@@ -214,6 +289,7 @@ export default function ExamBankDetailPage() {
     ]);
     setExpandedQuestionIndex(questions.length);
     setHasUnsavedChanges(true);
+    setChangedFields((prev) => new Set([...prev, "questions"]));
   };
 
   return (
@@ -272,6 +348,7 @@ export default function ExamBankDetailPage() {
             onChange={(e) => {
               setExamBankData({ ...examBankData, title: e.target.value });
               setHasUnsavedChanges(true);
+              setChangedFields((prev) => new Set([...prev, "title"]));
             }}
             className="text-4xl font-light text-slate-900 dark:text-white tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 w-full mb-6 placeholder-slate-300 dark:placeholder-slate-700"
             placeholder="Exam Bank Title"
@@ -285,6 +362,7 @@ export default function ExamBankDetailPage() {
                 description: e.target.value,
               });
               setHasUnsavedChanges(true);
+              setChangedFields((prev) => new Set([...prev, "description"]));
             }}
             className="text-lg text-slate-500 dark:text-slate-400 bg-transparent border-none focus:outline-none focus:ring-0 w-full placeholder-slate-300 dark:placeholder-slate-700"
             placeholder="Add a description..."

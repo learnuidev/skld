@@ -110,5 +110,9 @@ export interface CreateExamBankParams {
 export interface UpdateExamBankParams {
   title?: string;
   description?: string;
-  questions?: Question[];
+
+  // Implement this
+  questionsAdded?: Question[];
+  questionsUpdated?: Question[];
+  questionIdsRemoved?: string[];
 }
